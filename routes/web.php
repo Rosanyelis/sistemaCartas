@@ -10,6 +10,7 @@ Route::inertia('/', 'clientes/welcome', [
 
 Route::inertia('/historias', 'clientes/historias')->name('historias');
 Route::get('/productos', [ProductoController::class, 'index'])->name('productos');
+Route::get('/productos/{slug}', [ProductoController::class, 'show'])->name('productos.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'admin/dashboard')->name('dashboard');

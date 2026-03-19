@@ -12,4 +12,9 @@ class ProductoController extends Controller
     {
         return Inertia::render('clientes/productos');
     }
+
+    public function show(string $slug): Response
+    {
+        return Inertia::render('clientes/detalles-producto');
+    }
 }

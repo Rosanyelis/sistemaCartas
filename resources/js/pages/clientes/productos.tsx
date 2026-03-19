@@ -19,48 +19,56 @@ export default function Productos() {
 
     const products = [
         {
+            slug: 'sello-lacre-artesanal',
             name: 'Sello de Lacre Artesanal',
             desc: 'Un sello de latón grabado a mano con mango de madera de nogal, ideal para sellar tus cartas con elegancia clásica.',
             price: '$24,90',
             img: '/images/products/product-1.png',
         },
         {
+            slug: 'pluma-estilografica-vintage',
             name: 'Pluma Estilográfica Vintage',
             desc: 'Inspirada en los diseños de los años 40, con plumín de acero inoxidable para una escritura fluida y pausada.',
             price: '$24,90',
             img: '/images/products/product-2.png',
         },
         {
+            slug: 'papel-hilo-prensado',
             name: 'Papel de Hilo Prensado',
             desc: '25 pliegos de papel de alta calidad con textura artesanal, perfecto para conservar tus pensamientos más valiosos.',
             price: '$24,90',
             img: '/images/products/product-3.png',
         },
         {
+            slug: 'kit-lacre-real',
             name: 'Kit de Lacre Real',
             desc: 'Set completo con sello de latón personalizado, cuchara de fundición y tres barras de cera borgoña.',
             price: '$24,90',
             img: '/images/products/product-4.png',
         },
         {
+            slug: 'sobres-artesanales',
             name: 'Sobres Artesanales',
             desc: 'Paquete de 10 sobres con bordes rasgados a mano y forro interior de seda color azul marino.',
             price: '$24,90',
             img: '/images/products/product-5.png',
         },
         {
+            slug: 'abrecartas-bronce',
             name: 'Abrecartas de Bronce',
             desc: 'Pieza de escritorio fundida en bronce con motivo de pluma de ave. Un clásico esencial.',
             price: '$24,90',
             img: '/images/products/product-6.png',
         },
         {
+            slug: 'pluma-estilografica-vintage-2',
             name: 'Pluma Estilográfica Vintage',
             desc: 'Inspirada en los diseños de los años 40, con plumín de acero inoxidable para una escritura fluida y pausada.',
             price: '$24,90',
             img: '/images/products/product-1.png',
         },
         {
+            slug: 'sello-lacre-artesanal-2',
             name: 'Sello de Lacre Artesanal',
             desc: 'Un sello de latón grabado a mano con mango de madera de nogal, ideal para sellar tus cartas con elegancia clásica.',
             price: '$24,90',

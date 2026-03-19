@@ -1,3 +1,5 @@
+import { Link } from '@inertiajs/react';
+import { show } from '@/routes/productos';
 import type { Product } from '@/types/welcome';
 
 interface GridProductsSectionProps {
@@ -17,21 +19,26 @@ export default function GridProductsSection({
                             className="group flex flex-col items-start gap-4 overflow-hidden rounded-sm bg-white pb-6 shadow-[0px_0px_16px_rgba(0,0,0,0.04)]"
                         >
                             {/* Image Container */}
-                            <div className="relative h-[350px] w-full overflow-hidden">
+                            <Link 
+                                href={show.url(product.slug)}
+                                className="relative h-[350px] w-full overflow-hidden"
+                            >
                                 <img
                                     src={product.img}
                                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                                     alt={product.name}
                                 />
                                 <div className="absolute inset-0 bg-black/5 opacity-0 transition-opacity group-hover:opacity-100"></div>
-                            </div>
+                            </Link>
 
                             {/* Content */}
                             <div className="flex flex-1 flex-col gap-4 px-4">
                                 <div className="flex flex-1 flex-col gap-3">
-                                    <h3 className="font-['Inter',sans-serif] text-[18px] leading-tight font-semibold text-[#1B3D6D]">
-                                        {product.name}
-                                    </h3>
+                                    <Link href={show.url(product.slug)}>
+                                        <h3 className="font-['Inter',sans-serif] text-[18px] leading-tight font-semibold text-[#1B3D6D] hover:underline">
+                                            {product.name}
+                                        </h3>
+                                    </Link>
                                     <p className="line-clamp-4 font-['Inter',sans-serif] text-[14px] leading-[22px] font-normal text-[#7B7B7B]">
                                         {product.desc}
                                     </p>
@@ -41,11 +48,14 @@ export default function GridProductsSection({
                                     <span className="font-['Playfair_Display',serif] text-[30px] leading-none font-normal text-[#1B3D6D]">
                                         {product.price}
                                     </span>
-                                    <button className="flex h-[39px] items-center justify-center rounded-[2px] bg-[#1B3D6D] px-5 py-[10px] text-white transition duration-300 hover:scale-[1.02] hover:bg-[#1B3D6D]/90">
+                                    <Link 
+                                        href={show.url(product.slug)}
+                                        className="flex h-[39px] items-center justify-center rounded-[2px] bg-[#1B3D6D] px-5 py-[10px] text-white transition duration-300 hover:scale-[1.02] hover:bg-[#1B3D6D]/90"
+                                    >
                                         <span className="font-['Inter',sans-serif] text-[14px] leading-none font-semibold">
                                             Ver detalles
                                         </span>
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         </div>
