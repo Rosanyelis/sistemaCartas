@@ -110,7 +110,7 @@ estética sofisticada y clásica, con un enfoque nítido en el sello grande.`;
                             </div>
 
                             {/* Thumbnails - Order 2 on mobile, 1 on desktop */}
-                            <div className="order-2 flex flex-row gap-4 lg:flex-col">
+                            <div className="order-2 flex flex-row gap-4 lg:order-1 lg:flex-col">
                                 {images.map((img, i) => (
                                     <button
                                         key={i}
