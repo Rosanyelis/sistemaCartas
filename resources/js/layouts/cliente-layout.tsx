@@ -72,7 +72,7 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
                                 Historias
                             </Link>
                             <Link
-                                href="/#productos"
+                                href="/productos"
                                 className="border-b-2 border-transparent pb-1 font-['Inter',sans-serif] text-[16px] leading-[19px] font-normal text-[#1B3D6D] transition duration-300 hover:border-[#D7C181] focus:border-[#D7C181]"
                             >
                                 Productos
@@ -163,7 +163,7 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
                             Historias
                         </Link>
                         <Link
-                            href="/#productos"
+                            href="/productos"
                             onClick={() => setIsMobileMenuOpen(false)}
                             className="flex items-center border-b border-[#f0ece3] py-4 font-['Inter',sans-serif] text-[15px] font-medium text-[#1B3D6D]"
                         >
@@ -272,7 +272,7 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
                                 Historias
                             </Link>
                             <Link
-                                href="/#productos"
+                                href="/productos"
                                 className="font-['Inter',sans-serif] text-[16px] leading-[22px] font-normal text-white transition hover:underline"
                             >
                                 Productos
