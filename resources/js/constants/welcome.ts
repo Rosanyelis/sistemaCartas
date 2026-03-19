@@ -1,4 +1,4 @@
-import { Story, Product, Testimonial } from '@/types/welcome';
+import type { Story, Product, Testimonial } from '@/types/welcome';
 
 export const defaultStories: Story[] = [
     {

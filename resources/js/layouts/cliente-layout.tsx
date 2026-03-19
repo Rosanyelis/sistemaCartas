@@ -1,8 +1,9 @@
-import { Head, Link, usePage } from '@inertiajs/react';
-import { useState, ReactNode } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser } from '@fortawesome/free-regular-svg-icons';
 import { faCartShopping } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Head, Link, usePage } from '@inertiajs/react';
+import type { ReactNode } from 'react';
+import { useState } from 'react';
 
 interface ClienteLayoutProps {
     children: ReactNode;
