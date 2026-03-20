@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Clientes\HistoriaController;
 use App\Http\Controllers\Clientes\ProductoController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -8,7 +9,8 @@ Route::inertia('/', 'clientes/welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
-Route::inertia('/historias', 'clientes/historias')->name('historias');
+Route::get('/historias', [HistoriaController::class, 'index'])->name('historias');
+Route::get('/historias/{slug}', [HistoriaController::class, 'show'])->name('historias.show');
 Route::get('/productos', [ProductoController::class, 'index'])->name('productos');
 Route::get('/productos/{slug}', [ProductoController::class, 'show'])->name('productos.show');
 

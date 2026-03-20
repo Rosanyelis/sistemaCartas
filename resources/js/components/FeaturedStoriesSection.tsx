@@ -1,3 +1,5 @@
+import { Link } from '@inertiajs/react';
+import { show } from '@/routes/historias';
 import type { Story } from '@/types/welcome';
 
 interface FeaturedStoriesSectionProps {
@@ -52,11 +54,18 @@ export default function FeaturedStoriesSection({
                                         </span>
                                     </h4>
                                 </div>
-                                <button className="flex h-[39px] w-[150px] items-center justify-center rounded-[2px] border border-white bg-[rgba(255,255,255,0.2)] px-5 py-[10px] text-white transition duration-300 hover:bg-white hover:text-[#1B3D6D]">
+                                <Link
+                                    href={show(
+                                        story.title
+                                            .toLowerCase()
+                                            .replace(/ /g, '-'),
+                                    ).url}
+                                    className="flex h-[39px] w-[150px] items-center justify-center rounded-[2px] border border-white bg-[rgba(255,255,255,0.2)] px-5 py-[10px] text-white transition duration-300 hover:bg-white hover:text-[#1B3D6D]"
+                                >
                                     <span className="font-['Inter',sans-serif] text-[16px] leading-[19px] font-semibold transition group-hover:text-[#111]">
                                         Ver historia
                                     </span>
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     ))}
