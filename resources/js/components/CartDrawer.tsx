@@ -27,6 +27,9 @@ interface CartDrawerProps {
 }
 
 const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
+    const [view, setView] = React.useState<'cart' | 'checkout'>('cart');
+    const [selectedPayment, setSelectedPayment] = React.useState<string>('stripe');
+
     // Mock items based on the reference image
     const [items, setItems] = React.useState<CartItem[]>([
         {
@@ -93,7 +96,9 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         {/* Header */}
                         <div className="flex items-center justify-between border-b border-[#DCDCDC] pb-3">
                             <h2 className="font-['Inter',sans-serif] text-[20px] font-bold text-[#1B3D6D] lg:text-[22px]">
-                                Carrito de compras
+                                {view === 'cart'
+                                    ? 'Carrito de compras'
+                                    : 'Finalizar compra'}
                             </h2>
                             <button
                                 onClick={onClose}
@@ -105,223 +110,451 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                                 />
                             </button>
                         </div>
+                        {view === 'cart' ? (
+                            <>
+                                {/* Items List */}
+                                <div className="flex flex-col gap-2">
+                                    {items.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className="relative flex gap-3 rounded-[2px] bg-white p-2.5 shadow-[0px_4px_12px_rgba(0,0,0,0.02)]"
+                                        >
+                                            {/* Delete icon top-right */}
+                                            <button
+                                                onClick={() =>
+                                                    removeItem(item.id)
+                                                }
+                                                className="absolute top-2 right-2 text-[#7B7B7B] transition hover:text-red-500"
+                                            >
+                                                <FontAwesomeIcon
+                                                    icon={faTrashAlt}
+                                                    className="text-[12px]"
+                                                />
+                                            </button>
 
-                        {/* Items List */}
-                        <div className="flex flex-col gap-2">
-                            {items.map((item) => (
-                                <div
-                                    key={item.id}
-                                    className="relative flex gap-3 rounded-[2px] bg-white p-2.5 shadow-[0px_4px_12px_rgba(0,0,0,0.02)]"
-                                >
-                                    {/* Delete icon top-right */}
-                                    <button
-                                        onClick={() => removeItem(item.id)}
-                                        className="absolute top-2 right-2 text-[#7B7B7B] transition hover:text-red-500"
-                                    >
-                                        <FontAwesomeIcon
-                                            icon={faTrashAlt}
-                                            className="text-[12px]"
-                                        />
-                                    </button>
+                                            {/* Image */}
+                                            <img
+                                                src={item.image}
+                                                alt={item.title}
+                                                className="h-[48px] w-[48px] flex-shrink-0 rounded-[1px] object-cover"
+                                            />
 
-                                    {/* Image */}
-                                    <img
-                                        src={item.image}
-                                        alt={item.title}
-                                        className="h-[48px] w-[48px] flex-shrink-0 rounded-[1px] object-cover"
-                                    />
+                                            {/* Content */}
+                                            <div className="flex flex-1 flex-col justify-between pr-4">
+                                                <div className="flex flex-col">
+                                                    <h3 className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D] lg:text-[15px]">
+                                                        {item.title}
+                                                    </h3>
+                                                    <span className="font-['Inter',sans-serif] text-[12px] text-[#7B7B7B]">
+                                                        {item.subtitle}
+                                                    </span>
+                                                </div>
 
-                                    {/* Content */}
-                                    <div className="flex flex-1 flex-col justify-between pr-4">
-                                        <div className="flex flex-col">
-                                            <h3 className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D] lg:text-[15px]">
-                                                {item.title}
-                                            </h3>
-                                            <span className="font-['Inter',sans-serif] text-[12px] text-[#7B7B7B]">
-                                                {item.subtitle}
+                                                <div className="mt-2 flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="font-['Inter',sans-serif] text-[14px] font-semibold text-[#1B3D6D]">
+                                                            $
+                                                            {item.price
+                                                                .toFixed(2)
+                                                                .replace(
+                                                                    '.',
+                                                                    ',',
+                                                                )}
+                                                        </span>
+
+                                                        {item.type !==
+                                                            'recurrente' &&
+                                                            item.quantity !==
+                                                                undefined && (
+                                                                <div className="flex h-[20px] items-center rounded-[1px] bg-[#F5F5FF] px-1 shadow-[inset_0px_1px_2px_rgba(0,0,0,0.03)]">
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            updateQuantity(
+                                                                                item.id,
+                                                                                -1,
+                                                                            )
+                                                                        }
+                                                                        className="flex px-1.5 text-[#1B3D6D] transition hover:opacity-50"
+                                                                    >
+                                                                        <FontAwesomeIcon
+                                                                            icon={
+                                                                                faMinus
+                                                                            }
+                                                                            className="text-[7px]"
+                                                                        />
+                                                                    </button>
+                                                                    <span className="min-w-[14px] text-center font-['Roboto',sans-serif] text-[12px] font-medium text-[#1B3D6D]">
+                                                                        {
+                                                                            item.quantity
+                                                                        }
+                                                                    </span>
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            updateQuantity(
+                                                                                item.id,
+                                                                                1,
+                                                                            )
+                                                                        }
+                                                                        className="flex px-1.5 text-[#1B3D6D] transition hover:opacity-50"
+                                                                    >
+                                                                        <FontAwesomeIcon
+                                                                            icon={
+                                                                                faPlus
+                                                                            }
+                                                                            className="text-[7px]"
+                                                                        />
+                                                                    </button>
+                                                                </div>
+                                                            )}
+
+                                                        {item.type !==
+                                                            'recurrente' && (
+                                                            <span className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D]">
+                                                                $
+                                                                {(
+                                                                    item.price *
+                                                                    (item.quantity ||
+                                                                        1)
+                                                                )
+                                                                    .toFixed(2)
+                                                                    .replace(
+                                                                        '.',
+                                                                        ',',
+                                                                    )}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Badge bottom-right */}
+                                            <div className="absolute right-2 bottom-2 rounded-[1px] bg-[rgba(27,61,109,0.08)] px-[6px] py-[2px]">
+                                                <span className="font-['Inter',sans-serif] text-[10px] font-medium text-[#1B3D6D]">
+                                                    {item.badge}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Divider Line */}
+                                <div className="my-1 border-b border-[#DCDCDC]" />
+
+                                {/* Summary Details */}
+                                <div className="flex flex-col gap-3 py-1">
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#475569]">
+                                            Subtotal
+                                        </span>
+                                        <span className="font-['Inter',sans-serif] text-[15px] font-medium text-[#475569]">
+                                            $
+                                            {subtotal
+                                                .toFixed(2)
+                                                .replace('.', ',')}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#1B3D6D]">
+                                                    Envío
+                                                </span>
+                                                <button className="flex h-4 w-4 items-center justify-center rounded-full border border-[#1B3D6D] text-[10px] text-[#1B3D6D] transition hover:bg-[#1B3D6D] hover:text-white">
+                                                    <FontAwesomeIcon
+                                                        icon={faInfo}
+                                                        className="text-[8px]"
+                                                    />
+                                                </button>
+                                            </div>
+                                            <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#1B3D6D]">
+                                                Gratis
                                             </span>
                                         </div>
+                                        <p className="mt-1 text-right font-['Inter',sans-serif] text-[11px] font-light text-[#1B3D6D] italic opacity-60">
+                                            Envío gratuito incluido por tu
+                                            suscripción activa.
+                                        </p>
+                                    </div>
 
-                                        <div className="mt-2 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <span className="font-['Inter',sans-serif] text-[14px] font-semibold text-[#1B3D6D]">
-                                                    $
-                                                    {item.price
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#475569]">
+                                            IVA (21%)
+                                        </span>
+                                        <span className="font-['Inter',sans-serif] text-[15px] font-medium text-[#475569]">
+                                            ${iva.toFixed(2).replace('.', ',')}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Divider Line */}
+                                <div className="my-1 border-b border-[#DCDCDC]" />
+
+                                {/* Total Section */}
+                                <div className="flex items-end justify-between py-2">
+                                    <span className="font-['Inter',sans-serif] text-[20px] font-bold text-[#1B3D6D]">
+                                        Total
+                                    </span>
+                                    <div className="flex flex-col items-end">
+                                        <div className="flex items-baseline">
+                                            <span className="mr-0.5 font-['Playfair_Display',serif] text-[28px] font-light text-[#1B3D6D] lg:text-[32px]">
+                                                $
+                                            </span>
+                                            <span className="font-['Playfair_Display',serif] text-[38px] font-bold leading-none text-[#1B3D6D] lg:text-[42px]">
+                                                {
+                                                    total
                                                         .toFixed(2)
-                                                        .replace('.', ',')}
-                                                </span>
+                                                        .replace('.', ',')
+                                                        .split(',')[0]
+                                                }
+                                            </span>
+                                            <span className="font-['Playfair_Display',serif] text-[24px] font-bold leading-none text-[#1B3D6D]">
+                                                ,
+                                                {
+                                                    total
+                                                        .toFixed(2)
+                                                        .split('.')[1]
+                                                }
+                                            </span>
+                                        </div>
+                                        <span className="text-[10px] font-medium text-[#1B3D6D] opacity-60">
+                                            IVA Incluido
+                                        </span>
+                                    </div>
+                                </div>
 
-                                                {item.type !== 'recurrente' &&
-                                                    item.quantity !==
-                                                        undefined && (
-                                                        <div className="flex h-[20px] items-center rounded-[1px] bg-[#F5F5FF] px-1 shadow-[inset_0px_1px_2px_rgba(0,0,0,0.03)]">
-                                                            <button
-                                                                onClick={() =>
-                                                                    updateQuantity(
-                                                                        item.id,
-                                                                        -1,
-                                                                    )
-                                                                }
-                                                                className="flex px-1.5 text-[#1B3D6D] transition hover:opacity-50"
-                                                            >
-                                                                <FontAwesomeIcon
-                                                                    icon={
-                                                                        faMinus
-                                                                    }
-                                                                    className="text-[7px]"
-                                                                />
-                                                            </button>
-                                                            <span className="min-w-[14px] text-center font-['Roboto',sans-serif] text-[12px] font-medium text-[#1B3D6D]">
-                                                                {item.quantity}
-                                                            </span>
-                                                            <button
-                                                                onClick={() =>
-                                                                    updateQuantity(
-                                                                        item.id,
-                                                                        1,
-                                                                    )
-                                                                }
-                                                                className="flex px-1.5 text-[#1B3D6D] transition hover:opacity-50"
-                                                            >
-                                                                <FontAwesomeIcon
-                                                                    icon={
-                                                                        faPlus
-                                                                    }
-                                                                    className="text-[7px]"
-                                                                />
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                {/* CTA Button */}
+                                <button
+                                    onClick={() => setView('checkout')}
+                                    className="mt-2 w-full rounded-[2px] bg-[#1B3D6D] py-[14px] text-white shadow-lg transition hover:bg-[#163158]"
+                                >
+                                    <span className="font-['Inter',sans-serif] text-[15px] font-bold tracking-wide">
+                                        Proceder al pago
+                                    </span>
+                                </button>
 
-                                                {item.type !== 'recurrente' && (
-                                                    <span className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D]">
-                                                        $
-                                                        {(
-                                                            item.price *
-                                                            (item.quantity || 1)
-                                                        )
-                                                            .toFixed(2)
-                                                            .replace('.', ',')}
-                                                    </span>
-                                                )}
+                                {/* Small Trust Badges */}
+                                <div className="mt-4 flex flex-col gap-3">
+                                    <div className="flex items-center gap-3 text-[#1B3D6D] opacity-80">
+                                        <ShieldCheck
+                                            size={20}
+                                            strokeWidth={1.5}
+                                        />
+                                        <span className="font-['Inter',sans-serif] text-[12px] font-medium">
+                                            Pago Seguro: Encriptación SSL 256
+                                            bits
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-[#1B3D6D] opacity-80">
+                                        <Truck size={20} strokeWidth={1.5} />
+                                        <span className="font-['Inter',sans-serif] text-[12px] font-medium">
+                                            Envío Protegido: Embalaje sostenible
+                                            y seguro
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-[#1B3D6D] opacity-80">
+                                        <History
+                                            size={20}
+                                            strokeWidth={1.5}
+                                        />
+                                        <span className="font-['Inter',sans-serif] text-[12px] font-medium">
+                                            Devolución garantizada en 14 días
+                                        </span>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex flex-col gap-6 py-4">
+                                {/* Section 1: Envío */}
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-[#1B3D6D] font-bold text-white">
+                                            1
+                                        </div>
+                                        <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#1B3D6D]">
+                                            Información de Envío
+                                        </h3>
+                                    </div>
+
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
+                                                Nombre completo
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Ej. Alejandro Magno"
+                                                className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
+                                            />
+                                        </div>
+
+                                        <div className="flex flex-col gap-1.5">
+                                            <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
+                                                Dirección postal
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder="Calle, número, piso..."
+                                                className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
+                                                    Ciudad
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Madrid"
+                                                    className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1.5">
+                                                <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
+                                                    Código Postal
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="28001"
+                                                    className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
+                                                />
                                             </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    {/* Badge bottom-right */}
-                                    <div className="absolute right-2 bottom-2 rounded-[1px] bg-[rgba(27,61,109,0.08)] px-[6px] py-[2px]">
-                                        <span className="font-['Inter',sans-serif] text-[10px] font-medium text-[#1B3D6D]">
-                                            {item.badge}
-                                        </span>
+                                <div className="border-b border-[#DCDCDC]" />
+
+                                {/* Section 2: Pago */}
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-[#1B3D6D] font-bold text-white">
+                                            2
+                                        </div>
+                                        <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#1B3D6D]">
+                                            Método de Pago
+                                        </h3>
+                                    </div>
+
+                                    <div className="flex flex-col gap-3">
+                                        {/* Stripe Option */}
+                                        <label
+                                            className={`relative flex cursor-pointer items-center justify-between rounded-[2px] border p-4 transition-all duration-300 ${selectedPayment === 'stripe' ? 'border-[#1B3D6D] bg-[#E1EFFF]' : 'border-[#DCDCDC] bg-white'}`}
+                                            onClick={() =>
+                                                setSelectedPayment('stripe')
+                                            }
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedPayment === 'stripe' ? 'border-[#1B3D6D] bg-[#1B3D6D]' : 'border-[#DCDCDC]'}`}
+                                                >
+                                                    {selectedPayment ===
+                                                        'stripe' && (
+                                                        <div className="h-2 w-2 rounded-full bg-white" />
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#1B3D6D]">
+                                                            Tarjeta de
+                                                            Crédito/Débito
+                                                        </span>
+                                                        <i className="fa-brands fa-stripe text-[#635BFF]"></i>
+                                                    </div>
+                                                    <span className="font-['Inter',sans-serif] text-[12px] font-light text-[#1B3D6D] opacity-70">
+                                                        Recomendado para
+                                                        suscripciones (Stripe)
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="rounded-[1px] bg-[rgba(27,61,109,0.08)] px-[6px] py-[2px]">
+                                                <span className="font-['Inter',sans-serif] text-[10px] font-medium text-[#1B3D6D]">
+                                                    Recurrente
+                                                </span>
+                                            </div>
+                                        </label>
+
+                                        {/* PayPal Option */}
+                                        <label
+                                            className={`relative flex cursor-pointer items-center justify-between rounded-[2px] border p-4 transition-all duration-300 ${selectedPayment === 'paypal' ? 'border-[#1B3D6D] bg-[#E1EFFF]' : 'border-[#DCDCDC] bg-white'}`}
+                                            onClick={() =>
+                                                setSelectedPayment('paypal')
+                                            }
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedPayment === 'paypal' ? 'border-[#1B3D6D] bg-[#1B3D6D]' : 'border-[#DCDCDC]'}`}
+                                                >
+                                                    {selectedPayment ===
+                                                        'paypal' && (
+                                                        <div className="h-2 w-2 rounded-full bg-white" />
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#1B3D6D]">
+                                                        PayPal
+                                                    </span>
+                                                    <i className="fa-brands fa-paypal text-[#003087]"></i>
+                                                </div>
+                                            </div>
+                                            <div className="rounded-[1px] bg-[rgba(27,61,109,0.08)] px-[6px] py-[2px]">
+                                                <span className="font-['Inter',sans-serif] text-[10px] font-medium text-[#1B3D6D]">
+                                                    Pago Único
+                                                </span>
+                                            </div>
+                                        </label>
+
+                                        {/* Mercado Pago Option */}
+                                        <label
+                                            className={`relative flex cursor-pointer items-center justify-between rounded-[2px] border p-4 transition-all duration-300 ${selectedPayment === 'mercadopago' ? 'border-[#1B3D6D] bg-[#E1EFFF]' : 'border-[#DCDCDC] bg-white'}`}
+                                            onClick={() =>
+                                                setSelectedPayment(
+                                                    'mercadopago',
+                                                )
+                                            }
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div
+                                                    className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedPayment === 'mercadopago' ? 'border-[#1B3D6D] bg-[#1B3D6D]' : 'border-[#DCDCDC]'}`}
+                                                >
+                                                    {selectedPayment ===
+                                                        'mercadopago' && (
+                                                        <div className="h-2 w-2 rounded-full bg-white" />
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#1B3D6D]">
+                                                        Mercado Pago
+                                                    </span>
+                                                    <i className="fa-solid fa-credit-card text-[#009EE3]"></i>
+                                                </div>
+                                            </div>
+                                            <div className="rounded-[1px] bg-[rgba(27,61,109,0.08)] px-[6px] py-[2px]">
+                                                <span className="font-['Inter',sans-serif] text-[10px] font-medium text-[#1B3D6D]">
+                                                    Pago Único
+                                                </span>
+                                            </div>
+                                        </label>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
 
-                        {/* Divider Line */}
-                        <div className="my-1 border-b border-[#DCDCDC]" />
-
-                        {/* Summary Details */}
-                        <div className="flex flex-col gap-3 py-1">
-                            <div className="flex items-center justify-between">
-                                <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#475569]">
-                                    Subtotal
-                                </span>
-                                <span className="font-['Inter',sans-serif] text-[15px] font-medium text-[#475569]">
-                                    ${subtotal.toFixed(2).replace('.', ',')}
-                                </span>
-                            </div>
-
-                            <div className="flex flex-col">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#1B3D6D]">
-                                            Envío
-                                        </span>
-                                        <button className="flex h-4 w-4 items-center justify-center rounded-full border border-[#1B3D6D] text-[10px] text-[#1B3D6D] transition hover:bg-[#1B3D6D] hover:text-white">
-                                            <FontAwesomeIcon icon={faInfo} className="text-[8px]" />
-                                        </button>
-                                    </div>
-                                    <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#1B3D6D]">
-                                        Gratis
+                                {/* CTA Button Finalizar */}
+                                <button className="mt-4 flex w-full items-center justify-center gap-3 rounded-[2px] bg-[#1B3D6D] py-[14px] text-white shadow-lg transition hover:bg-[#163158]">
+                                    <span className="font-['Inter',sans-serif] text-[15px] font-bold tracking-wide">
+                                        Finalizar Compra
                                     </span>
-                                </div>
-                                <p className="mt-1 text-right font-['Inter',sans-serif] text-[11px] font-light text-[#1B3D6D] italic opacity-60">
-                                    Envío gratuito incluido por tu suscripción
-                                    activa.
-                                </p>
-                            </div>
+                                </button>
 
-                            <div className="flex items-center justify-between">
-                                <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#475569]">
-                                    IVA (21%)
-                                </span>
-                                <span className="font-['Inter',sans-serif] text-[15px] font-medium text-[#475569]">
-                                    ${iva.toFixed(2).replace('.', ',')}
-                                </span>
+                                {/* Volver al carrito */}
+                                <button
+                                    onClick={() => setView('cart')}
+                                    className="text-center font-['Inter',sans-serif] text-[13px] font-semibold text-[#1B3D6D] underline opacity-70 hover:opacity-100"
+                                >
+                                    Volver al carrito
+                                </button>
                             </div>
-                        </div>
-
-                        {/* Divider Line */}
-                        <div className="my-1 border-b border-[#DCDCDC]" />
-
-                        {/* Total Section */}
-                        <div className="flex items-end justify-between py-2">
-                            <span className="font-['Inter',sans-serif] text-[20px] font-bold text-[#1B3D6D]">
-                                Total
-                            </span>
-                            <div className="flex flex-col items-end">
-                                <div className="flex items-baseline">
-                                    <span className="mr-0.5 font-['Playfair_Display',serif] text-[28px] font-light text-[#1B3D6D] lg:text-[32px]">
-                                        $
-                                    </span>
-                                    <span className="font-['Playfair_Display',serif] text-[38px] leading-none font-bold text-[#1B3D6D] lg:text-[42px]">
-                                        {
-                                            total
-                                                .toFixed(2)
-                                                .replace('.', ',')
-                                                .split(',')[0]
-                                        }
-                                    </span>
-                                    <span className="font-['Playfair_Display',serif] text-[24px] leading-none font-bold text-[#1B3D6D]">
-                                        ,{total.toFixed(2).split('.')[1]}
-                                    </span>
-                                </div>
-                                <span className="text-[10px] font-medium text-[#1B3D6D] opacity-60">
-                                    IVA Incluido
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* CTA Button */}
-                        <button className="mt-2 w-full rounded-[2px] bg-[#1B3D6D] py-[14px] text-white shadow-lg transition hover:bg-[#163158]">
-                            <span className="font-['Inter',sans-serif] text-[15px] font-bold tracking-wide">
-                                Proceder al pago
-                            </span>
-                        </button>
-
-                        {/* Small Trust Badges */}
-                        <div className="mt-4 flex flex-col gap-3">
-                            <div className="flex items-center gap-3 text-[#1B3D6D] opacity-80">
-                                <ShieldCheck size={20} strokeWidth={1.5} />
-                                <span className="font-['Inter',sans-serif] text-[12px] font-medium">
-                                    Pago Seguro: Encriptación SSL 256 bits
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3 text-[#1B3D6D] opacity-80">
-                                <Truck size={20} strokeWidth={1.5} />
-                                <span className="font-['Inter',sans-serif] text-[12px] font-medium">
-                                    Envío Protegido: Embalaje sostenible y
-                                    seguro
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-3 text-[#1B3D6D] opacity-80">
-                                <History size={20} strokeWidth={1.5} />
-                                <span className="font-['Inter',sans-serif] text-[12px] font-medium">
-                                    Devolución garantizada en 14 días
-                                </span>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 
