@@ -3,7 +3,8 @@ import { faCartShopping } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import CartDrawer from '@/components/CartDrawer';
 
 interface ClienteLayoutProps {
     children: ReactNode;
@@ -12,11 +13,21 @@ interface ClienteLayoutProps {
 export default function ClienteLayout({ children }: ClienteLayoutProps) {
     const { auth } = usePage().props as any;
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+
+    // Disable body scroll when cart or mobile menu is open
+    useEffect(() => {
+        if (isCartOpen || isMobileMenuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+    }, [isCartOpen, isMobileMenuOpen]);
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-[#FFFCF4] font-['Inter',sans-serif] text-[#3e352f]">
             {/* Header / Navegación */}
-            <header className="fixed top-0 z-50 w-full border-b border-[#e8e4d9] bg-white shadow-[0px_0px_16px_rgba(0,0,0,0.04)]">
+            <header className="fixed top-0 z-[70] w-full border-b border-[#e8e4d9] bg-white shadow-[0px_0px_16px_rgba(0,0,0,0.04)]">
                 <div className="mx-auto flex h-[80px] max-w-7xl items-center justify-between px-5 md:px-[71px]">
                     {/* Izquierda mobile: hamburger + texto marca */}
                     <div className="flex items-center gap-2 md:hidden">
@@ -102,7 +113,10 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
                                     />
                                 </Link>
                             )}
-                            <button className="flex h-10 w-10 items-center justify-center bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] transition duration-300 hover:bg-[#eae4d3]">
+                            <button
+                                onClick={() => setIsCartOpen(true)}
+                                className={`flex h-10 w-10 items-center justify-center transition duration-300 ${isCartOpen ? 'bg-[#D7C181] text-[#1B3D6D] shadow-md' : 'bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] hover:bg-[#eae4d3]'}`}
+                            >
                                 <FontAwesomeIcon
                                     icon={faCartShopping}
                                     className="text-xl"
@@ -126,7 +140,7 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
                         ) : (
                             <Link
                                 href="/login"
-                                className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] transition duration-300 hover:bg-[#eae4d3]"
+                                className="flex h-10 w-10 items-center justify-center bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] transition duration-300 hover:bg-[#eae4d3]"
                             >
                                 <FontAwesomeIcon
                                     icon={faUser}
@@ -134,7 +148,10 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
                                 />
                             </Link>
                         )}
-                        <button className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] transition duration-300 hover:bg-[#eae4d3]">
+                        <button
+                            onClick={() => setIsCartOpen(true)}
+                            className={`flex h-10 w-10 items-center justify-center transition duration-300 ${isCartOpen ? 'bg-[#D7C181] text-[#1B3D6D] shadow-md' : 'bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] hover:bg-[#eae4d3]'}`}
+                        >
                             <FontAwesomeIcon
                                 icon={faCartShopping}
                                 className="text-lg"
@@ -189,6 +206,12 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
                     </nav>
                 </div>
             </header>
+
+            {/* Cart Drawer */}
+            <CartDrawer
+                isOpen={isCartOpen}
+                onClose={() => setIsCartOpen(false)}
+            />
 
             {/* Main Content */}
             <main>{children}</main>
