@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
 });
 
 use App\Http\Controllers\User\OrdenController;
+use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\SuscripcionController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -49,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('orders', [OrdenController::class, 'index'])->name('user.orders');
     Route::get('subscriptions', [SuscripcionController::class, 'index'])->name('user.subscriptions');
+    Route::get('profile', [ProfileController::class, 'index'])->name('user.profile');
 });
 
 require __DIR__.'/settings.php';
