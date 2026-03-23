@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
 });
 
 use App\Http\Controllers\User\OrdenController;
+use App\Http\Controllers\User\SuscripcionController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function (Request $request) {
@@ -47,6 +48,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('orders', [OrdenController::class, 'index'])->name('user.orders');
+    Route::get('subscriptions', [SuscripcionController::class, 'index'])->name('user.subscriptions');
 });
 
 require __DIR__.'/settings.php';

@@ -11,12 +11,13 @@ interface UserLayoutProps {
 
 export default function UserLayout({ children, title }: UserLayoutProps) {
     const { auth } = usePage().props as any;
+    const { url } = usePage();
     const [isSidebarOpen, setIsSidebarOpen] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
 
     const menuItems = [
-        { name: 'Ordenes', icon: faCartShopping, href: '/orders', active: true },
-        { name: 'Suscripciones', icon: faUsers, href: '/subscriptions', active: false },
-        { name: 'Perfil', icon: faUser, href: '/profile', active: false },
+        { name: 'Ordenes', icon: faCartShopping, href: '/orders', active: url.startsWith('/orders') },
+        { name: 'Suscripciones', icon: faUsers, href: '/subscriptions', active: url.startsWith('/subscriptions') },
+        { name: 'Perfil', icon: faUser, href: '/profile', active: url.startsWith('/profile') },
     ];
 
     return (
