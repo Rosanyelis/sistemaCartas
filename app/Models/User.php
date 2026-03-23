@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\VerifyEmailOtp;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
@@ -23,6 +24,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'otp_code',
+        'otp_expires_at',
     ];
 
     /**
@@ -35,6 +38,7 @@ class User extends Authenticatable
         'two_factor_secret',
         'two_factor_recovery_codes',
         'remember_token',
+        'otp_code',
     ];
 
     /**
@@ -48,6 +52,42 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'otp_expires_at' => 'datetime',
         ];
+    }
+
+    /**
+     * Generate a new OTP code for the user.
+     */
+    public function generateOtp(): string
+    {
+        $otp = (string) random_int(100000, 999999);
+
+        $this->forceFill([
+            'otp_code' => $otp,
+            'otp_expires_at' => now()->addMinutes(10),
+        ])->save();
+
+        return $otp;
+    }
+
+    /**
+     * Clear the OTP code.
+     */
+    public function clearOtp(): void
+    {
+        $this->forceFill([
+            'otp_code' => null,
+            'otp_expires_at' => null,
+        ])->save();
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification(): void
+    {
+        $otp = $this->generateOtp();
+        $this->notify(new VerifyEmailOtp($otp));
     }
 }

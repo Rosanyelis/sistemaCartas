@@ -1,21 +1,34 @@
 import { Eye, EyeOff } from 'lucide-react';
-import type { ComponentProps, Ref } from 'react';
+import type { ComponentProps, ReactNode, Ref } from 'react';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
 export default function PasswordInput({
     className,
+    leftIcon,
     ref,
     ...props
-}: Omit<ComponentProps<'input'>, 'type'> & { ref?: Ref<HTMLInputElement> }) {
+}: Omit<ComponentProps<'input'>, 'type'> & {
+    ref?: Ref<HTMLInputElement>;
+    leftIcon?: ReactNode;
+}) {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <div className="relative">
+        <div className="relative w-full">
+            {leftIcon && (
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-[13px]">
+                    {leftIcon}
+                </div>
+            )}
             <Input
                 type={showPassword ? 'text' : 'password'}
-                className={cn('pr-10', className)}
+                className={cn(
+                    'pr-10',
+                    leftIcon && 'pl-[46px]',
+                    className
+                )}
                 ref={ref}
                 {...props}
             />
