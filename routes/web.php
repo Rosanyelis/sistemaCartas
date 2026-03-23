@@ -35,8 +35,18 @@ Route::middleware('auth')->group(function () {
         ->name('verification.otp.resend');
 });
 
+use App\Http\Controllers\User\OrdenController;
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'admin/dashboard')->name('dashboard');
+    Route::get('dashboard', function (Request $request) {
+        if ($request->user()->isAdmin()) {
+            return Inertia::render('admin/dashboard');
+        }
+
+        return redirect()->route('user.orders');
+    })->name('dashboard');
+
+    Route::get('orders', [OrdenController::class, 'index'])->name('user.orders');
 });
 
 require __DIR__.'/settings.php';

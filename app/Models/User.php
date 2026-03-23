@@ -23,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $fillable = [
         'name',
         'email',
+        'role',
         'password',
         'otp_code',
         'otp_expires_at',
@@ -89,5 +90,13 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $otp = $this->generateOtp();
         $this->notify(new VerifyEmailOtp($otp));
+    }
+
+    /**
+     * Determine if the user is an administrator.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
     }
 }
