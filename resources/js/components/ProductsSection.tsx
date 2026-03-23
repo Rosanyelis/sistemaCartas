@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { show } from '@/routes/productos';
 import type { Product } from '@/types/welcome';
 
 interface ProductsSectionProps {
@@ -113,11 +114,14 @@ export default function ProductsSection({
                                         <span className="font-['Playfair_Display',serif] text-[25px] font-bold text-[#1B3D6D]">
                                             {product.price}
                                         </span>
-                                        <button className="flex h-[38px] items-center justify-center bg-[#1B3D6D] px-6 py-2 transition hover:bg-[#111]">
+                                        <Link
+                                            href={show.url(product.slug)}
+                                            className="flex h-[38px] items-center justify-center bg-[#1B3D6D] px-6 py-2 transition hover:bg-[#111]"
+                                        >
                                             <span className="font-['Inter',sans-serif] text-[13px] font-semibold text-white">
                                                 Ver producto
                                             </span>
-                                        </button>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

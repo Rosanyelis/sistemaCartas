@@ -5,24 +5,24 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
 import CartDrawer from '@/components/CartDrawer';
+import { useCart } from '@/contexts/cart-context';
 
 interface ClienteLayoutProps {
     children: ReactNode;
 }
 
-export default function ClienteLayout({ children }: ClienteLayoutProps) {
+function ClienteLayoutShell({ children }: { children: ReactNode }) {
     const { auth } = usePage().props as any;
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isCartOpen, setIsCartOpen] = useState(false);
+    const { isDrawerOpen, openCart, itemCount } = useCart();
 
-    // Disable body scroll when cart or mobile menu is open
     useEffect(() => {
-        if (isCartOpen || isMobileMenuOpen) {
+        if (isDrawerOpen || isMobileMenuOpen) {
             document.body.style.overflow = 'hidden';
         } else {
             document.body.style.overflow = 'unset';
         }
-    }, [isCartOpen, isMobileMenuOpen]);
+    }, [isDrawerOpen, isMobileMenuOpen]);
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-[#FFFCF4] font-['Inter',sans-serif] text-[#3e352f]">
@@ -114,9 +114,15 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
                                 </Link>
                             )}
                             <button
-                                onClick={() => setIsCartOpen(true)}
-                                className={`flex h-10 w-10 items-center justify-center transition duration-300 ${isCartOpen ? 'bg-[#D7C181] text-[#1B3D6D] shadow-md' : 'bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] hover:bg-[#eae4d3]'}`}
+                                type="button"
+                                onClick={openCart}
+                                className={`relative flex h-10 w-10 items-center justify-center transition duration-300 ${isDrawerOpen ? 'bg-[#D7C181] text-[#1B3D6D] shadow-md' : 'bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] hover:bg-[#eae4d3]'}`}
                             >
+                                {itemCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#1B3D6D] px-1 font-['Inter',sans-serif] text-[10px] font-bold text-white">
+                                        {itemCount > 9 ? '9+' : itemCount}
+                                    </span>
+                                )}
                                 <FontAwesomeIcon
                                     icon={faCartShopping}
                                     className="text-xl"
@@ -149,9 +155,15 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
                             </Link>
                         )}
                         <button
-                            onClick={() => setIsCartOpen(true)}
-                            className={`flex h-10 w-10 items-center justify-center transition duration-300 ${isCartOpen ? 'bg-[#D7C181] text-[#1B3D6D] shadow-md' : 'bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] hover:bg-[#eae4d3]'}`}
+                            type="button"
+                            onClick={openCart}
+                            className={`relative flex h-10 w-10 items-center justify-center transition duration-300 ${isDrawerOpen ? 'bg-[#D7C181] text-[#1B3D6D] shadow-md' : 'bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] hover:bg-[#eae4d3]'}`}
                         >
+                            {itemCount > 0 && (
+                                <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#1B3D6D] px-1 font-['Inter',sans-serif] text-[9px] font-bold text-white">
+                                    {itemCount > 9 ? '9+' : itemCount}
+                                </span>
+                            )}
                             <FontAwesomeIcon
                                 icon={faCartShopping}
                                 className="text-lg"
@@ -207,11 +219,7 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
                 </div>
             </header>
 
-            {/* Cart Drawer */}
-            <CartDrawer
-                isOpen={isCartOpen}
-                onClose={() => setIsCartOpen(false)}
-            />
+            <CartDrawer />
 
             {/* Main Content */}
             <main>{children}</main>
@@ -331,4 +339,8 @@ export default function ClienteLayout({ children }: ClienteLayoutProps) {
             </footer>
         </div>
     );
+}
+
+export default function ClienteLayout({ children }: ClienteLayoutProps) {
+    return <ClienteLayoutShell>{children}</ClienteLayoutShell>;
 }

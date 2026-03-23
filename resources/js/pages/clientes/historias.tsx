@@ -75,16 +75,24 @@ export default function Historias() {
     return (
         <ClienteLayout>
             <Head>
-                <title>Historias | Historias por Correo</title>
-                <link rel="preconnect" href="https://fonts.bunny.net" />
-                <link
-                    href="https://fonts.bunny.net/css?family=playfair-display:400,600,700,700i|inter:400,500,600,700|cormorant-garamond:400,700,700i|roboto:400,500"
-                    rel="stylesheet"
-                />
-                <link
-                    rel="stylesheet"
-                    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-                />
+                {[
+                    <title key="title">Historias | Historias por Correo</title>,
+                    <link
+                        key="preconnect"
+                        rel="preconnect"
+                        href="https://fonts.bunny.net"
+                    />,
+                    <link
+                        key="fonts"
+                        href="https://fonts.bunny.net/css?family=playfair-display:400,600,700,700i|inter:400,500,600,700|cormorant-garamond:400,700,700i|roboto:400,500"
+                        rel="stylesheet"
+                    />,
+                    <link
+                        key="fa"
+                        rel="stylesheet"
+                        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+                    />,
+                ]}
             </Head>
 
             {/* 2. Hero Section */}

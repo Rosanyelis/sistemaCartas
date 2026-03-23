@@ -1,18 +1,28 @@
 <?php
 
+use App\Http\Controllers\Checkout\PayPalCheckoutController;
 use App\Http\Controllers\Clientes\HistoriaController;
 use App\Http\Controllers\Clientes\ProductoController;
+use App\Support\Store\ProductCatalog;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
 Route::inertia('/', 'clientes/welcome', [
     'canRegister' => Features::enabled(Features::registration()),
+    'products' => array_slice(ProductCatalog::forCatalog(), 0, 3),
 ])->name('home');
 
 Route::get('/historias', [HistoriaController::class, 'index'])->name('historias');
 Route::get('/historias/{slug}', [HistoriaController::class, 'show'])->name('historias.show');
 Route::get('/productos', [ProductoController::class, 'index'])->name('productos');
+Route::get('/productos/ejemplo', [ProductoController::class, 'showReference'])
+    ->name('productos.ejemplo');
 Route::get('/productos/{slug}', [ProductoController::class, 'show'])->name('productos.show');
+
+Route::post('/checkout/paypal/order', [PayPalCheckoutController::class, 'createOrder'])
+    ->name('checkout.paypal.order');
+Route::post('/checkout/paypal/capture', [PayPalCheckoutController::class, 'capture'])
+    ->name('checkout.paypal.capture');
 
 use App\Http\Controllers\Auth\EmailVerificationOtpController;
 use Illuminate\Http\Request;

@@ -21,24 +21,31 @@ export const defaultStories: Story[] = [
     },
 ];
 
+/** Alineados con `App\Support\Store\ProductCatalog` (primeros tres ítems) para enlaces a ficha */
 export const defaultProducts: Product[] = [
     {
+        slug: 'sello-lacre-artesanal',
         name: 'Sello de Lacre Artesanal',
         price: '$24,90',
         desc: 'Un sello de latón grabado a mano con mango de madera de nogal, ideal para sellar tus cartas con elegancia clásica.',
-        img: '/images/wax_seal.png',
+        img: '/images/products/product-1.png',
+        unit_price: 24.9,
     },
     {
+        slug: 'pluma-estilografica-vintage',
         name: 'Pluma Estilográfica Vintage',
-        price: '$45,90',
+        price: '$24,90',
         desc: 'Inspirada en los diseños de los años 40, con plumín de acero inoxidable para una escritura fluida y pausada.',
-        img: '/images/fountain_pen.png',
+        img: '/images/products/product-2.png',
+        unit_price: 24.9,
     },
     {
+        slug: 'papel-hilo-prensado',
         name: 'Papel de Hilo Prensado',
-        price: '$18,50',
+        price: '$24,90',
         desc: '25 pliegos de papel de alta calidad con textura artesanal, perfecto para conservar tus pensamientos más valiosos.',
-        img: '/images/pressed_paper.png',
+        img: '/images/products/product-3.png',
+        unit_price: 24.9,
     },
 ];
 

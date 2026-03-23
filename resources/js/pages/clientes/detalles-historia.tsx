@@ -95,12 +95,21 @@ export default function DetalleHistoria() {
     return (
         <ClienteLayout>
             <Head>
-                <title>El Secreto del Galeón | Historias por Correo</title>
-                <link rel="preconnect" href="https://fonts.bunny.net" />
-                <link
-                    href="https://fonts.bunny.net/css?family=playfair-display:400,600,700,700i|inter:400,500,600,700|cormorant-garamond:400,700,700i|roboto:400,500|poppins:400,500,600"
-                    rel="stylesheet"
-                />
+                {[
+                    <title key="title">
+                        El Secreto del Galeón | Historias por Correo
+                    </title>,
+                    <link
+                        key="preconnect"
+                        rel="preconnect"
+                        href="https://fonts.bunny.net"
+                    />,
+                    <link
+                        key="fonts"
+                        href="https://fonts.bunny.net/css?family=playfair-display:400,600,700,700i|inter:400,500,600,700|cormorant-garamond:400,700,700i|roboto:400,500|poppins:400,500,600"
+                        rel="stylesheet"
+                    />,
+                ]}
             </Head>
 
             <div className="flex w-full flex-col items-center bg-white px-0 lg:px-0">

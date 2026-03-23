@@ -42,6 +42,11 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'paypal' => [
+                'clientId' => config('paypal.client_id'),
+                'currency' => config('paypal.currency'),
+                'enabled' => (bool) config('paypal.enabled'),
+            ],
         ];
     }
 }

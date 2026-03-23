@@ -10,6 +10,95 @@ class OrdenController extends Controller
 {
     public function index(): Response
     {
+        if (auth()->user() && auth()->user()->isAdmin()) {
+            $ordenesAdmin = [
+                [
+                    'id' => '#1018',
+                    'producto' => 'Kit de Lacre Real',
+                    'cantidad' => '01',
+                    'precio' => '$124.95',
+                    'cliente' => 'Laura Pérez',
+                    'direccion' => 'C.P. 12345, México, D.F.',
+                    'estado' => 'Completado',
+                    'estado_color' => 'success',
+                ],
+                [
+                    'id' => '#1018',
+                    'producto' => 'Kit de Lacre Real',
+                    'cantidad' => '01',
+                    'precio' => '$124.95',
+                    'cliente' => 'Samuel Carroll',
+                    'direccion' => 'C.P. 12345, México, D.F.',
+                    'estado' => 'Rechazado',
+                    'estado_color' => 'danger',
+                ],
+                [
+                    'id' => '#1018',
+                    'producto' => 'Kit de Lacre Real',
+                    'cantidad' => '01',
+                    'precio' => '$124.95',
+                    'cliente' => 'Laura Pérez',
+                    'direccion' => 'C.P. 12345, México, D.F.',
+                    'estado' => 'Completado',
+                    'estado_color' => 'success',
+                ],
+                [
+                    'id' => '#1018',
+                    'producto' => 'Kit de Lacre Real',
+                    'cantidad' => '01',
+                    'precio' => '$124.95',
+                    'cliente' => 'Laura Pérez',
+                    'direccion' => 'Zapopan, Jalisco',
+                    'estado' => 'Completado',
+                    'estado_color' => 'success',
+                ],
+                [
+                    'id' => '#1018',
+                    'producto' => 'Kit de Lacre Real',
+                    'cantidad' => '01',
+                    'precio' => '$124.95',
+                    'cliente' => 'Samuel Carroll',
+                    'direccion' => 'C.P. 12345, México, D.F.',
+                    'estado' => 'Rechazado',
+                    'estado_color' => 'danger',
+                ],
+                [
+                    'id' => '#1018',
+                    'producto' => 'Kit de Lacre Real',
+                    'cantidad' => '01',
+                    'precio' => '$124.95',
+                    'cliente' => 'Laura Pérez',
+                    'direccion' => 'C.P. 12345, México, D.F.',
+                    'estado' => 'Completado',
+                    'estado_color' => 'success',
+                ],
+                [
+                    'id' => '#1018',
+                    'producto' => 'Kit de Lacre Real',
+                    'cantidad' => '01',
+                    'precio' => '$124.95',
+                    'cliente' => 'Samuel Carroll',
+                    'direccion' => 'Zapopan, Jalisco',
+                    'estado' => 'Rechazado',
+                    'estado_color' => 'danger',
+                ],
+                [
+                    'id' => '#1018',
+                    'producto' => 'Kit de Lacre Real',
+                    'cantidad' => '01',
+                    'precio' => '$124.95',
+                    'cliente' => 'Laura Pérez',
+                    'direccion' => 'C.P. 12345, México, D.F.',
+                    'estado' => 'Rechazado',
+                    'estado_color' => 'danger',
+                ],
+            ];
+
+            return Inertia::render('admin/orders', [
+                'ordenes' => $ordenesAdmin,
+            ]);
+        }
+
         $ordenes = [
             [
                 'id' => '#1045',
