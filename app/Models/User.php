@@ -6,6 +6,7 @@ use App\Notifications\VerifyEmailOtp;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -27,6 +28,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'otp_code',
         'otp_expires_at',
+        'avatar',
+        'direction',
+        'zip_code',
+        'phone',
     ];
 
     /**
@@ -98,5 +103,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    /**
+     * Get the user's payment methods.
+     *
+     * @return HasMany<MetodoPagoUsuario, $this>
+     */
+    public function metodosPago()
+    {
+        return $this->hasMany(MetodoPagoUsuario::class);
     }
 }

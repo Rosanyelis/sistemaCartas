@@ -51,6 +51,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('orders', [OrdenController::class, 'index'])->name('user.orders');
     Route::get('subscriptions', [SuscripcionController::class, 'index'])->name('user.subscriptions');
     Route::get('profile', [ProfileController::class, 'index'])->name('user.profile');
+    Route::post('profile', [ProfileController::class, 'update'])->name('user.profile.update');
+    Route::post('profile/avatar', [ProfileController::class, 'updateAvatar'])->name('user.profile.avatar');
+    Route::post('profile/payment-methods', [ProfileController::class, 'storePaymentMethod'])->name('user.profile.payment-methods.store');
+    Route::delete('profile/payment-methods/{metodo}', [ProfileController::class, 'destroyPaymentMethod'])->name('user.profile.payment-methods.destroy');
+    Route::patch('profile/payment-methods/{metodo}/default', [ProfileController::class, 'setDefaultPaymentMethod'])->name('user.profile.payment-methods.set-default');
 });
 
 require __DIR__.'/settings.php';
