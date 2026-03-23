@@ -56,6 +56,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('profile/payment-methods', [ProfileController::class, 'storePaymentMethod'])->name('user.profile.payment-methods.store');
     Route::delete('profile/payment-methods/{metodo}', [ProfileController::class, 'destroyPaymentMethod'])->name('user.profile.payment-methods.destroy');
     Route::patch('profile/payment-methods/{metodo}/default', [ProfileController::class, 'setDefaultPaymentMethod'])->name('user.profile.payment-methods.set-default');
+
+    // Admin Routes
+    Route::middleware('can:admin')->group(function () {
+        Route::get('clients', function () {
+            return Inertia::render('admin/clients');
+        })->name('admin.clients');
+
+        Route::get('admin/stories', function () {
+            return Inertia::render('admin/stories');
+        })->name('admin.stories');
+
+        Route::get('admin/products', function () {
+            return Inertia::render('admin/products');
+        })->name('admin.products');
+    });
 });
 
 require __DIR__.'/settings.php';

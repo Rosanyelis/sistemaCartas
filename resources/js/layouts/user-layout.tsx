@@ -5,6 +5,11 @@ import {
     faUser,
     faUsers,
     faTriangleExclamation,
+    faHouse,
+    faBook,
+    faBoxOpen,
+    faUserGroup,
+    faFileLines,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, Link, usePage, router } from '@inertiajs/react';
@@ -24,26 +29,67 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
     );
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-    const menuItems = [
-        {
-            name: 'Ordenes',
-            icon: faCartShopping,
-            href: '/orders',
-            active: url.startsWith('/orders'),
-        },
-        {
-            name: 'Suscripciones',
-            icon: faUsers,
-            href: '/subscriptions',
-            active: url.startsWith('/subscriptions'),
-        },
-        {
-            name: 'Perfil',
-            icon: faUser,
-            href: '/profile',
-            active: url.startsWith('/profile'),
-        },
-    ];
+    const isAdmin = auth.user.role === 'admin';
+
+    const menuItems = isAdmin
+        ? [
+              {
+                  name: 'Panel',
+                  icon: faHouse,
+                  href: '/dashboard',
+                  active: url === '/dashboard',
+              },
+              {
+                  name: 'Ordenes',
+                  icon: faCartShopping,
+                  href: '/orders',
+                  active: url.startsWith('/orders'),
+              },
+              {
+                  name: 'Suscripciones',
+                  icon: faUsers,
+                  href: '/subscriptions',
+                  active: url.startsWith('/subscriptions'),
+              },
+              {
+                  name: 'Clientes',
+                  icon: faUserGroup,
+                  href: '/clients',
+                  active: url.startsWith('/clients'),
+              },
+              {
+                  name: 'Historias',
+                  icon: faBook,
+                  href: '/admin/stories',
+                  active: url.startsWith('/admin/stories'),
+              },
+              {
+                  name: 'Productos',
+                  icon: faBoxOpen,
+                  href: '/admin/products',
+                  active: url.startsWith('/admin/products'),
+              },
+          ]
+        : [
+              {
+                  name: 'Ordenes',
+                  icon: faCartShopping,
+                  href: '/orders',
+                  active: url.startsWith('/orders'),
+              },
+              {
+                  name: 'Suscripciones',
+                  icon: faUsers,
+                  href: '/subscriptions',
+                  active: url.startsWith('/subscriptions'),
+              },
+              {
+                  name: 'Perfil',
+                  icon: faUser,
+                  href: '/profile',
+                  active: url.startsWith('/profile'),
+              },
+          ];
 
     return (
         <div className="flex min-h-screen bg-[#F5F6F7]">
@@ -141,11 +187,11 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
             </aside>
             {/* Main Content Area */}
             <div
-                className={`flex flex-1 flex-col transition-all duration-300 ${isSidebarOpen ? 'md:ml-[245px]' : 'ml-0 md:ml-[72px]'}`}
+                className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ${isSidebarOpen ? 'md:ml-[245px]' : 'ml-0 md:ml-[72px]'}`}
             >
-                {/* Topbar sticky header */}
-                <div className="h-[62px] px-5 pt-1.5">
-                    <header className="flex h-[52px] items-center justify-between rounded-[4px] bg-white px-5 shadow-[0px_0px_15px_rgba(36,16,167,0.1)]">
+                {/* Topbar: sticky en móvil para alinear con el diseño de referencia */}
+                <div className="sticky top-0 z-30 shrink-0 bg-[#F5F6F7] px-3 pb-2 pt-1.5 md:static md:bg-transparent md:px-5 md:pb-0 md:pt-1.5">
+                    <header className="flex h-[52px] items-center justify-between rounded-[4px] bg-white px-4 shadow-[0px_0px_15px_rgba(36,16,167,0.1)] md:px-5">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                             className="p-1.5 text-[#1B3D6D] transition hover:opacity-80"
@@ -154,43 +200,64 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
                         </button>
 
                         {/* Logo Mobile */}
-                        <div className="flex translate-x-1 items-center gap-1.5 md:hidden">
-                            <span className="text-[11px] font-bold tracking-[0.1em] whitespace-nowrap text-[#1B3D6D] uppercase">
-                                Historias por correo
+                        <div className="flex flex-1 items-center justify-center md:hidden">
+                            <span className="text-[12px] font-bold tracking-[0.05em] text-[#1B3D6D] uppercase">
+                                HISTORIAS POR CORREO
                             </span>
                             <img
                                 src="/images/logo-principal.png"
                                 alt="Logo"
-                                className="h-4 w-auto object-contain opacity-40"
+                                className="ml-2 h-5 w-auto object-contain opacity-40 invert filter"
+                                style={{ filter: 'brightness(0) invert(0.8)' }}
                             />
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <div className="hidden text-right sm:block">
-                                <p className="font-['Inter'] text-[12px] leading-tight font-semibold text-[#1B3D6D]">
-                                    {auth.user.name}
-                                </p>
-                                <p className="font-['Inter'] text-[10px] font-normal text-[#7B7B7B]">
-                                    Usuario
-                                </p>
-                            </div>
-                            <div className="relative">
-                                <img
-                                    src={
-                                        auth.user.avatar ||
-                                        '/images/avatar-placeholder.jpg'
-                                    }
-                                    alt="Profile"
-                                    className="size-[32px] rounded-full border-2 border-white object-cover shadow-sm"
-                                />
-                                <div className="absolute -top-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-[#22AD5C]" />
-                            </div>
+                            {isAdmin ? (
+                                <div className="hidden items-center justify-center rounded border border-[#E5E7EB] px-2 py-1.5 md:flex">
+                                    <span className="mr-2 text-[14px] font-medium text-[#1B3D6D]">
+                                        Usuario Admin
+                                    </span>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="hidden text-right sm:block">
+                                        <p className="font-['Inter'] text-[12px] leading-tight font-semibold text-[#1B3D6D]">
+                                            {auth.user.name}
+                                        </p>
+                                        <p className="font-['Inter'] text-[10px] font-normal text-[#7B7B7B]">
+                                            Usuario
+                                        </p>
+                                    </div>
+                                    <div className="relative">
+                                        <img
+                                            src={
+                                                auth.user.avatar ||
+                                                '/images/avatar-placeholder.jpg'
+                                            }
+                                            alt="Profile"
+                                            className="size-[32px] rounded-full border-2 border-white object-cover shadow-sm"
+                                        />
+                                        <div className="absolute -top-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-[#22AD5C]" />
+                                    </div>
+                                </>
+                            )}
+                            {isAdmin && (
+                                <div className="flex h-[32px] w-[32px] items-center justify-center rounded border border-[#E5E7EB] text-[#1B3D6D] md:hidden">
+                                    <FontAwesomeIcon
+                                        icon={faUser}
+                                        className="text-[14px]"
+                                    />
+                                </div>
+                            )}
                         </div>
                     </header>
                 </div>
 
-                <main className="flex-1 overflow-x-hidden p-6">{children}</main>
-            </div>{' '}
+                <main className="min-w-0 flex-1 overflow-x-hidden px-2 pb-6 pt-0 md:px-3 md:pb-8 md:pt-1">
+                    {children}
+                </main>
+            </div>
             {/* Modal de Cerrar Sesión */}
             {isLogoutModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
