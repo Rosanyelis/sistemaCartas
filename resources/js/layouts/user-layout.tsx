@@ -36,26 +36,26 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
               {
                   name: 'Panel',
                   icon: faHouse,
-                  href: '/dashboard',
-                  active: url === '/dashboard',
+                  href: '/admin/dashboard',
+                  active: url === '/admin/dashboard',
               },
               {
                   name: 'Ordenes',
                   icon: faCartShopping,
-                  href: '/orders',
-                  active: url.startsWith('/orders'),
+                  href: '/admin/orders',
+                  active: url.startsWith('/admin/orders'),
               },
               {
                   name: 'Suscripciones',
                   icon: faUsers,
-                  href: '/subscriptions',
-                  active: url.startsWith('/subscriptions'),
+                  href: '/admin/subscriptions',
+                  active: url.startsWith('/admin/subscriptions'),
               },
               {
                   name: 'Clientes',
                   icon: faUserGroup,
-                  href: '/clients',
-                  active: url.startsWith('/clients'),
+                  href: '/admin/clients',
+                  active: url.startsWith('/admin/clients'),
               },
               {
                   name: 'Historias',
@@ -74,20 +74,20 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
               {
                   name: 'Ordenes',
                   icon: faCartShopping,
-                  href: '/orders',
-                  active: url.startsWith('/orders'),
+                  href: '/user/orders',
+                  active: url.startsWith('/user/orders'),
               },
               {
                   name: 'Suscripciones',
                   icon: faUsers,
-                  href: '/subscriptions',
-                  active: url.startsWith('/subscriptions'),
+                  href: '/user/subscriptions',
+                  active: url.startsWith('/user/subscriptions'),
               },
               {
                   name: 'Perfil',
                   icon: faUser,
-                  href: '/profile',
-                  active: url.startsWith('/profile'),
+                  href: '/user/profile',
+                  active: url.startsWith('/user/profile'),
               },
           ];
 

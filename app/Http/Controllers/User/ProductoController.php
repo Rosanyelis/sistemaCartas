@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Clientes;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Support\Store\ProductCatalog;
@@ -11,7 +11,7 @@ class ProductoController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('clientes/productos', [
+        return Inertia::render('user/productos', [
             'products' => ProductCatalog::forCatalog(),
         ]);
     }
@@ -28,7 +28,7 @@ class ProductoController extends Controller
             $product = ProductCatalog::all()[0];
         }
 
-        return Inertia::render('clientes/detalles-producto', [
+        return Inertia::render('user/detalles-producto', [
             'product' => ProductCatalog::forProductPage($product),
             'referenceDemo' => true,
         ]);
@@ -42,7 +42,7 @@ class ProductoController extends Controller
             abort(404);
         }
 
-        return Inertia::render('clientes/detalles-producto', [
+        return Inertia::render('user/detalles-producto', [
             'product' => ProductCatalog::forProductPage($product),
             'referenceDemo' => false,
         ]);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Clientes;
+namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use Inertia\Inertia;
@@ -13,7 +13,7 @@ class HistoriaController extends Controller
      */
     public function index(): Response
     {
-        return Inertia::render('clientes/historias');
+        return Inertia::render('user/historias');
     }
 
     /**
@@ -21,7 +21,7 @@ class HistoriaController extends Controller
      */
     public function show(string $slug): Response
     {
-        return Inertia::render('clientes/detalles-historia', [
+        return Inertia::render('user/detalles-historia', [
             'slug' => $slug,
         ]);
     }

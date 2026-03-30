@@ -1,13 +1,24 @@
 <?php
 
+use App\Http\Controllers\Admin\ClientController as AdminClientController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ProductController as AdminProductController;
+use App\Http\Controllers\Admin\StoryController as AdminStoryController;
+use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
+use App\Http\Controllers\Auth\EmailVerificationOtpController;
 use App\Http\Controllers\Checkout\PayPalCheckoutController;
-use App\Http\Controllers\Clientes\HistoriaController;
-use App\Http\Controllers\Clientes\ProductoController;
+use App\Http\Controllers\User\HistoriaController;
+use App\Http\Controllers\User\OrdenController;
+use App\Http\Controllers\User\ProductoController;
+use App\Http\Controllers\User\ProfileController;
+use App\Http\Controllers\User\SuscripcionController;
 use App\Support\Store\ProductCatalog;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
-Route::inertia('/', 'clientes/welcome', [
+Route::inertia('/', 'user/welcome', [
     'canRegister' => Features::enabled(Features::registration()),
     'products' => array_slice(ProductCatalog::forCatalog(), 0, 3),
 ])->name('home');
@@ -23,10 +34,6 @@ Route::post('/checkout/paypal/order', [PayPalCheckoutController::class, 'createO
     ->name('checkout.paypal.order');
 Route::post('/checkout/paypal/capture', [PayPalCheckoutController::class, 'capture'])
     ->name('checkout.paypal.capture');
-
-use App\Http\Controllers\Auth\EmailVerificationOtpController;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 Route::middleware('auth')->group(function () {
     // Override Fortify's default verify-email prompt to prevent auto-redirecting when we want to show success
@@ -45,41 +52,33 @@ Route::middleware('auth')->group(function () {
         ->name('verification.otp.resend');
 });
 
-use App\Http\Controllers\User\OrdenController;
-use App\Http\Controllers\User\ProfileController;
-use App\Http\Controllers\User\SuscripcionController;
-
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function (Request $request) {
         if ($request->user()->isAdmin()) {
-            return Inertia::render('admin/dashboard');
+            return redirect()->route('admin.dashboard');
         }
 
         return redirect()->route('user.orders');
     })->name('dashboard');
 
-    Route::get('orders', [OrdenController::class, 'index'])->name('user.orders');
-    Route::get('subscriptions', [SuscripcionController::class, 'index'])->name('user.subscriptions');
-    Route::get('profile', [ProfileController::class, 'index'])->name('user.profile');
-    Route::post('profile', [ProfileController::class, 'update'])->name('user.profile.update');
-    Route::post('profile/avatar', [ProfileController::class, 'updateAvatar'])->name('user.profile.avatar');
-    Route::post('profile/payment-methods', [ProfileController::class, 'storePaymentMethod'])->name('user.profile.payment-methods.store');
-    Route::delete('profile/payment-methods/{metodo}', [ProfileController::class, 'destroyPaymentMethod'])->name('user.profile.payment-methods.destroy');
-    Route::patch('profile/payment-methods/{metodo}/default', [ProfileController::class, 'setDefaultPaymentMethod'])->name('user.profile.payment-methods.set-default');
+    Route::prefix('user')->name('user.')->group(function () {
+        Route::get('orders', [OrdenController::class, 'index'])->name('orders');
+        Route::get('subscriptions', [SuscripcionController::class, 'index'])->name('subscriptions');
+        Route::get('profile', [ProfileController::class, 'index'])->name('profile');
+        Route::post('profile', [ProfileController::class, 'update'])->name('profile.update');
+        Route::post('profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
+        Route::post('profile/payment-methods', [ProfileController::class, 'storePaymentMethod'])->name('profile.payment-methods.store');
+        Route::delete('profile/payment-methods/{metodo}', [ProfileController::class, 'destroyPaymentMethod'])->name('profile.payment-methods.destroy');
+        Route::patch('profile/payment-methods/{metodo}/default', [ProfileController::class, 'setDefaultPaymentMethod'])->name('profile.payment-methods.set-default');
+    });
 
     // Admin Routes
-    Route::middleware('can:admin')->group(function () {
-        Route::get('clients', function () {
-            return Inertia::render('admin/clients');
-        })->name('admin.clients');
-
-        Route::get('admin/stories', function () {
-            return Inertia::render('admin/stories');
-        })->name('admin.stories');
-
-        Route::get('admin/products', function () {
-            return Inertia::render('admin/products');
-        })->name('admin.products');
+    Route::middleware('can:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions');
+        Route::get('clients', [AdminClientController::class, 'index'])->name('clients');
+        Route::get('stories', [AdminStoryController::class, 'index'])->name('stories');
+        Route::get('products', [AdminProductController::class, 'index'])->name('products');
     });
 });
 
