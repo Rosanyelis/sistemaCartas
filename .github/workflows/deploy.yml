@@ -1,0 +1,78 @@
+name: Deploy DOAR
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Usa los Environment secrets del entorno "doar" (Settings → Environments → doar)
+    environment: historias-correos
+
+    steps:
+      - name: Comprobar secrets de despliegue
+        env:
+          CONTABO_HOST: ${{ secrets.CONTABO_HOST }}
+          CONTABO_USER: ${{ secrets.CONTABO_USER }}
+          CONTABO_SSH_KEY: ${{ secrets.CONTABO_SSH_KEY }}
+          CLOUDPANEL_PROJECT_PATH: ${{ secrets.CLOUDPANEL_PROJECT_PATH }}
+          DEPLOY_BRANCH: ${{ secrets.DEPLOY_BRANCH }}
+        run: |
+          missing=0
+          if [ -z "$CONTABO_HOST" ]; then echo "::error::Falta CONTABO_HOST en el environment doar (Settings → Environments → doar → Environment secrets)."; missing=1; fi
+          if [ -z "$CONTABO_USER" ]; then echo "::error::Falta CONTABO_USER en el environment doar."; missing=1; fi
+          if [ -z "$CONTABO_SSH_KEY" ]; then echo "::error::Falta CONTABO_SSH_KEY (clave privada PEM completa) en el environment doar."; missing=1; fi
+          if [ -z "$CLOUDPANEL_PROJECT_PATH" ]; then echo "::error::Falta CLOUDPANEL_PROJECT_PATH en el environment doar."; missing=1; fi
+          if [ -z "$DEPLOY_BRANCH" ]; then echo "::error::Falta DEPLOY_BRANCH en el environment doar (ej. main)."; missing=1; fi
+          exit $missing
+
+      - name: Deploy por SSH en Contabo / CloudPanel
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.CONTABO_HOST }}
+          username: ${{ secrets.CONTABO_USER }}
+          key: ${{ secrets.CONTABO_SSH_KEY }}
+          port: ${{ secrets.CONTABO_PORT || '22' }}
+          script_stop: true
+          script: |
+            set -e
+
+            PROJECT_PATH="${{ secrets.CLOUDPANEL_PROJECT_PATH }}"
+            BRANCH="${{ secrets.DEPLOY_BRANCH }}"
+
+            cd "$PROJECT_PATH"
+
+            # Sincroniza código en rama de despliegue
+            git fetch origin "$BRANCH"
+            git checkout "$BRANCH"
+            git reset --hard "origin/$BRANCH"
+
+            # Backend
+            # para produccion usar --no-dev
+            # ejemplo: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+            composer install  --prefer-dist --optimize-autoloader --no-interaction
+            php artisan migrate:fresh --force --seed
+
+            # Frontend
+            npm install
+            npm run build
+
+            # Limpia y cachea artefactos de Laravel
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+
+            # Reinicia procesos long-running (queues + reverb)
+            #php artisan queue:restart || true
+            #php artisan reverb:restart || true
