@@ -1,4 +1,4 @@
-name: Deploy DOAR
+name: Deploy Historias-Correos
 
 on:
   push:
