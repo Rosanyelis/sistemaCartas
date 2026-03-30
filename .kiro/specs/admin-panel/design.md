@@ -14,19 +14,19 @@ La arquitectura sigue el patrón existente del proyecto: controladores Laravel q
 
 | Archivo | Estado | Notas |
 |---|---|---|
-| `resources/js/pages/admin/dashboard.tsx` | ✅ UI completa, datos mock | Usar `UserLayout`. Tiene 5 tarjetas de métricas, LineChart, PieChart, filtros de período (solo UI). Requiere conectar props de Inertia (deferred). |
-| `resources/js/pages/admin/orders.tsx` | ✅ UI completa, datos mock | Usa `UserLayout`. Tabla con filtros, paginación client-side (8 items, totalPages=12 hardcodeado). Requiere migrar a server-side (10 items) y conectar exportación Excel. |
+| `resources/js/pages/admin/dashboard.tsx` | ✅ UI completa (mock) | 5 tarjetas de métricas, LineChart, PieChart, filtros de período (solo UI). Requiere conectar props de Inertia (deferred). |
+| `resources/js/pages/admin/orders.tsx` | ✅ UI completa (mock) | Tabla con filtros, paginación client-side (8 items, totalPages=12 hardcodeado). Requiere migrar a server-side (10 items) y conectar exportación Excel. |
+| `resources/js/pages/admin/subscriptions.tsx` | ✅ UI completa (mock) | Tabla con filtros de búsqueda y fecha, paginación client-side (8 items), botón exportar (solo UI). Requiere migrar a server-side (10 items) y conectar exportación. |
+| `resources/js/pages/admin/clients.tsx` | ✅ UI completa (mock) | Tabla con filtro de búsqueda, paginación client-side (8 items), botón exportar (solo UI). Requiere migrar a server-side (10 items) y conectar exportación. |
+| `resources/js/pages/admin/stories.tsx` | ✅ UI completa (mock) | Tabla con filtros búsqueda/categoría/fecha, paginación client-side (8 items), botón exportar (solo UI), botón "Crear historia" que abre `CreateStoryModal`. Requiere migrar a server-side y conectar acciones del menú al backend. |
+| `resources/js/pages/admin/products.tsx` | ✅ UI completa (mock) | Tabla con filtros búsqueda/categoría, paginación client-side (8 items), botón exportar (solo UI), botón "Crear producto" que abre `CreateProductModal`. Requiere migrar a server-side y conectar acciones del menú al backend. |
 
-### Páginas React pendientes de crear
+### Componentes modales ya construidos (formularios completos, sin conectar al backend)
 
-| Archivo | Estado |
-|---|---|
-| `resources/js/pages/admin/subscriptions.tsx` | ❌ No existe |
-| `resources/js/pages/admin/clients.tsx` | ❌ No existe |
-| `resources/js/pages/admin/historias/index.tsx` | ❌ No existe |
-| `resources/js/pages/admin/historias/form.tsx` | ❌ No existe |
-| `resources/js/pages/admin/productos/index.tsx` | ❌ No existe |
-| `resources/js/pages/admin/productos/form.tsx` | ❌ No existe |
+| Archivo | Estado | Notas |
+|---|---|---|
+| `resources/js/components/admin/CreateStoryModal.tsx` | ✅ UI completa (sin backend) | Formulario completo: todos los campos, editor rich text, upload imágenes/video, variantes, estado. Requiere conectar a `POST /admin/historias` con `useForm` de Inertia. |
+| `resources/js/components/admin/CreateProductModal.tsx` | ✅ UI completa (sin backend) | Formulario completo: todos los campos, upload imágenes, variantes, estado. Requiere conectar a `POST /admin/productos` con `useForm` de Inertia. |
 
 ### Backend existente relevante
 
@@ -166,14 +166,12 @@ Ubicadas en `resources/js/pages/admin/`:
 
 | Página | Estado | Notas |
 |---|---|---|
-| `dashboard.tsx` | ✅ UI completa (mock) | Usa `UserLayout`. Conectar deferred props para métricas y gráfica. |
-| `orders.tsx` | ✅ UI completa (mock) | Usa `UserLayout`. Migrar paginación a server-side (10 items). Conectar exportación. |
-| `subscriptions.tsx` | ❌ Por crear | Tabla de suscripciones admin con filtros, paginación y exportación. |
-| `clients.tsx` | ❌ Por crear | Tabla de clientes con filtros, paginación y exportación. |
-| `historias/index.tsx` | ❌ Por crear | Tabla de historias con acciones rápidas (editar, duplicar, toggle, eliminar). |
-| `historias/form.tsx` | ❌ Por crear | Formulario crear/editar historia (reutilizable). |
-| `productos/index.tsx` | ❌ Por crear | Tabla de productos con acciones rápidas y ajuste de stock. |
-| `productos/form.tsx` | ❌ Por crear | Formulario crear/editar producto (reutilizable). |
+| `dashboard.tsx` | ✅ UI completa (mock) | Conectar deferred props para métricas y gráfica. |
+| `orders.tsx` | ✅ UI completa (mock) | Migrar paginación a server-side (10 items). Conectar exportación. |
+| `subscriptions.tsx` | ✅ UI completa (mock) | Migrar paginación a server-side (10 items). Conectar exportación. |
+| `clients.tsx` | ✅ UI completa (mock) | Migrar paginación a server-side (10 items). Conectar exportación. |
+| `stories.tsx` | ✅ UI completa (mock) | Migrar paginación a server-side (10 items). Conectar exportación y acciones del menú al backend. |
+| `products.tsx` | ✅ UI completa (mock) | Migrar paginación a server-side (10 items). Conectar exportación y acciones del menú al backend. |
 
 ### Frontend — Componentes Compartidos Admin
 
@@ -181,19 +179,11 @@ Ubicados en `resources/js/components/admin/`:
 
 | Componente | Estado | Descripción |
 |---|---|---|
-| `AdminLayout.tsx` | ❌ Por crear (opcional) | Layout alternativo si se decide separar del `UserLayout`. Actualmente `dashboard.tsx` y `orders.tsx` usan `UserLayout` directamente. |
-| `DataTable.tsx` | ❌ Por crear | Tabla genérica con paginación server-side |
-| `TableFilters.tsx` | ❌ Por crear | Barra de filtros con búsqueda y selector de fechas |
-| `ExportButton.tsx` | ❌ Por crear | Botón de exportación Excel |
-| `MetricCard.tsx` | ❌ Por crear | Tarjeta de métrica del dashboard (extraer de `dashboard.tsx`) |
-| `SalesChart.tsx` | ❌ Por crear | Gráfica de ventas con Recharts (extraer de `dashboard.tsx`) |
-| `BarChart.tsx` | ❌ Por crear | Gráfica de barras para productos activos |
-| `StatusBadge.tsx` | ❌ Por crear | Badge de estado (Activo/Pausado/etc.) |
-| `ConfirmDialog.tsx` | ❌ Por crear | Modal de confirmación para acciones destructivas |
-| `HistoriaModal.tsx` | ❌ Por crear | Modal de detalle de Historia con entregas |
-| `StockAdjuster.tsx` | ❌ Por crear | Control de ajuste de stock |
-
-> **Nota sobre el layout:** `dashboard.tsx` y `orders.tsx` ya usan `UserLayout` (que incluye el sidebar admin). Al crear las nuevas páginas se puede continuar usando `UserLayout` para mantener consistencia, o extraer un `AdminLayout` dedicado. La decisión debe tomarse antes de crear las primeras páginas nuevas.
+| `CreateStoryModal.tsx` | ✅ Existe (sin backend) | Formulario completo de creación de historia. Requiere conectar a `POST /admin/historias` con `useForm` de Inertia. |
+| `CreateProductModal.tsx` | ✅ Existe (sin backend) | Formulario completo de creación de producto. Requiere conectar a `POST /admin/productos` con `useForm` de Inertia. |
+| `StatusBadge.tsx` | ❌ Por crear | Badge de color según el valor del estado (activo/pausado/activa/inactiva/etc.) |
+| `ConfirmDialog.tsx` | ❌ Por crear | Modal de confirmación con Radix UI Dialog para acciones destructivas |
+| `StockAdjuster.tsx` | ❌ Por crear | Control de ajuste de stock (botones +/- y campo numérico) |
 
 ---
 

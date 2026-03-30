@@ -30,35 +30,58 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 
 ## Estado Actual del Sistema
 
-### Ya implementado (NO requiere trabajo)
+### Frontend — TODO el diseño visual ya está construido (NO crear páginas nuevas)
 
-- Layout `user-layout.tsx`: sidebar con menú admin (Panel, Órdenes, Suscripciones, Clientes, Historias, Productos), header con indicador de admin, modal de cerrar sesión funcional.
-- Página `resources/js/pages/admin/dashboard.tsx`: 5 tarjetas de métricas con datos mock, gráfica de líneas (Recharts LineChart) con datos mock para Historias/Productos/Cancelados, tarjeta "Ventas totales" con desglose mock, tarjeta "Historias activas" con gráfica de dona (PieChart) y datos mock, filtros de período (Semana/rango de fechas) solo UI.
-- Página `resources/js/pages/admin/orders.tsx`: tabla con columnas Nº/Productos/Cantidad/Precio/Cliente/Dirección/Estado, filtro de búsqueda por texto, selector de rango de fechas (solo UI), botón "Exportar a excel" (solo UI), paginación client-side con `itemsPerPage = 8` y `totalPages = 12` hardcodeado.
-- `OrdenController::index()` en `User\OrdenController`: detecta si es admin y retorna datos mock de admin a `admin/orders`.
-- Rutas admin stub en `routes/web.php` bajo `can:admin`: `/clients`, `/admin/stories`, `/admin/products` — retornan páginas Inertia vacías.
+Todas las páginas React del panel admin existen con UI completa, filtros, paginación client-side y datos mock. Los modales de creación también existen con formularios completos. **El trabajo de frontend es exclusivamente conectar datos reales a las vistas existentes.**
+
+| Archivo | Estado |
+|---|---|
+| `resources/js/pages/admin/dashboard.tsx` | ✅ UI completa — 5 tarjetas métricas, LineChart, PieChart, filtros de período (solo UI), datos mock |
+| `resources/js/pages/admin/orders.tsx` | ✅ UI completa — tabla, filtros, paginación client-side (8 items), botón exportar (solo UI), datos mock |
+| `resources/js/pages/admin/subscriptions.tsx` | ✅ UI completa — tabla, filtros de búsqueda y fecha, paginación client-side (8 items), botón exportar (solo UI), datos mock |
+| `resources/js/pages/admin/clients.tsx` | ✅ UI completa — tabla, filtro de búsqueda, paginación client-side (8 items), botón exportar (solo UI), datos mock |
+| `resources/js/pages/admin/stories.tsx` | ✅ UI completa — tabla, filtros búsqueda/categoría/fecha, paginación client-side (8 items), botón exportar (solo UI), botón "Crear historia" que abre modal, datos mock |
+| `resources/js/pages/admin/products.tsx` | ✅ UI completa — tabla, filtros búsqueda/categoría, paginación client-side (8 items), botón exportar (solo UI), botón "Crear producto" que abre modal, datos mock |
+| `resources/js/components/admin/CreateStoryModal.tsx` | ✅ UI completa — formulario con todos los campos, editor rich text, upload imágenes/video, variantes, estado (sin conectar al backend) |
+| `resources/js/components/admin/CreateProductModal.tsx` | ✅ UI completa — formulario con todos los campos, upload imágenes, variantes, estado (sin conectar al backend) |
+
+### Backend — TODO falta (crear desde cero)
+
+- Modelos `Historia`, `Entrega`, `Producto`, `Suscripcion` — **no existen**
+- Controladores `Admin\*` — **no existen** (solo `User\OrdenController` que detecta admin y retorna mocks)
+- Rutas admin completas — **no existen** (solo stubs: `/clients`, `/admin/stories`, `/admin/products`)
+- `maatwebsite/excel` — **no instalado**
+
+### Otros elementos ya implementados (NO requiere trabajo)
+
+- Layout `user-layout.tsx`: sidebar con menú admin funcional, header con indicador de admin, modal de cerrar sesión.
 - Modelos `StoreOrder` y `StoreOrderItem` con relaciones y casts.
 - Autenticación y redirección por rol (admin/usuario) ya funcional.
+- Rutas admin stub en `routes/web.php` bajo `can:admin`: `/clients`, `/admin/stories`, `/admin/products`.
 
 ### Pendiente de implementación
 
-**Backend:**
-1. Crear migraciones y modelos: `Historia`, `Entrega`, `Producto`, `Suscripcion`.
-2. Crear `Admin\DashboardController` con deferred props para métricas y gráfica de ventas reales.
-3. Crear `Admin\OrdenController` con filtros server-side, paginación `paginate(10)` y exportación Excel real.
-4. Crear `Admin\SuscripcionController`, `Admin\ClienteController`, `Admin\HistoriaController`, `Admin\ProductoController` con CRUD completo.
-5. Instalar `maatwebsite/excel` y crear clases Export para cada sección.
-6. Registrar todas las rutas admin completas en `routes/web.php`.
+**Backend (crear desde cero):**
+1. Migraciones + modelos + factories: `Historia`, `Entrega`, `Producto`, `Suscripcion`.
+2. `Admin\DashboardController` con `DashboardMetricasService` — métricas reales con deferred props.
+3. `Admin\OrdenController` — filtros server-side, `paginate(10)`, exportación Excel.
+4. `Admin\SuscripcionController` — filtros server-side, `paginate(10)`, exportación Excel.
+5. `Admin\ClienteController` — filtros server-side, `paginate(10)`, exportación Excel.
+6. `Admin\HistoriaController` — CRUD completo (store, update, destroy, duplicate, toggleStatus, storeEntrega, updateEntrega).
+7. `Admin\ProductoController` — CRUD completo (store, update, destroy, duplicate, toggleStatus, ajustarStock).
+8. Form Requests para Historia y Producto.
+9. Export classes con `maatwebsite/excel`.
+10. Registrar todas las rutas admin completas en `routes/web.php`.
 
-**Frontend:**
-1. `dashboard.tsx` — reemplazar datos mock con props de Inertia (deferred), conectar filtros de período al backend.
-2. `orders.tsx` — migrar de client-side (8 items, mock) a server-side (10 items, datos reales), conectar exportación Excel.
-3. Crear `resources/js/pages/admin/subscriptions.tsx` — tabla de suscripciones admin.
-4. Crear `resources/js/pages/admin/clients.tsx` — tabla de clientes.
-5. Crear `resources/js/pages/admin/historias/index.tsx` — listado de historias con acciones.
-6. Crear `resources/js/pages/admin/historias/form.tsx` — formulario crear/editar historia.
-7. Crear `resources/js/pages/admin/productos/index.tsx` — listado de productos con acciones.
-8. Crear `resources/js/pages/admin/productos/form.tsx` — formulario crear/editar producto.
+**Frontend (conectar datos reales a UI existente — NO crear páginas):**
+1. `dashboard.tsx` — reemplazar mocks con props de Inertia (deferred), conectar filtros de período al backend.
+2. `orders.tsx` — migrar paginación client-side (8 items) a server-side (10 items), conectar exportación Excel.
+3. `subscriptions.tsx` — migrar paginación client-side (8 items) a server-side (10 items), conectar exportación Excel.
+4. `clients.tsx` — migrar paginación client-side (8 items) a server-side (10 items), conectar exportación Excel.
+5. `stories.tsx` — migrar paginación client-side (8 items) a server-side (10 items), conectar exportación, conectar acciones del menú (editar, duplicar, toggle, eliminar) al backend.
+6. `products.tsx` — migrar paginación client-side (8 items) a server-side (10 items), conectar exportación, conectar acciones del menú al backend.
+7. `CreateStoryModal.tsx` — conectar formulario existente al endpoint `POST /admin/historias` con `useForm` de Inertia, validación real.
+8. `CreateProductModal.tsx` — conectar formulario existente al endpoint `POST /admin/productos` con `useForm` de Inertia, validación real.
 
 ---
 
@@ -93,7 +116,7 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 5. THE Dashboard SHALL mostrar una tarjeta "Productos Activos" con el total de Productos con Estado_Producto `Activo` y una gráfica de barras con el valor total vendido en dinero (MXN) por cada Producto activo.
 6. THE Dashboard SHALL mostrar una tarjeta "Ventas del Mes" con el valor total vendido en el mes calendario actual, desglosado en "Historias (MX)" y "Productos (MX)"; el contador se reinicia al inicio de cada mes calendario.
 
-> **Estado:** La UI de las 5 tarjetas de métricas ya existe en `dashboard.tsx` con datos mock hardcodeados. Requiere crear `Admin\DashboardController` con `DashboardMetricasService` y conectar las props de Inertia (deferred) para reemplazar los mocks con datos reales. Los modelos `Historia`, `Producto` y `Suscripcion` aún no existen.
+> **Estado:** ✅ UI completa en `dashboard.tsx` — las 5 tarjetas de métricas existen con datos mock hardcodeados. **Trabajo pendiente (solo backend + conexión):** crear `Admin\DashboardController` con `DashboardMetricasService` y conectar las props de Inertia (deferred) para reemplazar los mocks con datos reales. Los modelos `Historia`, `Producto` y `Suscripcion` aún no existen.
 
 ---
 
@@ -108,7 +131,7 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 3. WHEN el Administrador selecciona un período diferente, THE Dashboard SHALL actualizar la gráfica con los datos correspondientes al nuevo período sin recargar la página.
 4. THE Dashboard SHALL mostrar la gráfica con un diseño moderno que incluya leyenda, etiquetas de ejes y valores al pasar el cursor sobre los puntos de datos.
 
-> **Estado:** La gráfica de líneas (LineChart de Recharts) ya existe en `dashboard.tsx` con datos mock y los botones de filtro de período ya están en la UI. Requiere conectar el selector de período al endpoint `/admin/dashboard/ventas-chart` y reemplazar `salesData` con props de Inertia.
+> **Estado:** ✅ UI completa en `dashboard.tsx` — la gráfica de líneas (LineChart de Recharts) existe con datos mock y los botones de filtro de período están en la UI. **Trabajo pendiente (solo backend + conexión):** conectar el selector de período al endpoint `/admin/dashboard/ventas-chart` y reemplazar `salesData` con props de Inertia.
 
 ---
 
@@ -125,7 +148,7 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 5. THE Admin_Panel SHALL mostrar un botón "Exportar Excel" que genere un archivo `.xlsx` con los registros actualmente visibles en la tabla, respetando los filtros aplicados.
 6. THE Paginador SHALL dividir los resultados de la tabla de Órdenes en páginas de 10 registros, con botones de navegación izquierdo y derecho, y SHALL funcionar correctamente cuando hay filtros activos.
 
-> **Estado:** La UI de `orders.tsx` ya está construida con tabla, filtro de búsqueda, selector de fechas (solo UI) y botón "Exportar a excel" (solo UI). La paginación es client-side con 8 items y `totalPages = 12` hardcodeado. `OrdenController::index()` retorna mocks. Requiere: crear `Admin\OrdenController` con filtros y `paginate(10)` server-side, conectar exportación Excel real con `maatwebsite/excel`, y migrar `orders.tsx` de client-side a server-side.
+> **Estado:** ✅ UI completa en `orders.tsx` — tabla, filtro de búsqueda, selector de fechas (solo UI) y botón "Exportar a excel" (solo UI) ya existen. La paginación es client-side con 8 items y `totalPages = 12` hardcodeado. `OrdenController::index()` retorna mocks. **Trabajo pendiente:** crear `Admin\OrdenController` con filtros y `paginate(10)` server-side, conectar exportación Excel real con `maatwebsite/excel`, y migrar `orders.tsx` de client-side a server-side (NO recrear la página).
 
 ---
 
@@ -142,7 +165,7 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 5. THE Admin_Panel SHALL mostrar un botón "Exportar Excel" que genere un archivo `.xlsx` con los registros actualmente visibles en la tabla, respetando los filtros aplicados.
 6. THE Paginador SHALL dividir los resultados de la tabla de Suscripciones en páginas de 10 registros, con botones de navegación izquierdo y derecho, y SHALL funcionar correctamente cuando hay filtros activos.
 
-> **Estado:** La página `subscriptions.tsx` no existe aún. Requiere crear la página React completa y el `Admin\SuscripcionController` con filtros server-side, `paginate(10)` y exportación Excel. El modelo `Suscripcion` tampoco existe aún.
+> **Estado:** ✅ UI completa en `subscriptions.tsx` — tabla con columnas, filtros de búsqueda y fecha, paginación client-side (8 items) y botón exportar (solo UI) ya existen con datos mock. **Trabajo pendiente:** crear `Admin\SuscripcionController` con filtros server-side y `paginate(10)`, y migrar `subscriptions.tsx` de client-side a server-side (NO recrear la página). El modelo `Suscripcion` tampoco existe aún.
 
 ---
 
@@ -158,7 +181,7 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 4. THE Admin_Panel SHALL mostrar un botón "Exportar Excel" que genere un archivo `.xlsx` con la información completa de los Clientes, respetando los filtros aplicados si los hay.
 5. THE Paginador SHALL dividir los resultados de la tabla de Clientes en páginas de 10 registros, con botones de navegación izquierdo y derecho, y SHALL funcionar correctamente cuando hay filtros activos.
 
-> **Estado:** La página `clients.tsx` no existe aún (la ruta `/clients` retorna una página Inertia vacía). Requiere crear la página React y el `Admin\ClienteController` con filtros server-side y `paginate(10)`.
+> **Estado:** ✅ UI completa en `clients.tsx` — tabla con columnas, filtro de búsqueda, paginación client-side (8 items) y botón exportar (solo UI) ya existen con datos mock. **Trabajo pendiente:** crear `Admin\ClienteController` con filtros server-side y `paginate(10)`, y migrar `clients.tsx` de client-side a server-side (NO recrear la página).
 
 ---
 
@@ -174,7 +197,7 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 4. WHEN el Administrador activa el botón "Guardar Historia" con todos los campos obligatorios completos, THE Admin_Panel SHALL persistir la Historia en la base de datos y SHALL publicarla en la sección de Historias del sitio si el estado es `Activo`.
 5. WHEN el Administrador activa la acción "Editar" sobre una Historia existente, THE Admin_Panel SHALL cargar el formulario con los datos actuales de la Historia para su modificación.
 
-> **Estado:** La página `historias/form.tsx` no existe aún. El modelo `Historia` tampoco existe. Requiere crear migración, modelo, Form Requests (`StoreHistoriaRequest`, `UpdateHistoriaRequest`), `Admin\HistoriaController` y la página React del formulario.
+> **Estado:** ✅ UI completa en `CreateStoryModal.tsx` — el modal con formulario completo (todos los campos, editor rich text, upload imágenes/video, variantes, estado) ya existe como componente. El botón "Crear Historia" en `stories.tsx` ya abre este modal. **Trabajo pendiente:** crear migración, modelo `Historia`, Form Requests (`StoreHistoriaRequest`, `UpdateHistoriaRequest`), `Admin\HistoriaController`, y conectar `CreateStoryModal.tsx` al endpoint `POST /admin/historias` con `useForm` de Inertia (NO recrear el modal ni la página).
 
 ---
 
@@ -193,7 +216,7 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 7. THE Admin_Panel SHALL mostrar un Filtro inteligente en la esquina superior izquierda de la sección de Historias que permita buscar por Nombre, Código y Categoría simultáneamente.
 8. THE Admin_Panel SHALL mostrar un botón "Generar Reporte Excel" que exporte el listado de Historias respetando los filtros activos aplicados.
 
-> **Estado:** La página `historias/index.tsx` no existe aún (la ruta `/admin/stories` retorna una página Inertia vacía). Requiere crear la página React completa con tabla y acciones, y el `Admin\HistoriaController` con todos los métodos CRUD y acciones especiales.
+> **Estado:** ✅ UI completa en `stories.tsx` — tabla con columnas, filtros de búsqueda/categoría/fecha, paginación client-side (8 items), botón exportar (solo UI) y menú de acciones por fila ya existen con datos mock. **Trabajo pendiente:** crear `Admin\HistoriaController` con todos los métodos CRUD y acciones especiales, y conectar `stories.tsx` al backend (paginación server-side, acciones del menú, exportación) (NO recrear la página).
 
 ---
 
@@ -209,7 +232,7 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 4. WHEN el Administrador activa el botón "Guardar Producto" con todos los campos obligatorios completos, THE Admin_Panel SHALL persistir el Producto en la base de datos y SHALL publicarlo en la sección de Productos del sitio si el estado es `Activo`.
 5. WHEN el Administrador activa la acción "Editar" sobre un Producto existente, THE Admin_Panel SHALL cargar el formulario con los datos actuales del Producto para su modificación.
 
-> **Estado:** La página `productos/form.tsx` no existe aún. El modelo `Producto` tampoco existe. Requiere crear migración, modelo, Form Requests (`StoreProductoRequest`, `UpdateProductoRequest`), `Admin\ProductoController` y la página React del formulario.
+> **Estado:** ✅ UI completa en `CreateProductModal.tsx` — el modal con formulario completo (todos los campos, upload imágenes, variantes, estado) ya existe como componente. El botón "Crear Producto" en `products.tsx` ya abre este modal. **Trabajo pendiente:** crear migración, modelo `Producto`, Form Requests (`StoreProductoRequest`, `UpdateProductoRequest`), `Admin\ProductoController`, y conectar `CreateProductModal.tsx` al endpoint `POST /admin/productos` con `useForm` de Inertia (NO recrear el modal ni la página).
 
 ---
 
@@ -228,7 +251,7 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 7. THE Admin_Panel SHALL mostrar un Filtro inteligente en la esquina superior izquierda de la sección de Productos que permita buscar por Nombre, Código y Categoría simultáneamente.
 8. THE Admin_Panel SHALL mostrar un botón "Generar Reporte Excel" que exporte el listado de Productos respetando los filtros activos aplicados.
 
-> **Estado:** La página `productos/index.tsx` no existe aún (la ruta `/admin/products` retorna una página Inertia vacía). Requiere crear la página React completa con tabla y acciones, y el `Admin\ProductoController` con todos los métodos CRUD y acciones especiales.
+> **Estado:** ✅ UI completa en `products.tsx` — tabla con columnas, filtros de búsqueda/categoría, paginación client-side (8 items), botón exportar (solo UI) y menú de acciones por fila ya existen con datos mock. **Trabajo pendiente:** crear `Admin\ProductoController` con todos los métodos CRUD y acciones especiales, y conectar `products.tsx` al backend (paginación server-side, acciones del menú, exportación) (NO recrear la página).
 
 ---
 
@@ -243,7 +266,7 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 3. WHEN el Administrador activa un botón de exportación sin filtros activos, THE Exportador_Excel SHALL incluir todos los registros de la sección correspondiente.
 4. THE Exportador_Excel SHALL incluir encabezados de columna en la primera fila del archivo generado, con los mismos nombres de columna que se muestran en la tabla de la interfaz.
 
-> **Estado:** Los botones "Exportar a excel" y "Generar Reporte Excel" ya existen en la UI de `orders.tsx` (y existirán en las demás páginas cuando se creen), pero no tienen funcionalidad real. Requiere instalar `maatwebsite/excel` y crear las clases Export para cada sección.
+> **Estado:** Los botones "Exportar a excel" y "Generar Reporte Excel" ya existen en la UI de todas las páginas (`orders.tsx`, `subscriptions.tsx`, `clients.tsx`, `stories.tsx`, `products.tsx`), pero no tienen funcionalidad real. **Trabajo pendiente:** instalar `maatwebsite/excel` y crear las clases Export para cada sección, luego conectar los botones existentes a los endpoints de exportación.
 
 ---
 
@@ -260,4 +283,4 @@ El Panel Administrativo es una interfaz de gestión interna para la plataforma L
 5. IF el Administrador se encuentra en la primera página, THEN THE Paginador SHALL deshabilitar el botón de navegación izquierdo.
 6. IF el Administrador se encuentra en la última página, THEN THE Paginador SHALL deshabilitar el botón de navegación derecho.
 
-> **Estado:** `orders.tsx` usa paginación client-side con `itemsPerPage = 8` y `totalPages = 12` hardcodeado. Las demás páginas de tabla aún no existen. Todas las tablas deben usar paginación server-side con `paginate(10)` de Laravel y props de Inertia.
+> **Estado:** `orders.tsx` usa paginación client-side con `itemsPerPage = 8` y `totalPages = 12` hardcodeado. Las demás páginas (`subscriptions.tsx`, `clients.tsx`, `stories.tsx`, `products.tsx`) también usan paginación client-side con 8 items. **Trabajo pendiente:** todas las tablas deben migrar a paginación server-side con `paginate(10)` de Laravel y props de Inertia (NO recrear las páginas, solo migrar la lógica de paginación).
