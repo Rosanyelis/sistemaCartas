@@ -113,56 +113,55 @@ export default function Subscriptions({ subscriptions }: Props) {
         <UserLayout title="Suscripciones">
             <Head title="Gestión de Suscripciones" />
 
-            <div className="flex flex-col gap-6 px-4 py-6 font-['Inter'] md:px-8">
+            <div className="flex flex-col gap-6 px-4 md:px-8 py-6 font-['Inter']">
                 {/* Header Section */}
-                <div className="flex flex-col gap-1">
-                    <h1 className="text-2xl font-bold text-[#1B3D6D]">
+                <div className="flex flex-col gap-1 items-center text-center md:items-start md:text-left mb-2 md:mb-0">
+                    <h1 className="text-[25px] md:text-2xl font-bold text-[#1B3D6D]">
                         Suscripciones
                     </h1>
-                    <p className="text-sm text-[#7B7B7B]">
+                    <p className="text-[13.5px] md:text-sm text-[#1B3D6D] md:text-[#7B7B7B]">
                         Aquí puedes revisar y gestionar todas las suscripciones de la plataforma
                     </p>
                 </div>
 
-                {/* Filters/Actions Bar */}
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div className="relative flex-1 max-w-xl">
-                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                            <FontAwesomeIcon icon={faSearch} className="text-[#A0A0A0] text-sm" />
+                {/* Filters/Actions Bar - Mobile first layout */}
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between w-full">
+                    <div className="relative w-full lg:flex-1 lg:max-w-xl">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
+                            <FontAwesomeIcon icon={faSearch} className="text-[#1B3D6D] md:text-[#A0A0A0] opacity-60 md:opacity-100 text-[13px] md:text-sm" />
                         </div>
                         <input
                             type="text"
                             value={searchTerm}
                             onChange={handleSearch}
-                            placeholder="Busca por numero de suscripción, nombre del cliente o correo"
-                            className="block w-full rounded-md border border-[#E5E7EB] bg-white py-2.5 pl-10 pr-3 text-sm placeholder-[#A0A0A0] focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D] outline-none transition-all"
+                            placeholder="Buscar por número de órden o producto"
+                            className="block w-full rounded-[4px] md:rounded-md border border-[#DFE4EA] md:border-[#E5E7EB] bg-white py-[10px] md:py-2.5 pl-[34px] md:pl-10 pr-3 text-[13px] md:text-sm text-[#1B3D6D] md:text-gray-900 placeholder:text-[#1B3D6D]/60 md:placeholder:text-[#A0A0A0] focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/15 outline-none transition-all shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-none"
                         />
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 relative" ref={dateMenuRef}>
+                    <div className="flex flex-col md:flex-row items-center gap-3 relative w-full lg:w-auto" ref={dateMenuRef}>
                         <div 
                             onClick={() => setIsDateMenuOpen(!isDateMenuOpen)}
-                            className="flex items-center gap-2 rounded-md border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm text-[#4B5563] shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
+                            className="flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-[4px] md:rounded-md border border-[#DFE4EA] md:border-[#E5E7EB] bg-white px-4 py-[10px] md:py-2.5 text-[13px] md:text-sm text-[#1B3D6D] md:text-[#4B5563] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer hover:bg-gray-50 transition-colors"
                         >
-                            <FontAwesomeIcon icon={faCalendarAlt} className="text-[#A0A0A0]" />
-                            <span className="font-medium text-[13px]">
+                            <span className="font-medium md:font-medium opacity-80 md:opacity-100">
                                 {startDate && endDate 
                                     ? `${formatDateLabel(startDate)} - ${formatDateLabel(endDate)}` 
                                     : startDate 
                                         ? `Desde ${formatDateLabel(startDate)}` 
                                         : endDate 
                                             ? `Hasta ${formatDateLabel(endDate)}` 
-                                            : 'Filtrar por fechas'}
+                                            : '01/04/2025 - 17/04/2025'}
                             </span>
                             <FontAwesomeIcon 
                                 icon={faChevronDown} 
-                                className={`text-[#A0A0A0] ml-1 text-xs transition-transform ${isDateMenuOpen ? 'rotate-180' : ''}`} 
+                                className={`text-[#1B3D6D] md:text-[#A0A0A0] opacity-60 md:opacity-100 ml-1 text-[10px] md:text-xs transition-transform ${isDateMenuOpen ? 'rotate-180' : ''}`} 
                             />
                         </div>
 
                         {/* Dropdown del calendario */}
                         {isDateMenuOpen && (
-                            <div className="absolute top-full right-0 lg:left-0 lg:right-auto mt-2 z-10 w-72 rounded-md border border-[#E5E7EB] bg-white p-4 shadow-lg">
+                            <div className="absolute top-full right-0 lg:left-0 lg:right-auto mt-2 z-10 w-full md:w-72 rounded-md border border-[#E5E7EB] bg-white p-4 shadow-lg">
                                 <div className="flex flex-col gap-3">
                                     <div>
                                         <label className="mb-1 block text-xs font-semibold text-[#7B7B7B]">Desde (Fecha de adquisición):</label>
@@ -200,16 +199,18 @@ export default function Subscriptions({ subscriptions }: Props) {
                             </div>
                         )}
 
-                        <button className="flex items-center gap-2 rounded-md border border-[#1B3D6D] bg-white px-4 py-2.5 text-sm font-semibold text-[#1B3D6D] shadow-sm hover:bg-blue-50 transition-colors">
+                        <button className="flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-[4px] md:rounded-md border border-[#1B3D6D] bg-white px-5 md:px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#F8F9FA] transition-colors">
                             <span>Exportar a excel</span>
-                            <FontAwesomeIcon icon={faFileExcel} />
+                            <FontAwesomeIcon icon={faFileExcel} className="text-[12px] md:text-[14px] opacity-80 md:opacity-100" />
                         </button>
                     </div>
                 </div>
 
-                {/* Table Container */}
-                <div className="overflow-hidden rounded-lg bg-white shadow-[0px_0px_15px_rgba(36,16,167,0.08)]">
-                    <div className="overflow-x-auto">
+                {/* Main Content Container */}
+                <div className="flex flex-col bg-transparent md:bg-white md:shadow-[0px_0px_15px_rgba(36,16,167,0.08)] md:rounded-lg overflow-hidden w-full">
+                    
+                    {/* Desktop Table View */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left border-collapse min-w-[1000px]">
                             <thead>
                                 <tr className="border-b border-[#F3F4F6] bg-[#F9FAFB]">
@@ -267,14 +268,77 @@ export default function Subscriptions({ subscriptions }: Props) {
                         </table>
                     </div>
 
-                    {/* Pagination */}
-                    <div className="flex items-center justify-between border-t border-[#F3F4F6] px-5 py-4 bg-white">
-                        <div className="text-sm text-[#7B7B7B]">
-                            Mostrando <span className="font-semibold text-[#111827]">
-                                {totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
-                            </span> a <span className="font-semibold text-[#111827]">
-                                {Math.min(currentPage * itemsPerPage, totalRecords)}
-                            </span> de <span className="font-semibold text-[#111827]">{totalRecords}</span> registros
+                    {/* Mobile Cards View */}
+                    <div className="flex flex-col bg-white rounded-[10px] shadow-[0px_0px_10px_rgba(0,0,0,0.04)] block md:hidden mb-4">
+                        <div className="flex flex-col divide-y divide-[#F3F4F6] w-full">
+                            {paginatedSubscriptions.length > 0 ? (
+                                paginatedSubscriptions.map((sub, idx) => (
+                                    <div key={idx} className="flex flex-col py-[18px] px-5 gap-3">
+                                        <div className="flex justify-between items-center bg-white">
+                                            <span className="text-[13.5px] font-medium text-[#4B5563]">{sub.id}</span>
+                                            <span className={`inline-flex items-center px-[10px] py-[3px] rounded text-[11.5px] font-medium tracking-wide
+                                                ${sub.estado === 'Activa' ? 'bg-[#D1F4E0] text-[#12A05B]' : 
+                                                sub.estado === 'Inactiva' ? 'bg-[#FEE2E2] text-[#EF4444]' : 
+                                                'bg-[#FEF3C7] text-[#D97706]'}`}>
+                                                {sub.estado}
+                                            </span>
+                                        </div>
+                                        <div className="-mt-1 text-[13.5px] font-medium text-[#111827]">
+                                            {sub.historia}
+                                        </div>
+                                        <div className="flex justify-between items-center mt-[-2px]">
+                                            <span className="text-[13px] text-[#4B5563]">Suscripción: <span className="text-[#111827]">{sub.tipo}</span></span>
+                                            <span className="text-[13px] text-[#111827] font-medium">Cantidad: {sub.cantidad}</span>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-2 mt-2">
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] text-[#A0A0A0]">F. adquisición</span>
+                                                <span className="text-[12px] text-[#4B5563] font-medium mt-0.5">{sub.fecha_adquisicion}</span>
+                                            </div>
+                                            <div className="flex flex-col items-center text-center">
+                                                <span className="text-[11px] text-[#A0A0A0]">F. finalización</span>
+                                                <span className="text-[12px] text-[#4B5563] font-medium mt-0.5">{sub.fecha_finalizacion}</span>
+                                            </div>
+                                            <div className="flex flex-col items-end text-right">
+                                                <span className="text-[11px] text-[#A0A0A0]">Próximo cobro</span>
+                                                <span className="text-[12px] text-[#4B5563] font-medium mt-0.5">{sub.proximo_cobro}</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] text-[#A0A0A0]">Cliente</span>
+                                                <span className="text-[12px] text-[#4B5563] font-medium mt-0.5">{sub.cliente_nombre}</span>
+                                            </div>
+                                            <div className="flex flex-col text-right items-end">
+                                                <span className="text-[11px] text-[#A0A0A0]">Dirección</span>
+                                                <span className="text-[12px] text-[#4B5563] font-medium mt-0.5 truncate leading-tight w-full max-w-[150px]">{sub.cliente_direccion}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-10 text-center text-[13px] text-[#7B7B7B]">
+                                    No se encontraron suscripciones que coincidan con la búsqueda.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Shared Pagination */}
+                    <div className="flex flex-col md:flex-row items-center justify-center md:justify-between border-t border-transparent md:border-[#F3F4F6] md:px-5 py-4 md:py-4 bg-transparent md:bg-white gap-4 md:gap-0 mt-2 md:mt-0">
+                        <div className="text-[13px] font-bold md:font-normal text-[#9CA3AF] md:text-[#7B7B7B]">
+                            <span className="hidden md:inline">
+                                Mostrando <span className="text-[#111827] font-semibold">
+                                    {totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
+                                </span> a <span className="text-[#111827] font-semibold">
+                                    {Math.min(currentPage * itemsPerPage, totalRecords)}
+                                </span> de <span className="text-[#111827] font-semibold">{totalRecords}</span> registros
+                            </span>
+                            <span className="md:hidden">
+                                Mostrando {totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} de {totalRecords} registros
+                            </span>
                         </div>
                         <div className="flex items-center gap-1">
                             <button 
@@ -299,8 +363,8 @@ export default function Subscriptions({ subscriptions }: Props) {
                                             className={`flex items-center justify-center size-8 rounded-md transition-colors ${
                                                 currentPage === page 
                                                     ? 'bg-[#1B3D6D] text-white font-semibold' 
-                                                    : 'hover:bg-gray-100 text-[#7B7B7B]'
-                                            }`}
+                                                    : 'hover:bg-gray-100 text-[#7B7B7B] md:text-[#7B7B7B]'
+                                            } ${currentPage !== page ? 'text-[#9CA3AF]' : ''}`}
                                         >
                                             {page}
                                         </button>
