@@ -47,6 +47,12 @@ class HandleInertiaRequests extends Middleware
                 'currency' => config('paypal.currency'),
                 'enabled' => (bool) config('paypal.enabled'),
             ],
+            // Valores simples (no closures anidadas): Inertia resuelve bien el JSON en cada visita, p. ej. tras redirect con flash.
+            'flash' => [
+                'success' => $request->session()->get('success'),
+                'error' => $request->session()->get('error'),
+                'warning' => $request->session()->get('warning'),
+            ],
         ];
     }
 }

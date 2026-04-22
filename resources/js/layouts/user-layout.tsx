@@ -12,6 +12,7 @@ import {
     faFileLines,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { FlashToasts } from '@/components/FlashToasts';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { ReactNode, useState } from 'react';
 import { logout } from '@/routes';
@@ -42,32 +43,32 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
               {
                   name: 'Ordenes',
                   icon: faCartShopping,
-                  href: '/admin/orders',
-                  active: url.startsWith('/admin/orders'),
+                  href: '/admin/ordenes',
+                  active: url.startsWith('/admin/ordenes') || url.startsWith('/admin/orders'),
               },
               {
                   name: 'Suscripciones',
                   icon: faUsers,
-                  href: '/admin/subscriptions',
-                  active: url.startsWith('/admin/subscriptions'),
+                  href: '/admin/suscripciones',
+                  active: url.startsWith('/admin/suscripciones') || url.startsWith('/admin/subscriptions'),
               },
               {
                   name: 'Clientes',
                   icon: faUserGroup,
-                  href: '/admin/clients',
-                  active: url.startsWith('/admin/clients'),
+                  href: '/admin/clientes',
+                  active: url.startsWith('/admin/clientes') || url.startsWith('/admin/clients'),
               },
               {
                   name: 'Historias',
                   icon: faBook,
-                  href: '/admin/stories',
-                  active: url.startsWith('/admin/stories'),
+                  href: '/admin/historias',
+                  active: url.startsWith('/admin/historias') || url.startsWith('/admin/stories'),
               },
               {
                   name: 'Productos',
                   icon: faBoxOpen,
-                  href: '/admin/products',
-                  active: url.startsWith('/admin/products'),
+                  href: '/admin/productos',
+                  active: url.startsWith('/admin/productos') || url.startsWith('/admin/products'),
               },
           ]
         : [
@@ -311,6 +312,7 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
                     </div>
                 </div>
             )}
+            <FlashToasts />
         </div>
     );
 }

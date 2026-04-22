@@ -1,10 +1,11 @@
 <?php
 
-use App\Http\Controllers\Admin\ClientController as AdminClientController;
+use App\Http\Controllers\Admin\ClienteController as AdminClienteController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\ProductController as AdminProductController;
-use App\Http\Controllers\Admin\StoryController as AdminStoryController;
-use App\Http\Controllers\Admin\SubscriptionController as AdminSubscriptionController;
+use App\Http\Controllers\Admin\HistoriaController as AdminHistoriaController;
+use App\Http\Controllers\Admin\OrdenController as AdminOrdenController;
+use App\Http\Controllers\Admin\ProductoController as AdminProductoController;
+use App\Http\Controllers\Admin\SuscripcionController as AdminSuscripcionController;
 use App\Http\Controllers\Auth\EmailVerificationOtpController;
 use App\Http\Controllers\Checkout\PayPalCheckoutController;
 use App\Http\Controllers\User\HistoriaController;
@@ -75,10 +76,44 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Admin Routes
     Route::middleware('can:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        Route::get('subscriptions', [AdminSubscriptionController::class, 'index'])->name('subscriptions');
-        Route::get('clients', [AdminClientController::class, 'index'])->name('clients');
-        Route::get('stories', [AdminStoryController::class, 'index'])->name('stories');
-        Route::get('products', [AdminProductController::class, 'index'])->name('products');
+
+        // Órdenes
+        Route::get('ordenes', [AdminOrdenController::class, 'index'])->name('ordenes');
+        Route::get('ordenes/export', [AdminOrdenController::class, 'export'])->name('ordenes.export');
+
+        // Suscripciones
+        Route::get('suscripciones', [AdminSuscripcionController::class, 'index'])->name('suscripciones');
+        Route::get('suscripciones/export', [AdminSuscripcionController::class, 'export'])->name('suscripciones.export');
+
+        // Clientes
+        Route::get('clientes', [AdminClienteController::class, 'index'])->name('clientes');
+        Route::get('clientes/export', [AdminClienteController::class, 'export'])->name('clientes.export');
+
+        // Historias
+        Route::get('historias', [AdminHistoriaController::class, 'index'])->name('historias');
+        Route::get('historias/export', [AdminHistoriaController::class, 'export'])->name('historias.export');
+        Route::post('historias', [AdminHistoriaController::class, 'store'])->name('historias.store');
+        Route::patch('historias/{historia}', [AdminHistoriaController::class, 'update'])->name('historias.update');
+        Route::delete('historias/{historia}', [AdminHistoriaController::class, 'destroy'])->name('historias.destroy');
+        Route::post('historias/{historia}/duplicate', [AdminHistoriaController::class, 'duplicate'])->name('historias.duplicate');
+        Route::patch('historias/{historia}/toggle-status', [AdminHistoriaController::class, 'toggleStatus'])->name('historias.toggle-status');
+
+        // Productos
+        Route::get('productos', [AdminProductoController::class, 'index'])->name('productos');
+        Route::get('productos/export', [AdminProductoController::class, 'export'])->name('productos.export');
+        Route::post('productos', [AdminProductoController::class, 'store'])->name('productos.store');
+        Route::patch('productos/{producto}', [AdminProductoController::class, 'update'])->name('productos.update');
+        Route::delete('productos/{producto}', [AdminProductoController::class, 'destroy'])->name('productos.destroy');
+        Route::post('productos/{producto}/duplicate', [AdminProductoController::class, 'duplicate'])->name('productos.duplicate');
+        Route::patch('productos/{producto}/toggle-status', [AdminProductoController::class, 'toggleStatus'])->name('productos.toggle-status');
+        Route::patch('productos/{producto}/stock', [AdminProductoController::class, 'ajustarStock'])->name('productos.stock');
+
+        // Legacy route aliases (backward compatibility with existing sidebar links)
+        Route::get('orders', fn (Request $request) => redirect()->route('admin.ordenes', $request->query()))->name('orders');
+        Route::get('subscriptions', fn (Request $request) => redirect()->route('admin.suscripciones', $request->query()))->name('subscriptions');
+        Route::get('clients', fn (Request $request) => redirect()->route('admin.clientes', $request->query()))->name('clients');
+        Route::get('stories', fn (Request $request) => redirect()->route('admin.historias', $request->query()))->name('stories');
+        Route::get('products', fn (Request $request) => redirect()->route('admin.productos', $request->query()))->name('products');
     });
 });
 

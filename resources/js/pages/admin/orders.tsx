@@ -8,19 +8,43 @@ import {
     faChevronLeft,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Head } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { useState, useCallback } from 'react';
 import UserLayout from '@/layouts/user-layout';
 
-interface AdminOrder {
-    id: string;
-    producto: string;
-    cantidad: string;
-    precio: string;
-    cliente: string;
-    direccion: string;
-    estado: string;
-    estado_color: 'success' | 'danger';
+interface StoreOrderItem {
+    id: number;
+    product_name: string;
+    quantity: number;
+    unit_price: string;
+    line_total: string;
+}
+
+interface StoreOrderUser {
+    id: number;
+    name: string;
+    email: string;
+    direction: string | null;
+}
+
+interface StoreOrder {
+    id: number;
+    user: StoreOrderUser | null;
+    items: StoreOrderItem[];
+    status: string;
+    total: string;
+    created_at: string;
+}
+
+interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
 }
 
 interface AdminOrdersProps {
@@ -29,42 +53,60 @@ interface AdminOrdersProps {
             name: string;
         };
     };
-    ordenes: AdminOrder[];
+    ordenes: PaginatedData<StoreOrder>;
+    filters: {
+        search?: string;
+        start_date?: string;
+        end_date?: string;
+    };
 }
 
-export default function AdminOrders({ auth, ordenes }: AdminOrdersProps) {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(2); // In image, page 2 is active
+export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const itemsPerPage = 8;
+    const [startDate, setStartDate] = useState(filters.start_date || '');
+    const [endDate, setEndDate] = useState(filters.end_date || '');
 
-    // Filter logic
-    const filteredOrders = useMemo(() => {
-        return ordenes.filter((order) => {
-            const matchesSearch =
-                order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                order.producto.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                order.cliente.toLowerCase().includes(searchTerm.toLowerCase());
-
-            // Add real date logic when API provides dates for admin orders
-            // For now, it matches everything if no date is selected
-            return matchesSearch;
-        });
-    }, [ordenes, searchTerm, startDate, endDate]);
-
-    // Pagination logic
-    const totalPages = 12; // Static based on image to match UI
-    const paginatedOrders = useMemo(() => {
-        const startIndex = 0; // In a static UI, we just show the array
-        return filteredOrders.slice(startIndex, startIndex + itemsPerPage);
-    }, [filteredOrders, currentPage]);
+    const applyFilters = useCallback(
+        (params: Record<string, string>) => {
+            router.get(
+                '/admin/ordenes',
+                { ...filters, ...params, page: '1' },
+                { preserveState: true, preserveScroll: true },
+            );
+        },
+        [filters],
+    );
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
-        setCurrentPage(1); // Reset to first page on search
+        const val = e.target.value;
+        setSearchTerm(val);
+        applyFilters({ search: val });
     };
+
+    const handleDateApply = () => {
+        applyFilters({ start_date: startDate, end_date: endDate });
+        setIsDateMenuOpen(false);
+    };
+
+    const goToPage = (page: number) => {
+        router.get(
+            '/admin/ordenes',
+            { ...filters, page: String(page) },
+            { preserveState: true, preserveScroll: true },
+        );
+    };
+
+    const statusLabel = (status: string) => {
+        const map: Record<string, { label: string; color: 'success' | 'danger' | 'warning' }> = {
+            completed: { label: 'Completado', color: 'success' },
+            failed: { label: 'Rechazado', color: 'danger' },
+            pending: { label: 'Pendiente', color: 'warning' },
+        };
+        return map[status] || { label: status, color: 'warning' };
+    };
+
+    const { data: orders, current_page, last_page, from, to, total } = ordenes;
 
     return (
         <UserLayout title="Órdenes">
@@ -98,23 +140,38 @@ export default function AdminOrders({ auth, ordenes }: AdminOrdersProps) {
                     </div>
 
                     <div className="flex w-full flex-col gap-3 sm:flex-row md:w-auto md:items-center">
-                        {/* Static Date Select for UI matching */}
+                        {/* Date Filter */}
                         <div className="relative w-full md:w-[260px]">
                             <div
                                 onClick={() => setIsDateMenuOpen(!isDateMenuOpen)}
                                 className={`flex h-10 cursor-pointer items-center justify-between border bg-white px-4 transition-all hover:bg-gray-50 focus:outline-none ${isDateMenuOpen ? 'rounded-t-md border-[#DFE4EA]' : 'rounded-md border-[#DFE4EA]'}`}
                             >
                                 <span className="text-[13px] font-medium text-[#1B3D6D] opacity-80">
-                                    01/04/2025 - 17/04/2025
+                                    {startDate && endDate ? `${startDate} - ${endDate}` : 'Seleccionar fechas'}
                                 </span>
                                 <FontAwesomeIcon
                                     icon={faChevronDown}
                                     className={`size-3 text-[#1B3D6D] opacity-60 transition-transform duration-200 ${isDateMenuOpen ? 'rotate-180' : ''}`}
                                 />
                             </div>
+                            {isDateMenuOpen && (
+                                <div className="absolute left-0 right-0 z-10 rounded-b-md border border-t-0 border-[#DFE4EA] bg-white p-3 shadow-md">
+                                    <div className="flex flex-col gap-2">
+                                        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full rounded border border-[#E5E7EB] px-2 py-1 text-xs" />
+                                        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full rounded border border-[#E5E7EB] px-2 py-1 text-xs" />
+                                        <button onClick={handleDateApply} className="rounded bg-[#1B3D6D] px-3 py-1 text-xs text-white">Aplicar</button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
-                        <button className="flex h-10 items-center justify-center gap-2 rounded-md border border-[#DFE4EA] bg-white px-5 text-[14px] font-semibold text-[#1B3D6D] transition hover:bg-gray-50 md:w-auto shadow-sm">
+                        <button 
+                            onClick={() => {
+                                const params = new URLSearchParams(filters as any).toString();
+                                window.location.href = `/admin/ordenes/export?${params}`;
+                            }}
+                            className="flex h-10 items-center justify-center gap-2 rounded-md border border-[#DFE4EA] bg-white px-5 text-[14px] font-semibold text-[#1B3D6D] transition hover:bg-gray-50 md:w-auto shadow-sm"
+                        >
                             Exportar a excel
                             <FontAwesomeIcon icon={faFileExcel} className="size-[14px] opacity-70" />
                         </button>
@@ -160,38 +217,50 @@ export default function AdminOrders({ auth, ordenes }: AdminOrdersProps) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {paginatedOrders.map((order, idx) => (
-                                    <tr
-                                        key={idx}
-                                        className={`transition duration-150 hover:bg-gray-50/40 ${idx !== paginatedOrders.length - 1 ? 'border-b border-[#F2F2F2]/60' : ''}`}
-                                    >
-                                        <td className="px-6 py-4 text-[13px] font-medium text-[#7B7B7B]">
-                                            {order.id}
-                                        </td>
-                                        <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
-                                            {order.producto}
-                                        </td>
-                                        <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
-                                            {order.cantidad}
-                                        </td>
-                                        <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
-                                            {order.precio}
-                                        </td>
-                                        <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
-                                            {order.cliente}
-                                        </td>
-                                        <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
-                                            {order.direccion}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span
-                                                className={`rounded-[4px] px-3 py-1 text-[11px] font-semibold ${order.estado_color === 'success' ? 'bg-[#DAF8E6] text-[#1A8245]' : 'bg-[#FEEBEB] text-[#E10E0E]'}`}
+                                {orders.length > 0 ? (
+                                    orders.map((order, idx) => {
+                                        const st = statusLabel(order.status);
+                                        const firstItem = order.items[0];
+                                        return (
+                                            <tr
+                                                key={order.id}
+                                                className={`transition duration-150 hover:bg-gray-50/40 ${idx !== orders.length - 1 ? 'border-b border-[#F2F2F2]/60' : ''}`}
                                             >
-                                                {order.estado}
-                                            </span>
+                                                <td className="px-6 py-4 text-[13px] font-medium text-[#7B7B7B]">
+                                                    #{order.id}
+                                                </td>
+                                                <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
+                                                    {firstItem?.product_name ?? '-'}
+                                                </td>
+                                                <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
+                                                    {order.items.reduce((sum, i) => sum + i.quantity, 0).toString().padStart(2, '0')}
+                                                </td>
+                                                <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
+                                                    ${Number(order.total).toFixed(2)}
+                                                </td>
+                                                <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
+                                                    {order.user?.name ?? '-'}
+                                                </td>
+                                                <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
+                                                    {order.user?.direction ?? '-'}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span
+                                                        className={`rounded-[4px] px-3 py-1 text-[11px] font-semibold ${st.color === 'success' ? 'bg-[#DAF8E6] text-[#1A8245]' : st.color === 'danger' ? 'bg-[#FEEBEB] text-[#E10E0E]' : 'bg-[#FEF3C7] text-[#D97706]'}`}
+                                                    >
+                                                        {st.label}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                ) : (
+                                    <tr>
+                                        <td colSpan={7} className="px-6 py-10 text-center text-sm text-[#7B7B7B]">
+                                            No se encontraron órdenes que coincidan con la búsqueda.
                                         </td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
                     </div>
@@ -199,38 +268,48 @@ export default function AdminOrders({ auth, ordenes }: AdminOrdersProps) {
                     {/* Pagination */}
                     <div className="flex flex-col items-center justify-between border-t border-[#F2F2F2] px-6 py-4 sm:flex-row">
                         <span className="mb-4 text-[13px] font-medium text-[#7B7B7B] sm:mb-0">
-                            Mostrando 1 de 10 registros
+                            {from && to ? `Mostrando ${from} a ${to} de ${total} registros` : 'Sin registros'}
                         </span>
                         
-                        {/* Custom Pagination match design */}
                         <div className="flex items-center gap-1">
-                            <button className="flex h-7 w-7 items-center justify-center text-[#A0A0A0] hover:text-[#1B3D6D]">
+                            <button
+                                onClick={() => goToPage(current_page - 1)}
+                                disabled={current_page === 1}
+                                className={`flex h-7 w-7 items-center justify-center ${current_page === 1 ? 'text-[#D1D5DB] cursor-not-allowed' : 'text-[#A0A0A0] hover:text-[#1B3D6D]'}`}
+                            >
                                 <FontAwesomeIcon icon={faChevronLeft} className="size-3" />
                             </button>
                             
-                            <button className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[13px] text-[#7B7B7B] hover:bg-[#F2F2F2]">
-                                1
-                            </button>
-                            <button className="flex h-7 w-7 items-center justify-center rounded-[2px] bg-[#1B3D6D] text-[13px] font-semibold text-white shadow-sm">
-                                2
-                            </button>
-                            <button className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[13px] text-[#7B7B7B] hover:bg-[#F2F2F2]">
-                                3
-                            </button>
-                            <button className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[13px] text-[#7B7B7B] hover:bg-[#F2F2F2]">
-                                4
-                            </button>
-                            <button className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[13px] text-[#7B7B7B] hover:bg-[#F2F2F2]">
-                                5
-                            </button>
-                            <span className="flex h-7 w-7 items-end justify-center text-[13px] text-[#7B7B7B] pb-1">
-                                ...
-                            </span>
-                            <button className="flex h-7 w-7 items-center justify-center rounded-[2px] text-[13px] text-[#7B7B7B] hover:bg-[#F2F2F2]">
-                                12
-                            </button>
+                            {Array.from({ length: last_page }, (_, i) => i + 1).map(page => {
+                                if (
+                                    page === 1 ||
+                                    page === last_page ||
+                                    (page >= current_page - 1 && page <= current_page + 1)
+                                ) {
+                                    return (
+                                        <button
+                                            key={page}
+                                            onClick={() => goToPage(page)}
+                                            className={`flex h-7 w-7 items-center justify-center rounded-[2px] text-[13px] ${
+                                                current_page === page
+                                                    ? 'bg-[#1B3D6D] font-semibold text-white shadow-sm'
+                                                    : 'text-[#7B7B7B] hover:bg-[#F2F2F2]'
+                                            }`}
+                                        >
+                                            {page}
+                                        </button>
+                                    );
+                                } else if (page === current_page - 2 || page === current_page + 2) {
+                                    return <span key={page} className="flex h-7 w-7 items-end justify-center text-[13px] text-[#7B7B7B] pb-1">...</span>;
+                                }
+                                return null;
+                            })}
 
-                            <button className="flex h-7 w-7 items-center justify-center rounded-[2px] bg-[#F2F2F2] text-[#7B7B7B] hover:bg-[#E5E5E5] ml-1">
+                            <button
+                                onClick={() => goToPage(current_page + 1)}
+                                disabled={current_page === last_page}
+                                className={`flex h-7 w-7 items-center justify-center rounded-[2px] ml-1 ${current_page === last_page ? 'text-[#D1D5DB] cursor-not-allowed' : 'bg-[#F2F2F2] text-[#7B7B7B] hover:bg-[#E5E5E5]'}`}
+                            >
                                 <FontAwesomeIcon icon={faChevronRight} className="size-3" />
                             </button>
                         </div>

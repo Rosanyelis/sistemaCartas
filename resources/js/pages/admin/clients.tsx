@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import UserLayout from '@/layouts/user-layout';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSearch,
@@ -9,58 +9,77 @@ import {
     faFilter,
     faChevronLeft,
     faChevronRight,
+    faEllipsisV,
+    faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
+import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 
 interface Client {
-    id: string;
-    nombre: string;
-    correo: string;
-    direccion: string;
-    telefono: string;
-    tiene_suscripcion: string; // 'Si' or 'No'
+    id: number;
+    name: string;
+    email: string;
+    direction: string | null;
+    phone: string | null;
+    suscripciones_exists: boolean;
+}
+
+interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
 }
 
 interface Props {
-    clients: Client[];
+    clientes: PaginatedData<Client>;
+    filters: {
+        search?: string;
+    };
 }
 
-export default function Clients({ clients }: Props) {
-    const [searchTerm, setSearchTerm] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    
-    const itemsPerPage = 8;
+export default function Clients({ clientes, filters }: Props) {
+    const [searchTerm, setSearchTerm] = useState(filters.search || '');
+    const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+    const [deleteClientId, setDeleteClientId] = useState<number | null>(null);
 
-    // Lógica de filtrado
-    const filteredClients = useMemo(() => {
-        return clients.filter((client) => {
-            const matchesSearch =
-                client.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                client.correo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                client.direccion.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                client.id.toLowerCase().includes(searchTerm.toLowerCase());
-
-            return matchesSearch;
-        });
-    }, [clients, searchTerm]);
-
-    // Lógica de paginación
-    const totalRecords = filteredClients.length;
-    const totalPages = Math.ceil(totalRecords / itemsPerPage) || 1;
-    
-    // Safety check just in case currentPage goes out of bounds after filtering
-    if (currentPage > totalPages && totalPages > 0) {
-        setCurrentPage(totalPages);
-    }
-
-    const paginatedClients = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        return filteredClients.slice(startIndex, startIndex + itemsPerPage);
-    }, [filteredClients, currentPage]);
+    const applyFilters = useCallback(
+        (params: Record<string, string>) => {
+            router.get(
+                '/admin/clientes',
+                { ...filters, ...params, page: '1' },
+                { preserveState: true, preserveScroll: true },
+            );
+        },
+        [filters],
+    );
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
-        setCurrentPage(1);
+        const val = e.target.value;
+        setSearchTerm(val);
+        applyFilters({ search: val });
     };
+
+    const goToPage = (page: number) => {
+        router.get(
+            '/admin/clientes',
+            { ...filters, page: String(page) },
+            { preserveState: true, preserveScroll: true },
+        );
+    };
+
+    const handleDeleteConfirm = () => {
+        if (deleteClientId !== null) {
+            router.delete(`/admin/clientes/${deleteClientId}`, {
+                preserveScroll: true,
+                onSuccess: () => setDeleteClientId(null)
+            });
+        }
+    };
+
+    const { data: clientList, current_page, last_page, from, to, total } = clientes;
 
     return (
         <UserLayout title="Clientes">
@@ -77,7 +96,7 @@ export default function Clients({ clients }: Props) {
                     </p>
                 </div>
 
-                {/* Filters/Actions Bar - Mobile first layout */}
+                {/* Filters/Actions Bar */}
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between w-full">
                     <div className="relative w-full lg:flex-1 lg:max-w-xl">
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
@@ -93,7 +112,13 @@ export default function Clients({ clients }: Props) {
                     </div>
 
                     <div className="flex flex-col md:flex-row items-center gap-3 relative w-full lg:w-auto">
-                        <button className="flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-[4px] md:rounded-md border border-[#1B3D6D] bg-white px-5 md:px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#F8F9FA] transition-colors">
+                        <button 
+                            onClick={() => {
+                                const params = new URLSearchParams(filters as any).toString();
+                                window.location.href = `/admin/clientes/export?${params}`;
+                            }}
+                            className="flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-[4px] md:rounded-md border border-[#1B3D6D] bg-white px-5 md:px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#F8F9FA] transition-colors"
+                        >
                             <span>Exportar a excel</span>
                             <FontAwesomeIcon icon={faFileExcel} className="text-[12px] md:text-[14px] opacity-80 md:opacity-100" />
                         </button>
@@ -122,22 +147,47 @@ export default function Clients({ clients }: Props) {
                                             ¿Tiene suscripción? <FontAwesomeIcon icon={faFilter} className="text-[10px] opacity-50" />
                                         </div>
                                     </th>
+                                    <th className="px-5 py-4 text-xs font-bold text-[#7B7B7B] uppercase tracking-wider text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#F3F4F6]">
-                                {paginatedClients.length > 0 ? (
-                                    paginatedClients.map((client, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-5 py-4 text-sm font-semibold text-[#1B3D6D]">{client.id}</td>
-                                            <td className="px-5 py-4 text-sm text-[#4B5563]">{client.nombre}</td>
-                                            <td className="px-5 py-4 text-sm text-[#4B5563]">{client.correo}</td>
-                                            <td className="px-5 py-4 text-sm text-[#4B5563]">{client.direccion}</td>
-                                            <td className="px-5 py-4 text-sm text-[#4B5563]">{client.telefono}</td>
+                                {clientList.length > 0 ? (
+                                    clientList.map((client) => (
+                                        <tr key={client.id} className="hover:bg-gray-50 transition-colors">
+                                            <td className="px-5 py-4 text-sm font-semibold text-[#1B3D6D]">#{client.id}</td>
+                                            <td className="px-5 py-4 text-sm text-[#4B5563]">{client.name}</td>
+                                            <td className="px-5 py-4 text-sm text-[#4B5563]">{client.email}</td>
+                                            <td className="px-5 py-4 text-sm text-[#4B5563]">{client.direction || '-'}</td>
+                                            <td className="px-5 py-4 text-sm text-[#4B5563]">{client.phone || '-'}</td>
                                             <td className="px-5 py-4">
                                                 <span className={`inline-flex items-center px-[10px] py-[3px] rounded text-[11.5px] font-medium tracking-wide
-                                                    ${client.tiene_suscripcion === 'Si' ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#FEE2E2] text-[#EF4444]'}`}>
-                                                    {client.tiene_suscripcion}
+                                                    ${client.suscripciones_exists ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#FEE2E2] text-[#EF4444]'}`}>
+                                                    {client.suscripciones_exists ? 'Sí' : 'No'}
                                                 </span>
+                                            </td>
+                                            <td className="px-5 py-4 text-center relative">
+                                                <div className="relative inline-block text-left">
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setOpenMenuId(openMenuId === client.id ? null : client.id);
+                                                        }}
+                                                        className="p-2 text-[#7B7B7B] hover:text-[#1B3D6D] transition-colors rounded-full hover:bg-gray-100 outline-none"
+                                                    >
+                                                        <FontAwesomeIcon icon={faEllipsisV} className="text-sm" />
+                                                    </button>
+                                                    {openMenuId === client.id && (
+                                                        <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-[#E5E7EB] rounded-md shadow-lg z-20 py-1 text-left">
+                                                            <button 
+                                                                onClick={() => setDeleteClientId(client.id)}
+                                                                className="w-full text-left px-4 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2"
+                                                            >
+                                                                <FontAwesomeIcon icon={faTrashAlt} className="text-xs" />
+                                                                Eliminar
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -155,25 +205,25 @@ export default function Clients({ clients }: Props) {
                     {/* Mobile Cards View */}
                     <div className="flex flex-col bg-white rounded-[10px] shadow-[0px_0px_10px_rgba(0,0,0,0.04)] block md:hidden mb-4">
                         <div className="flex flex-col divide-y divide-[#F3F4F6] w-full">
-                            {paginatedClients.length > 0 ? (
-                                paginatedClients.map((client, idx) => (
-                                    <div key={idx} className="flex flex-col py-4 px-5 gap-1.5">
+                            {clientList.length > 0 ? (
+                                clientList.map((client) => (
+                                    <div key={client.id} className="flex flex-col py-4 px-5 gap-1.5">
                                         <div className="flex justify-between items-center bg-white mb-0.5">
-                                            <span className="text-[13px] text-[#4B5563]">{client.id}</span>
+                                            <span className="text-[13px] text-[#4B5563]">#{client.id}</span>
                                             <span className={`inline-flex items-center justify-center px-[10px] py-[3px] rounded text-[11.5px] font-medium tracking-wide min-w-[34px]
-                                                ${client.tiene_suscripcion === 'Si' ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#FEE2E2] text-[#EF4444]'}`}>
-                                                {client.tiene_suscripcion}
+                                                ${client.suscripciones_exists ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#FEE2E2] text-[#EF4444]'}`}>
+                                                {client.suscripciones_exists ? 'Sí' : 'No'}
                                             </span>
                                         </div>
                                         
                                         <div className="flex justify-between items-center w-full">
-                                            <span className="text-[13px] text-[#4B5563]">{client.nombre}</span>
-                                            <span className="text-[13px] text-[#4B5563] text-right truncate pl-2">{client.correo}</span>
+                                            <span className="text-[13px] text-[#4B5563]">{client.name}</span>
+                                            <span className="text-[13px] text-[#4B5563] text-right truncate pl-2">{client.email}</span>
                                         </div>
 
                                         <div className="flex justify-between items-center w-full">
-                                            <span className="text-[13px] text-[#4B5563] truncate pr-2">{client.direccion}</span>
-                                            <span className="text-[13px] text-[#4B5563] whitespace-nowrap">{client.telefono}</span>
+                                            <span className="text-[13px] text-[#4B5563] truncate pr-2">{client.direction || '-'}</span>
+                                            <span className="text-[13px] text-[#4B5563] whitespace-nowrap">{client.phone || '-'}</span>
                                         </div>
                                     </div>
                                 ))
@@ -189,58 +239,52 @@ export default function Clients({ clients }: Props) {
                     <div className="flex flex-col md:flex-row items-center justify-center md:justify-between border-t border-transparent md:border-[#F3F4F6] md:px-5 py-4 md:py-4 bg-transparent md:bg-white gap-4 md:gap-0 mt-2 md:mt-0">
                         <div className="text-[13px] font-bold md:font-normal text-[#9CA3AF] md:text-[#7B7B7B]">
                             <span className="hidden md:inline">
-                                Mostrando <span className="text-[#111827] font-semibold">
-                                    {totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}
-                                </span> a <span className="text-[#111827] font-semibold">
-                                    {Math.min(currentPage * itemsPerPage, totalRecords)}
-                                </span> de <span className="text-[#111827] font-semibold">{totalRecords}</span> registros
+                                {from && to ? (
+                                    <>Mostrando <span className="text-[#111827] font-semibold">{from}</span> a <span className="text-[#111827] font-semibold">{to}</span> de <span className="text-[#111827] font-semibold">{total}</span> registros</>
+                                ) : 'Sin registros'}
                             </span>
                             <span className="md:hidden">
-                                Mostrando {totalRecords === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} de {totalRecords} registros
+                                {from ? `Mostrando ${from} de ${total} registros` : 'Sin registros'}
                             </span>
                         </div>
                         <div className="flex items-center gap-1">
                             <button 
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className={`flex items-center justify-center size-8 rounded-md transition-colors ${currentPage === 1 ? 'text-[#D1D5DB] cursor-not-allowed' : 'hover:bg-gray-100 text-[#7B7B7B]'}`}
+                                onClick={() => goToPage(current_page - 1)}
+                                disabled={current_page === 1}
+                                className={`flex items-center justify-center size-8 rounded-md transition-colors ${current_page === 1 ? 'text-[#D1D5DB] cursor-not-allowed' : 'hover:bg-gray-100 text-[#7B7B7B]'}`}
                             >
                                 <FontAwesomeIcon icon={faChevronLeft} className="text-xs" />
                             </button>
                             
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                                // Lógica simple para mostrar páginas con elipsis
+                            {Array.from({ length: last_page }, (_, i) => i + 1).map(page => {
                                 if (
                                     page === 1 ||
-                                    page === totalPages ||
-                                    (page >= currentPage - 1 && page <= currentPage + 1)
+                                    page === last_page ||
+                                    (page >= current_page - 1 && page <= current_page + 1)
                                 ) {
                                     return (
                                         <button
                                             key={page}
-                                            onClick={() => setCurrentPage(page)}
+                                            onClick={() => goToPage(page)}
                                             className={`flex items-center justify-center size-8 rounded-md transition-colors ${
-                                                currentPage === page 
+                                                current_page === page 
                                                     ? 'bg-[#1B3D6D] text-white font-semibold' 
-                                                    : 'hover:bg-gray-100 text-[#7B7B7B] md:text-[#7B7B7B]'
-                                            } ${currentPage !== page ? 'text-[#9CA3AF]' : ''}`}
+                                                    : 'hover:bg-gray-100 text-[#7B7B7B]'
+                                            }`}
                                         >
                                             {page}
                                         </button>
                                     );
-                                } else if (
-                                    page === currentPage - 2 ||
-                                    page === currentPage + 2
-                                ) {
+                                } else if (page === current_page - 2 || page === current_page + 2) {
                                     return <span key={page} className="px-1 text-[#A0A0A0]">...</span>;
                                 }
                                 return null;
                             })}
 
                             <button 
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                disabled={currentPage === totalPages}
-                                className={`flex items-center justify-center size-8 rounded-md transition-colors ${currentPage === totalPages ? 'text-[#D1D5DB] cursor-not-allowed' : 'hover:bg-gray-100 text-[#7B7B7B]'}`}
+                                onClick={() => goToPage(current_page + 1)}
+                                disabled={current_page === last_page}
+                                className={`flex items-center justify-center size-8 rounded-md transition-colors ${current_page === last_page ? 'text-[#D1D5DB] cursor-not-allowed' : 'hover:bg-gray-100 text-[#7B7B7B]'}`}
                             >
                                 <FontAwesomeIcon icon={faChevronRight} className="text-xs" />
                             </button>
@@ -248,6 +292,14 @@ export default function Clients({ clients }: Props) {
                     </div>
                 </div>
             </div>
+
+            <ConfirmDialog 
+                isOpen={deleteClientId !== null}
+                onOpenChange={(open) => !open && setDeleteClientId(null)}
+                title="Eliminar Cliente"
+                description="¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer."
+                onConfirm={handleDeleteConfirm}
+            />
         </UserLayout>
     );
 }

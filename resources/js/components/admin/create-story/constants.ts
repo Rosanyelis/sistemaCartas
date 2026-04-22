@@ -1,0 +1,3 @@
+export const MAX_PALABRAS_TEXTO_LARGO = 500;
+
+export const MAX_IMAGENES_GALERIA = 5;

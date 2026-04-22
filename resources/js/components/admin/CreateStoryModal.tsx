@@ -1,352 +1,506 @@
-import { useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
+import { useForm } from '@inertiajs/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faImage, faPlus, faVideo, faBold, faItalic, faUnderline, faListUl, faAlignLeft, faParagraph, faLink, faFillDrip, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { buildHistoriaFormData } from './create-story/formDefaults';
+import { HistoriaMultimediaPanel } from './create-story/HistoriaMultimediaPanel';
+import { HistoriaVariantesEditor } from './create-story/HistoriaVariantesEditor';
+import { LimitedWordTextarea } from './create-story/LimitedWordTextarea';
+import { MAX_IMAGENES_GALERIA, MAX_PALABRAS_TEXTO_LARGO } from './create-story/constants';
+import type { GallerySlot, HistoriaParaFormulario, HistoriaVarianteForm } from './create-story/types';
 
 interface CreateStoryModalProps {
     isOpen: boolean;
     onClose: () => void;
+    categorias: string[];
+    storyToEdit?: HistoriaParaFormulario | null;
 }
 
-export function CreateStoryModal({ isOpen, onClose }: CreateStoryModalProps) {
-    if (!isOpen) return null;
+const inputClass = (hasError: boolean) =>
+    `w-full rounded-[4px] border ${hasError ? 'border-red-500' : 'border-[#DFE4EA]'} bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all`;
 
-    // Fake toolbar component para el wysiwyg
-    const RichTextToolbar = () => (
-        <div className="flex items-center gap-3 border-b border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 rounded-t-[4px]">
-            <button type="button" className="text-[#4B5563] hover:text-[#1B3D6D]"><FontAwesomeIcon icon={faBold} className="text-[14px]" /></button>
-            <button type="button" className="text-[#4B5563] hover:text-[#1B3D6D]"><FontAwesomeIcon icon={faItalic} className="text-[14px]" /></button>
-            <button type="button" className="text-[#4B5563] hover:text-[#1B3D6D]"><span className="underline font-bold text-[14px]">I</span></button>
-            <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-            <button type="button" className="text-[#4B5563] hover:text-[#1B3D6D]"><FontAwesomeIcon icon={faListUl} className="text-[14px]" /></button>
-            <button type="button" className="text-[#4B5563] hover:text-[#1B3D6D]"><FontAwesomeIcon icon={faAlignLeft} className="text-[14px]" /></button>
-            <button type="button" className="text-[#4B5563] hover:text-[#1B3D6D]"><FontAwesomeIcon icon={faParagraph} className="text-[14px]" /></button>
-            <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-            <button type="button" className="text-[#4B5563] hover:text-[#1B3D6D]"><FontAwesomeIcon icon={faLink} className="text-[14px]" /></button>
-            <button type="button" className="text-[#4B5563] hover:text-[#1B3D6D]"><FontAwesomeIcon icon={faFillDrip} className="text-[14px]" /></button>
-            <button type="button" className="text-[#4B5563] hover:text-[#1B3D6D]"><FontAwesomeIcon icon={faImage} className="text-[14px]" /></button>
-            <button type="button" className="ml-auto text-[#4B5563] hover:text-[#1B3D6D]"><FontAwesomeIcon icon={faEllipsisV} className="text-[14px]" /></button>
-        </div>
-    );
+/**
+ * Modal crear/editar historia: estado con Inertia `useForm`, secciones en subcomponentes
+ * y textos largos con tope de palabras alineado con `App\Rules\MaxWords`.
+ */
+export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: CreateStoryModalProps) {
+    const rootId = useId();
+    const descripcionLargaId = `${rootId}-descripcion-larga`;
+    const detalleId = `${rootId}-detalle`;
+    const categoriaListId = `${rootId}-categorias-datalist`;
+    const estadoRadioName = `${rootId}-estado`;
+
+    const initialForm = useMemo(() => buildHistoriaFormData(), []);
+    const { data, setData, post, processing, errors, reset, transform } = useForm(initialForm);
+
+    const [imgPreview, setImgPreview] = useState<string | null>(null);
+    const [videoPreview, setVideoPreview] = useState<string | null>(null);
+    const [galleryItems, setGalleryItems] = useState<GallerySlot[]>([]);
+
+    /** Al abrir el modal se hidrata desde `storyToEdit` o se limpia para creación. */
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+        if (storyToEdit) {
+            setData(buildHistoriaFormData(storyToEdit));
+            setImgPreview(storyToEdit.imagen ?? null);
+            setVideoPreview(storyToEdit.video ?? null);
+            const extras = (storyToEdit.galeria ?? []).filter((g) => !g.es_principal);
+            setGalleryItems(
+                extras.map((g) => ({
+                    kind: 'existente' as const,
+                    id: g.id,
+                    preview: g.path,
+                })),
+            );
+        } else {
+            reset();
+            setImgPreview(null);
+            setVideoPreview(null);
+            setGalleryItems([]);
+        }
+    }, [storyToEdit, isOpen, setData, reset]);
+
+    if (!isOpen) {
+        return null;
+    }
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'imagen' | 'video') => {
+        const file = e.target.files?.[0];
+        if (!file) {
+            return;
+        }
+        setData(field, file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (field === 'imagen') {
+                setImgPreview(reader.result as string);
+            } else {
+                setVideoPreview(reader.result as string);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const availableSlots = MAX_IMAGENES_GALERIA - galleryItems.length;
+        const slice = files.slice(0, availableSlots);
+        if (slice.length === 0) {
+            return;
+        }
+
+        void Promise.all(
+            slice.map(
+                (file) =>
+                    new Promise<{ file: File; preview: string }>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve({ file, preview: reader.result as string });
+                        reader.onerror = () => reject(reader.error);
+                        reader.readAsDataURL(file);
+                    }),
+            ),
+        ).then((read) => {
+            setGalleryItems((prev) => [
+                ...prev,
+                ...read.map((item) => ({
+                    kind: 'nuevo' as const,
+                    clientKey: `nuevo-${item.file.name}-${item.file.size}-${item.file.lastModified}-${typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`}`,
+                    file: item.file,
+                    preview: item.preview,
+                })),
+            ]);
+        });
+    };
+
+    const removeGalleryImage = (index: number) => {
+        setGalleryItems((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const addVariant = () => {
+        const newVariant: HistoriaVarianteForm = {
+            nombre: '',
+            codigo_variante: `VAR-${Date.now()}`,
+            precio: '',
+            stock: 0,
+        };
+        setData((prev) => ({
+            ...prev,
+            variantes: [...prev.variantes, newVariant],
+        }));
+    };
+
+    const updateVariant = (index: number, field: keyof HistoriaVarianteForm, value: string | number) => {
+        setData((prev) => {
+            const updated = [...prev.variantes];
+            updated[index] = { ...updated[index], [field]: value };
+            return { ...prev, variantes: updated };
+        });
+    };
+
+    const removeVariant = (index: number) => {
+        setData((prev) => ({
+            ...prev,
+            variantes: prev.variantes.filter((_, i) => i !== index),
+        }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        transform((form) => {
+            const dm = parseInt(String(form.duracion_meses), 10);
+            const duracion_meses =
+                Number.isFinite(dm) && dm >= 1 ? String(dm) : '12';
+            const nuevos = galleryItems.filter((x): x is Extract<GallerySlot, { kind: 'nuevo' }> => x.kind === 'nuevo');
+            const files = nuevos.map((x) => x.file);
+            const next = { ...form, duracion_meses, galeria: files };
+
+            if (storyToEdit?.id != null) {
+                const keepIds = galleryItems
+                    .filter((x): x is Extract<GallerySlot, { kind: 'existente' }> => x.kind === 'existente')
+                    .map((x) => x.id);
+                return {
+                    ...next,
+                    _method: 'patch' as const,
+                    historia_gallery_sync: true,
+                    galeria_keep_ids: keepIds,
+                };
+            }
+
+            return next;
+        });
+
+        if (storyToEdit?.id != null) {
+            post(`/admin/historias/${storyToEdit.id}`, {
+                preserveScroll: true,
+                forceFormData: true,
+                onSuccess: () => {
+                    reset();
+                    onClose();
+                },
+            });
+            return;
+        }
+
+        post('/admin/historias', {
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                onClose();
+            },
+        });
+    };
+
+    const handleClose = () => {
+        reset();
+        onClose();
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1B3D6D]/40 backdrop-blur-[2px] p-4 transition-opacity">
-            <div 
+            <div
                 className="bg-white rounded-lg shadow-2xl flex flex-col w-full max-w-[1000px] max-h-[90vh] overflow-hidden"
-                onClick={e => e.stopPropagation()}
+                onClick={(ev) => ev.stopPropagation()}
             >
-                {/* Header */}
                 <div className="flex justify-between items-center px-8 py-5 border-b border-[#F3F4F6]">
-                    <h2 className="text-[16px] font-bold text-[#1B3D6D]">Crear Historia</h2>
-                    <button 
-                        onClick={onClose}
+                    <h2 className="text-[16px] font-bold text-[#1B3D6D]">
+                        {storyToEdit ? 'Editar Historia' : 'Crear Historia'}
+                    </h2>
+                    <button
+                        type="button"
+                        onClick={handleClose}
                         className="text-[#7B7B7B] hover:text-[#1B3D6D] transition-colors p-2 -mr-2 outline-none"
                     >
                         <FontAwesomeIcon icon={faTimes} className="text-[17px]" />
                     </button>
                 </div>
 
-                {/* Body form */}
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
-                        
-                        {/* COLUMNA IZQUIERDA */}
-                        <div className="flex flex-col gap-6">
-                            
-                            {/* Nombre */}
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                    Nombre de la historia<span className="text-[#EF4444]">*</span>
-                                </label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Historia en Londres"
-                                    className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all"
-                                />
-                            </div>
-
-                            {/* Descripción corta */}
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                    Descripción corta<span className="text-[#EF4444]">*</span>
-                                </label>
-                                <textarea 
-                                    placeholder="Una apasionante aventura"
-                                    rows={2}
-                                    className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all resize-none"
-                                />
-                                <span className="text-[11.5px] text-[#A0A0A0]">Se mostrará en la sección principal de historias</span>
-                            </div>
-
-                            {/* Descripción larga */}
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                    Descripción larga<span className="text-[#EF4444]">*</span>
-                                </label>
-                                <div className="rounded-[4px] border border-[#DFE4EA] overflow-hidden">
-                                    <RichTextToolbar />
-                                    <textarea 
-                                        placeholder="Una apasionante aventura por los rincones del Londres, una apasionante aventura por los rincones del Londres..."
-                                        rows={4}
-                                        className="w-full border-none bg-white px-3 py-3 text-[14px] text-gray-800 focus:ring-0 outline-none resize-none"
+                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto w-full custom-scrollbar flex flex-col">
+                    <div className="flex-1 p-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
+                            <div className="flex flex-col gap-6">
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                        Nombre de la historia<span className="text-[#EF4444]">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.nombre}
+                                        onChange={(ev) => setData('nombre', ev.target.value)}
+                                        placeholder="Historia en Londres"
+                                        className={inputClass(Boolean(errors.nombre))}
                                     />
-                                    <div className="flex justify-end px-3 pb-2">
-                                        <span className="text-[11px] text-[#A0A0A0]">0/500</span>
+                                    {errors.nombre && <span className="text-red-500 text-[11px]">{errors.nombre}</span>}
+                                </div>
+
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                        Descripción corta<span className="text-[#EF4444]">*</span>
+                                    </label>
+                                    <textarea
+                                        value={data.descripcion_corta}
+                                        onChange={(ev) => setData('descripcion_corta', ev.target.value)}
+                                        placeholder="Una apasionante aventura"
+                                        rows={2}
+                                        className={`${inputClass(Boolean(errors.descripcion_corta))} resize-none`}
+                                    />
+                                    {errors.descripcion_corta ? (
+                                        <span className="text-red-500 text-[11px]">{errors.descripcion_corta}</span>
+                                    ) : (
+                                        <span className="text-[11.5px] text-[#A0A0A0]">
+                                            Se mostrará en la sección principal de historias
+                                        </span>
+                                    )}
+                                </div>
+
+                                <LimitedWordTextarea
+                                    id={descripcionLargaId}
+                                    label={
+                                        <>
+                                            Descripción larga<span className="text-[#EF4444]">*</span>
+                                        </>
+                                    }
+                                    value={data.descripcion_larga}
+                                    onChange={(v) => setData('descripcion_larga', v)}
+                                    maxWords={MAX_PALABRAS_TEXTO_LARGO}
+                                    placeholder="Una apasionante aventura por los rincones del Londres..."
+                                    rows={5}
+                                    error={errors.descripcion_larga}
+                                />
+
+                                <LimitedWordTextarea
+                                    id={detalleId}
+                                    label="Detalle"
+                                    value={data.detalle}
+                                    onChange={(v) => setData('detalle', v)}
+                                    maxWords={MAX_PALABRAS_TEXTO_LARGO}
+                                    placeholder="Aquí detalles del producto"
+                                    rows={5}
+                                    error={errors.detalle}
+                                />
+
+                                <div className="flex flex-col gap-1.5">
+                                    <label htmlFor={`${rootId}-categoria`} className="text-[13px] font-semibold text-[#1B3D6D]">
+                                        Categoría<span className="text-[#EF4444]">*</span>
+                                    </label>
+                                    <input
+                                        id={`${rootId}-categoria`}
+                                        type="text"
+                                        list={categoriaListId}
+                                        value={data.categoria}
+                                        onChange={(ev) => setData('categoria', ev.target.value)}
+                                        placeholder="Ficción"
+                                        className={inputClass(Boolean(errors.categoria))}
+                                        autoComplete="off"
+                                    />
+                                    <datalist id={categoriaListId}>
+                                        {categorias.map((c) => (
+                                            <option key={c} value={c} />
+                                        ))}
+                                    </datalist>
+                                    {errors.categoria && <span className="text-red-500 text-[11px]">{errors.categoria}</span>}
+                                </div>
+
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                        Autor<span className="text-[#EF4444]">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.autor}
+                                        onChange={(ev) => setData('autor', ev.target.value)}
+                                        placeholder="Laura Pérez"
+                                        className={inputClass(Boolean(errors.autor))}
+                                    />
+                                    {errors.autor && <span className="text-red-500 text-[11px]">{errors.autor}</span>}
+                                </div>
+
+                                <div className="flex flex-col gap-4 mt-2">
+                                    <h3 className="text-[14px] font-bold text-[#1B3D6D]">Inventario</h3>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                            Código de historia<span className="text-[#EF4444]">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={data.codigo}
+                                            onChange={(ev) => setData('codigo', ev.target.value)}
+                                            placeholder="HST-135790"
+                                            className={inputClass(Boolean(errors.codigo))}
+                                        />
+                                        {errors.codigo && <span className="text-red-500 text-[11px]">{errors.codigo}</span>}
                                     </div>
-                                </div>
-                            </div>
-
-                            {/* Detalle */}
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[13px] font-semibold text-[#1B3D6D]">Detalle</label>
-                                <div className="rounded-[4px] border border-[#DFE4EA] overflow-hidden">
-                                    <RichTextToolbar />
-                                    <textarea 
-                                        placeholder="Aquí detalles del producto"
-                                        rows={4}
-                                        className="w-full border-none bg-white px-3 py-3 text-[14px] text-gray-800 focus:ring-0 outline-none resize-none"
-                                    />
-                                    <div className="flex justify-end px-3 pb-2">
-                                        <span className="text-[11px] text-[#A0A0A0]">0/500</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Categoría */}
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                    Categoría<span className="text-[#EF4444]">*</span>
-                                </label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Ficción"
-                                    className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all"
-                                />
-                            </div>
-
-                            {/* Autor */}
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                    Autor<span className="text-[#EF4444]">*</span>
-                                </label>
-                                <input 
-                                    type="text" 
-                                    placeholder="Laura Pérez"
-                                    className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all"
-                                />
-                            </div>
-
-                            {/* Inventario */}
-                            <div className="flex flex-col gap-4 mt-2">
-                                <h3 className="text-[14px] font-bold text-[#1B3D6D]">Inventario</h3>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Código de historia<span className="text-[#EF4444]">*</span>
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="HST-135790"
-                                        className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Variantes */}
-                            <div className="flex flex-col gap-4 mt-2">
-                                <h3 className="text-[14px] font-bold text-[#1B3D6D]">Variantes(Opcional)</h3>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">Color</label>
-                                    <select className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-700 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all appearance-none cursor-pointer">
-                                        <option>Beige</option>
-                                        <option>Blanco</option>
-                                    </select>
-                                </div>
-                                <div className="flex flex-col gap-1.5 mt-1">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">Papel</label>
-                                    <select className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-700 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all appearance-none cursor-pointer">
-                                        <option>Papel Reciclado</option>
-                                        <option>Papel Premium</option>
-                                    </select>
-                                </div>
-                                <button className="mt-2 w-full md:w-[200px] mx-auto py-2 px-4 rounded-[4px] border border-[#1B3D6D] text-[13px] font-semibold text-[#1B3D6D] hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
-                                    <FontAwesomeIcon icon={faPlus} className="text-[12px]" /> Agregar Variante
-                                </button>
-                            </div>
-
-                        </div>
-
-                        {/* COLUMNA DERECHA */}
-                        <div className="flex flex-col gap-6">
-                            
-                            {/* Precios e Impuesto */}
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                    Precio Base<span className="text-[#EF4444]">*</span>
-                                </label>
-                                <input 
-                                    type="text" 
-                                    placeholder="25.00"
-                                    className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                    Precio promocional<span className="text-[#EF4444]">*</span>
-                                </label>
-                                <input 
-                                    type="text" 
-                                    placeholder="0"
-                                    className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                    Impuesto<span className="text-[#EF4444]">*</span>
-                                </label>
-                                <input 
-                                    type="text" 
-                                    placeholder="18%"
-                                    className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all"
-                                />
-                                <span className="text-[11.5px] text-[#A0A0A0]">Impuesto que se va a cobrar por las transacciones</span>
-                            </div>
-
-                            {/* Información de envío */}
-                            <div className="flex flex-col gap-4 mt-2">
-                                <h3 className="text-[14px] font-bold text-[#1B3D6D]">Información de envío</h3>
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Peso<span className="text-[#EF4444]">*</span>
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="0kg"
-                                        className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5 mt-1">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Dimensiones<span className="text-[#EF4444]">*</span>
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="0x0x0"
-                                        className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all"
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-1.5 mt-1">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Tipo de envío<span className="text-[#EF4444]">*</span>
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        placeholder="0x0x0"
-                                        className="w-full rounded-[4px] border border-[#DFE4EA] bg-white px-3 py-2 text-[14px] text-gray-800 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/20 outline-none transition-all"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Imágenes y multimedia */}
-                            <div className="flex flex-col gap-4 mt-2">
-                                <h3 className="text-[14px] font-bold text-[#1B3D6D]">Imágenes y multimedia</h3>
-                                
-                                {/* Imagen Principal */}
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Imagen principal<span className="text-[#EF4444]">*</span>
-                                    </label>
-                                    <div className="w-full h-32 rounded-md border-2 border-dashed border-[#DFE4EA] bg-[#F9FAFB] flex relative"
-                                        style={{backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0), linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 10px 10px'}}
-                                    ></div>
-                                    <button className="mx-auto mt-2 py-[7px] px-6 rounded-[4px] border border-[#1B3D6D] text-[13px] font-semibold text-[#1B3D6D] hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 max-w-fit">
-                                        <FontAwesomeIcon icon={faImage} className="text-[13px]" /> Subir Imagen
-                                    </button>
-                                </div>
-
-                                {/* Galería */}
-                                <div className="flex flex-col gap-2 mt-2">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Galería de imágenes (5 max)<span className="text-[#EF4444]">*</span>
-                                    </label>
-                                    <div className="flex gap-3 items-center">
-                                        {/* Thumbs */}
-                                        <div className="w-16 h-16 rounded-[4px] border border-[#DFE4EA] bg-[#F9FAFB]" style={{backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0), linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0)', backgroundSize: '10px 10px', backgroundPosition: '0 0, 5px 5px'}}></div>
-                                        <div className="w-16 h-16 rounded-[4px] border border-[#DFE4EA] bg-[#F9FAFB]" style={{backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0), linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0)', backgroundSize: '10px 10px', backgroundPosition: '0 0, 5px 5px'}}></div>
-                                        <div className="w-16 h-16 rounded-[4px] border border-[#DFE4EA] bg-[#F9FAFB]" style={{backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0), linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0)', backgroundSize: '10px 10px', backgroundPosition: '0 0, 5px 5px'}}></div>
-                                        {/* Botón Add Thumb */}
-                                        <button className="w-8 h-8 rounded-full border border-[#1B3D6D] bg-white text-[#1B3D6D] flex flex-col justify-center items-center hover:bg-gray-50 flex-shrink-0 ml-1">
-                                            <FontAwesomeIcon icon={faPlus} className="text-[12px]" />
-                                        </button>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                            Duración (meses)<span className="text-[#EF4444]">*</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            step={1}
+                                            value={data.duracion_meses}
+                                            onChange={(ev) => setData('duracion_meses', ev.target.value)}
+                                            onBlur={() => {
+                                                const n = parseInt(data.duracion_meses, 10);
+                                                if (!Number.isFinite(n) || n < 1) {
+                                                    setData('duracion_meses', '12');
+                                                }
+                                            }}
+                                            placeholder="12"
+                                            className={inputClass(Boolean(errors.duracion_meses))}
+                                        />
+                                        {errors.duracion_meses && (
+                                            <span className="text-red-500 text-[11px]">{errors.duracion_meses}</span>
+                                        )}
                                     </div>
                                 </div>
 
-                                {/* Video */}
-                                <div className="flex flex-col gap-2 mt-4">
+                                <HistoriaVariantesEditor
+                                    variantes={data.variantes}
+                                    onAdd={addVariant}
+                                    onUpdate={updateVariant}
+                                    onRemove={removeVariant}
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-6">
+                                <div className="flex flex-col gap-1.5">
                                     <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Video<span className="text-[#EF4444]">*</span>
+                                        Precio Base<span className="text-[#EF4444]">*</span>
                                     </label>
-                                    <div className="w-full h-32 rounded-md border-2 border-dashed border-[#DFE4EA] bg-[#F9FAFB] flex relative"
-                                        style={{backgroundImage: 'linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0), linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0)', backgroundSize: '20px 20px', backgroundPosition: '0 0, 10px 10px'}}
-                                    ></div>
-                                    <button className="mx-auto mt-2 py-[7px] px-6 rounded-[4px] border border-[#1B3D6D] text-[13px] font-semibold text-[#1B3D6D] hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 max-w-fit">
-                                        <FontAwesomeIcon icon={faVideo} className="text-[13px]" /> Subir Video
-                                    </button>
+                                    <input
+                                        type="text"
+                                        value={data.precio_base}
+                                        onChange={(ev) => setData('precio_base', ev.target.value)}
+                                        placeholder="25.00"
+                                        className={inputClass(Boolean(errors.precio_base))}
+                                    />
+                                    {errors.precio_base && <span className="text-red-500 text-[11px]">{errors.precio_base}</span>}
                                 </div>
 
-                                {/* Estatus Checkboxes */}
-                                <div className="flex flex-col gap-4 mt-6 mb-2">
-                                    <label className="flex items-start gap-3 cursor-pointer group">
-                                        <div className="relative flex items-center justify-center mt-0.5">
-                                            <input type="checkbox" className="peer w-4 h-4 rounded border-[#DFE4EA] checked:bg-[#1B3D6D] checked:border-[#1B3D6D] outline-none hover:ring-2 hover:ring-[#1B3D6D]/20 transition-all appearance-none" checked readOnly/>
-                                            <div className="absolute text-white pointer-events-none opacity-0 peer-checked:opacity-100">
-                                                <svg className="w-2.5 h-2.5" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M1 5L4.5 8.5L11 1.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[14px] font-semibold text-[#1B3D6D]">Activo</span>
-                                            <span className="text-[11.5px] text-[#A0A0A0]">Esta publicado en el sitio web y recibiendo ventas.</span>
-                                        </div>
-                                    </label>
-
-                                    <label className="flex items-start gap-3 cursor-pointer group">
-                                        <div className="relative flex items-center justify-center mt-0.5">
-                                            <input type="checkbox" className="peer w-4 h-4 rounded border-[#DFE4EA] checked:bg-[#1B3D6D] checked:border-[#1B3D6D] outline-none hover:ring-2 hover:ring-[#1B3D6D]/20 transition-all appearance-none bg-white border"/>
-                                            <div className="absolute text-white pointer-events-none opacity-0 peer-checked:opacity-100">
-                                                <svg className="w-2.5 h-2.5" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                    <path d="M1 5L4.5 8.5L11 1.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[14px] font-semibold text-[#1B3D6D]">Pausado</span>
-                                            <span className="text-[11.5px] text-[#A0A0A0]">No aparece en el sitio web pero sigue en la base de datos y en la "lista de historias".</span>
-                                        </div>
-                                    </label>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">Precio promocional</label>
+                                    <input
+                                        type="text"
+                                        value={data.precio_promocional}
+                                        onChange={(ev) => setData('precio_promocional', ev.target.value)}
+                                        placeholder="0"
+                                        className={inputClass(Boolean(errors.precio_promocional))}
+                                    />
+                                    {errors.precio_promocional && (
+                                        <span className="text-red-500 text-[11px]">{errors.precio_promocional}</span>
+                                    )}
                                 </div>
 
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">Impuesto</label>
+                                    <input
+                                        type="text"
+                                        value={data.impuesto}
+                                        onChange={(ev) => setData('impuesto', ev.target.value)}
+                                        placeholder="18"
+                                        className={inputClass(Boolean(errors.impuesto))}
+                                    />
+                                    {errors.impuesto ? (
+                                        <span className="text-red-500 text-[11px]">{errors.impuesto}</span>
+                                    ) : (
+                                        <span className="text-[11.5px] text-[#A0A0A0]">
+                                            Impuesto que se va a cobrar por las transacciones
+                                        </span>
+                                    )}
+                                </div>
+
+                                <div className="flex flex-col gap-4 mt-2">
+                                    <h3 className="text-[14px] font-bold text-[#1B3D6D]">Información de envío</h3>
+                                    <div className="flex flex-col gap-1.5">
+                                        <label className="text-[13px] font-semibold text-[#1B3D6D]">Peso</label>
+                                        <input
+                                            type="text"
+                                            value={data.peso}
+                                            onChange={(ev) => setData('peso', ev.target.value)}
+                                            placeholder="0kg"
+                                            className={inputClass(Boolean(errors.peso))}
+                                        />
+                                        {errors.peso && <span className="text-red-500 text-[11px]">{errors.peso}</span>}
+                                    </div>
+                                    <div className="flex flex-col gap-1.5 mt-1">
+                                        <label className="text-[13px] font-semibold text-[#1B3D6D]">Dimensiones</label>
+                                        <input
+                                            type="text"
+                                            value={data.dimensiones}
+                                            onChange={(ev) => setData('dimensiones', ev.target.value)}
+                                            placeholder="0x0x0"
+                                            className={inputClass(Boolean(errors.dimensiones))}
+                                        />
+                                        {errors.dimensiones && (
+                                            <span className="text-red-500 text-[11px]">{errors.dimensiones}</span>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col gap-1.5 mt-1">
+                                        <label className="text-[13px] font-semibold text-[#1B3D6D]">Tipo de envío</label>
+                                        <input
+                                            type="text"
+                                            value={data.tipo_envio}
+                                            onChange={(ev) => setData('tipo_envio', ev.target.value)}
+                                            placeholder="Estándar"
+                                            className={inputClass(Boolean(errors.tipo_envio))}
+                                        />
+                                        {errors.tipo_envio && (
+                                            <span className="text-red-500 text-[11px]">{errors.tipo_envio}</span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <HistoriaMultimediaPanel
+                                    imgPreview={imgPreview}
+                                    videoPreview={videoPreview}
+                                    galleryPreviews={galleryItems.map((g) => g.preview)}
+                                    galleryPreviewKeys={galleryItems.map((g) =>
+                                        g.kind === 'existente' ? `e-${g.id}` : g.clientKey,
+                                    )}
+                                    galeriaLength={galleryItems.length}
+                                    estado={data.estado}
+                                    estadoRadioName={estadoRadioName}
+                                    onEstadoChange={(v) => setData('estado', v)}
+                                    onImageChange={(ev) => handleFileChange(ev, 'imagen')}
+                                    onVideoChange={(ev) => handleFileChange(ev, 'video')}
+                                    onGalleryChange={handleGalleryChange}
+                                    onRemoveGalleryImage={removeGalleryImage}
+                                    errors={{
+                                        imagen: errors.imagen,
+                                        video: errors.video,
+                                        galeria: errors.galeria,
+                                        estado: errors.estado,
+                                    }}
+                                    fieldIds={{
+                                        imagen: `${rootId}-imagen`,
+                                        video: `${rootId}-video`,
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Footer */}
-                <div className="px-8 py-5 border-t border-[#F3F4F6] bg-white flex justify-end gap-3 rounded-b-lg shrink-0 mt-auto">
-                    <button 
-                        onClick={onClose}
-                        className="py-[9px] px-[22px] rounded-[4px] border border-[#1B3D6D] text-[14px] font-semibold text-[#1B3D6D] hover:bg-[#F9FAFB] transition-colors"
-                    >
-                        Cancelar
-                    </button>
-                    <button 
-                        className="py-[9px] px-[22px] rounded-[4px] bg-[#1B3D6D] text-[14px] font-semibold text-white shadow-sm hover:bg-[#1B3D6D]/90 transition-colors"
-                    >
-                        Guardar Historia
-                    </button>
-                </div>
-
+                    <div className="px-8 py-5 border-t border-[#F3F4F6] bg-white flex justify-end gap-3 rounded-b-lg shrink-0 mt-auto sticky bottom-0">
+                        <button
+                            type="button"
+                            onClick={handleClose}
+                            disabled={processing}
+                            className="py-[9px] px-[22px] rounded-[4px] border border-[#1B3D6D] text-[14px] font-semibold text-[#1B3D6D] hover:bg-[#F9FAFB] transition-colors disabled:opacity-50"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="py-[9px] px-[22px] rounded-[4px] bg-[#1B3D6D] text-[14px] font-semibold text-white shadow-sm hover:bg-[#1B3D6D]/90 transition-colors disabled:opacity-50 flex items-center gap-2"
+                        >
+                            {processing ? 'Guardando...' : 'Guardar Historia'}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     );
