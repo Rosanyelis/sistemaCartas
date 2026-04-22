@@ -1,9 +1,9 @@
 import { Head, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import CtaSection from '@/components/CtaSection';
-import FilterBarSection from '@/components/FilterBarSection';
-import GridProductsSection from '@/components/GridProductsSection';
-import ProductosHeroSection from '@/components/ProductosHeroSection';
+import CtaSection from '@/components/tienda/CtaSection';
+import FilterBarSection from '@/components/tienda/FilterBarSection';
+import GridProductsSection from '@/components/tienda/GridProductsSection';
+import ProductosHeroSection from '@/components/tienda/ProductosHeroSection';
 import ClienteLayout from '@/layouts/cliente-layout';
 import type { Product } from '@/types/welcome';
 

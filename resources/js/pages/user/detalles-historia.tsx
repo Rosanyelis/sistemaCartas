@@ -10,7 +10,7 @@ import {
     faChevronUp,
     faCheckCircle,
 } from '@fortawesome/free-solid-svg-icons';
-import HowItWorksSection from '@/components/HowItWorksSection';
+import HowItWorksSection from '@/components/tienda/HowItWorksSection';
 import {
     ShieldCheck,
     Package,

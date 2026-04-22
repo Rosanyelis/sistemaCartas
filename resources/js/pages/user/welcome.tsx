@@ -1,11 +1,11 @@
 import { Head } from '@inertiajs/react';
-import AboutSection from '@/components/AboutSection';
-import CtaSection from '@/components/CtaSection';
-import HeroSection from '@/components/HeroSection';
-import HowItWorksSection from '@/components/HowItWorksSection';
-import ProductsSection from '@/components/ProductsSection';
-import StoriesSection from '@/components/StoriesSection';
-import TestimonialsSection from '@/components/TestimonialsSection';
+import AboutSection from '@/components/tienda/AboutSection';
+import CtaSection from '@/components/tienda/CtaSection';
+import HeroSection from '@/components/tienda/HeroSection';
+import HowItWorksSection from '@/components/tienda/HowItWorksSection';
+import ProductsSection from '@/components/tienda/ProductsSection';
+import StoriesSection from '@/components/tienda/StoriesSection';
+import TestimonialsSection from '@/components/tienda/TestimonialsSection';
 import {
     defaultStories,
     defaultProducts,

@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
-import CartDrawer from '@/components/CartDrawer';
+import CartDrawer from '@/components/tienda/CartDrawer';
 import { useCart } from '@/contexts/cart-context';
 
 interface ClienteLayoutProps {

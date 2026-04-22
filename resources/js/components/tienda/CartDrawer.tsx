@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ShieldCheck, Truck, History } from 'lucide-react';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import PayPalCheckoutButtons from '@/components/PayPalCheckoutButtons';
+import PayPalCheckoutButtons from '@/components/tienda/PayPalCheckoutButtons';
 import { useCart } from '@/contexts/cart-context';
 
 const CartDrawer: React.FC = () => {

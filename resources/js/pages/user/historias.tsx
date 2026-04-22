@@ -1,10 +1,10 @@
 import { Head } from '@inertiajs/react';
 import { useState } from 'react';
-import CatalogoHeroSection from '@/components/CatalogoHeroSection';
-import CtaSection from '@/components/CtaSection';
-import FeaturedStoriesSection from '@/components/FeaturedStoriesSection';
-import FilterBarSection from '@/components/FilterBarSection';
-import GridStoriesSection from '@/components/GridStoriesSection';
+import CatalogoHeroSection from '@/components/tienda/CatalogoHeroSection';
+import CtaSection from '@/components/tienda/CtaSection';
+import FeaturedStoriesSection from '@/components/tienda/FeaturedStoriesSection';
+import FilterBarSection from '@/components/tienda/FilterBarSection';
+import GridStoriesSection from '@/components/tienda/GridStoriesSection';
 import ClienteLayout from '@/layouts/cliente-layout';
 
 export default function Historias() {
