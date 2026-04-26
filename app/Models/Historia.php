@@ -29,7 +29,6 @@ class Historia extends Model
         'impuesto',
         'peso',
         'dimensiones',
-        'tipo_envio',
         'estado',
         'fecha_publicacion',
         'duracion_meses',

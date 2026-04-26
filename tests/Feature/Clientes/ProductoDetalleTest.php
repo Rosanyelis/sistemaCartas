@@ -7,7 +7,7 @@ test('la ficha de producto responde ok con props de catálogo', function (): voi
 
     $response->assertOk();
     $response->assertInertia(fn (Assert $page) => $page
-        ->component('clientes/detalles-producto')
+        ->component('user/detalles-producto')
         ->where('referenceDemo', false)
         ->has('product', fn (Assert $p) => $p
             ->where('slug', 'kit-lacre-real')
@@ -20,7 +20,7 @@ test('la ruta de ejemplo muestra ficha con datos de referencia', function (): vo
 
     $response->assertOk();
     $response->assertInertia(fn (Assert $page) => $page
-        ->component('clientes/detalles-producto')
+        ->component('user/detalles-producto')
         ->where('referenceDemo', true)
         ->has('product', fn (Assert $p) => $p
             ->where('slug', 'kit-lacre-real')

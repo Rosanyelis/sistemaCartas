@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\HistoriaVarianteTipo;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -9,11 +10,19 @@ class HistoriaVariante extends Model
 {
     protected $fillable = [
         'historia_id',
-        'nombre',
-        'codigo_variante',
-        'precio',
-        'stock',
+        'tipo',
+        'valor',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'tipo' => HistoriaVarianteTipo::class,
+        ];
+    }
 
     public function historia(): BelongsTo
     {

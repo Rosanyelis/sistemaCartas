@@ -13,6 +13,26 @@ class UpdateHistoriaRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (! $this->has('variantes') || ! is_array($this->input('variantes'))) {
+            return;
+        }
+
+        $fixed = collect($this->input('variantes'))->map(function ($row) {
+            if (! is_array($row)) {
+                return $row;
+            }
+            $t = strtolower(trim((string) ($row['tipo'] ?? 'papel')));
+            $row['tipo'] = in_array($t, ['papel', 'color'], true) ? $t : 'papel';
+            $row['valor'] = trim((string) ($row['valor'] ?? ''));
+
+            return $row;
+        })->all();
+
+        $this->merge(['variantes' => $fixed]);
+    }
+
     /**
      * @return array<string, array<int, string>>
      */
@@ -33,14 +53,11 @@ class UpdateHistoriaRequest extends FormRequest
             'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime', 'max:20480'],
             'peso' => ['nullable', 'string', 'max:50'],
             'dimensiones' => ['nullable', 'string', 'max:50'],
-            'tipo_envio' => ['nullable', 'string', 'max:100'],
             'estado' => ['required', 'in:activo,pausado'],
             'duracion_meses' => ['required', 'integer', 'min:1'],
             'variantes' => ['nullable', 'array'],
-            'variantes.*.nombre' => ['required', 'string', 'max:255'],
-            'variantes.*.codigo_variante' => ['required', 'string', 'max:50'],
-            'variantes.*.precio' => ['nullable', 'numeric', 'min:0'],
-            'variantes.*.stock' => ['required', 'integer', 'min:0'],
+            'variantes.*.tipo' => ['required', 'string', 'in:papel,color'],
+            'variantes.*.valor' => ['required', 'string', 'max:2000'],
             'galeria' => ['nullable', 'array', 'max:5'],
             'galeria.*' => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
             'historia_gallery_sync' => ['sometimes', 'boolean'],

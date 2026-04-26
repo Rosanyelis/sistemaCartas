@@ -2,25 +2,22 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Http\Requests\Concerns\FlashesValidationError;
 use Illuminate\Foundation\Http\FormRequest;
 
-class AjustarStockRequest extends FormRequest
+class StoreProductoCategoriaRequest extends FormRequest
 {
-    use FlashesValidationError;
-
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, mixed>
      */
     public function rules(): array
     {
         return [
-            'stock' => ['required', 'integer', 'min:0'],
+            'nombre' => ['required', 'string', 'max:255', 'unique:producto_categorias,nombre'],
         ];
     }
 
@@ -30,8 +27,8 @@ class AjustarStockRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'stock.required' => 'El stock es obligatorio.',
-            'stock.min' => 'El stock no puede ser negativo.',
+            'nombre.required' => 'El nombre de la categoría es obligatorio.',
+            'nombre.unique' => 'Ya existe una categoría con ese nombre.',
         ];
     }
 }

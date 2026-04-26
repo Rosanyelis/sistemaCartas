@@ -20,15 +20,17 @@ class ProductosExport implements FromQuery, WithHeadings, WithMapping
             $search = $this->filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('nombre', 'like', "%{$search}%")
-                    ->orWhere('codigo', 'like', "%{$search}%");
+                    ->orWhere('codigo', 'like', "%{$search}%")
+                    ->orWhereHas('productoSubcategoria', fn ($s) => $s->where('nombre', 'like', "%{$search}%"))
+                    ->orWhereHas('productoCategoria', fn ($c) => $c->where('nombre', 'like', "%{$search}%"));
             });
         }
 
-        if (! empty($this->filters['categoria'])) {
-            $query->where('categoria', $this->filters['categoria']);
+        if (! empty($this->filters['categoria_id'])) {
+            $query->where('producto_categoria_id', $this->filters['categoria_id']);
         }
 
-        return $query;
+        return $query->with(['productoCategoria', 'productoSubcategoria']);
     }
 
     public function headings(): array
@@ -55,8 +57,8 @@ class ProductosExport implements FromQuery, WithHeadings, WithMapping
             $producto->id,
             $producto->codigo,
             $producto->nombre,
-            $producto->categoria,
-            $producto->subcategoria ?? '-',
+            $producto->productoCategoria?->nombre ?? '-',
+            $producto->productoSubcategoria?->nombre ?? '-',
             '$'.number_format($producto->precio, 2),
             $producto->stock,
             ucfirst($producto->estado),

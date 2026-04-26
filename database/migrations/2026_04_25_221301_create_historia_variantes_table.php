@@ -13,15 +13,16 @@ return new class extends Migration
     {
         Schema::create('historia_variantes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('historia_id')->constrained('historias')->onDelete('cascade');
-            $table->string('nombre');
-            $table->string('codigo_variante')->unique();
-            $table->decimal('precio', 12, 2)->nullable(); // Si es null, usa el precio base
-            $table->integer('stock')->default(0);
+            $table->foreignId('historia_id')->constrained('historias')->cascadeOnDelete();
+            $table->enum('tipo', ['papel', 'color']);
+            $table->text('valor');
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('historia_variantes');

@@ -1,8 +1,10 @@
+/** Coincide con `App\Enums\HistoriaVarianteTipo` en backend. */
+export type HistoriaVarianteTipoForm = 'papel' | 'color';
+
 export interface HistoriaVarianteForm {
-    nombre: string;
-    codigo_variante: string;
-    precio: string;
-    stock: number;
+    tipo: HistoriaVarianteTipoForm;
+    /** Texto libre: descripción del papel o del color según `tipo` */
+    valor: string;
 }
 
 export interface HistoriaGaleriaItem {
@@ -31,8 +33,7 @@ export interface HistoriaParaFormulario {
     codigo?: string;
     peso?: string | null;
     dimensiones?: string | null;
-    tipo_envio?: string | null;
-    estado?: string;
+    estado?: string;    
     imagen?: string | null;
     video?: string | null;
     variantes?: HistoriaVarianteForm[];
@@ -55,7 +56,6 @@ export interface HistoriaFormData {
     video: File | null;
     peso: string;
     dimensiones: string;
-    tipo_envio: string;
     estado: string;
     /** Obligatorio en API (store/update); meses de duración de la suscripción/historia. */
     duracion_meses: string;

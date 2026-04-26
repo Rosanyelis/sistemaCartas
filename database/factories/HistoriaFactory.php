@@ -33,7 +33,6 @@ class HistoriaFactory extends Factory
             'impuesto' => 16.00,
             'peso' => fake()->randomFloat(1, 0.1, 2).'kg',
             'dimensiones' => fake()->numberBetween(10, 30).'x'.fake()->numberBetween(10, 30).'x'.fake()->numberBetween(1, 5),
-            'tipo_envio' => fake()->randomElement(['Estándar', 'Express', 'Prioritario']),
             'estado' => 'activo',
             'fecha_publicacion' => fake()->dateTimeBetween('-6 months', 'now'),
         ];

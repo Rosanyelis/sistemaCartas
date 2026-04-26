@@ -5,7 +5,7 @@ import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import { buildHistoriaFormData } from './create-story/formDefaults';
 import { HistoriaMultimediaPanel } from './create-story/HistoriaMultimediaPanel';
 import { HistoriaVariantesEditor } from './create-story/HistoriaVariantesEditor';
-import { LimitedWordTextarea } from './create-story/LimitedWordTextarea';
+import { LimitedWordRichEditor } from './create-story/LimitedWordRichEditor';
 import { MAX_IMAGENES_GALERIA, MAX_PALABRAS_TEXTO_LARGO } from './create-story/constants';
 import type { GallerySlot, HistoriaParaFormulario, HistoriaVarianteForm } from './create-story/types';
 
@@ -21,7 +21,7 @@ const inputClass = (hasError: boolean) =>
 
 /**
  * Modal crear/editar historia: estado con Inertia `useForm`, secciones en subcomponentes
- * y textos largos con tope de palabras alineado con `App\Rules\MaxWords`.
+ * y descripción larga / detalle con editor enriquecido (HTML); el contador de palabras del editor es solo orientativo (valida el servidor).
  */
 export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: CreateStoryModalProps) {
     const rootId = useId();
@@ -36,14 +36,22 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
     const [imgPreview, setImgPreview] = useState<string | null>(null);
     const [videoPreview, setVideoPreview] = useState<string | null>(null);
     const [galleryItems, setGalleryItems] = useState<GallerySlot[]>([]);
+    /** Contenido inicial de los editores ricos solo tras hidratar en `useEffect` (evita flash vacío). */
+    const [richEditors, setRichEditors] = useState<{
+        seed: number;
+        descripcion_larga: string;
+        detalle: string;
+    } | null>(null);
 
     /** Al abrir el modal se hidrata desde `storyToEdit` o se limpia para creación. */
     useEffect(() => {
         if (!isOpen) {
+            setRichEditors(null);
             return;
         }
         if (storyToEdit) {
-            setData(buildHistoriaFormData(storyToEdit));
+            const next = buildHistoriaFormData(storyToEdit);
+            setData(next);
             setImgPreview(storyToEdit.imagen ?? null);
             setVideoPreview(storyToEdit.video ?? null);
             const extras = (storyToEdit.galeria ?? []).filter((g) => !g.es_principal);
@@ -54,11 +62,22 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                     preview: g.path,
                 })),
             );
+            setRichEditors({
+                seed: Date.now(),
+                descripcion_larga: next.descripcion_larga,
+                detalle: next.detalle,
+            });
         } else {
             reset();
             setImgPreview(null);
             setVideoPreview(null);
             setGalleryItems([]);
+            const next = buildHistoriaFormData();
+            setRichEditors({
+                seed: Date.now(),
+                descripcion_larga: next.descripcion_larga,
+                detalle: next.detalle,
+            });
         }
     }, [storyToEdit, isOpen, setData, reset]);
 
@@ -120,10 +139,8 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
 
     const addVariant = () => {
         const newVariant: HistoriaVarianteForm = {
-            nombre: '',
-            codigo_variante: `VAR-${Date.now()}`,
-            precio: '',
-            stock: 0,
+            tipo: 'papel',
+            valor: '',
         };
         setData((prev) => ({
             ...prev,
@@ -131,10 +148,10 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
         }));
     };
 
-    const updateVariant = (index: number, field: keyof HistoriaVarianteForm, value: string | number) => {
+    const updateVariant = (index: number, field: keyof HistoriaVarianteForm, value: string | number | boolean) => {
         setData((prev) => {
             const updated = [...prev.variantes];
-            updated[index] = { ...updated[index], [field]: value };
+            updated[index] = { ...updated[index], [field]: value } as HistoriaVarianteForm;
             return { ...prev, variantes: updated };
         });
     };
@@ -255,31 +272,37 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                     )}
                                 </div>
 
-                                <LimitedWordTextarea
-                                    id={descripcionLargaId}
-                                    label={
-                                        <>
-                                            Descripción larga<span className="text-[#EF4444]">*</span>
-                                        </>
-                                    }
-                                    value={data.descripcion_larga}
-                                    onChange={(v) => setData('descripcion_larga', v)}
-                                    maxWords={MAX_PALABRAS_TEXTO_LARGO}
-                                    placeholder="Una apasionante aventura por los rincones del Londres..."
-                                    rows={5}
-                                    error={errors.descripcion_larga}
-                                />
+                                {richEditors ? (
+                                    <>
+                                        <LimitedWordRichEditor
+                                            key={`descripcion-larga-${richEditors.seed}`}
+                                            id={descripcionLargaId}
+                                            label={
+                                                <>
+                                                    Descripción larga<span className="text-[#EF4444]">*</span>
+                                                </>
+                                            }
+                                            initialHtml={richEditors.descripcion_larga}
+                                            onChange={(v) => setData('descripcion_larga', v)}
+                                            maxWords={MAX_PALABRAS_TEXTO_LARGO}
+                                            placeholder="Una apasionante aventura por los rincones del Londres..."
+                                            rows={5}
+                                            error={errors.descripcion_larga}
+                                        />
 
-                                <LimitedWordTextarea
-                                    id={detalleId}
-                                    label="Detalle"
-                                    value={data.detalle}
-                                    onChange={(v) => setData('detalle', v)}
-                                    maxWords={MAX_PALABRAS_TEXTO_LARGO}
-                                    placeholder="Aquí detalles del producto"
-                                    rows={5}
-                                    error={errors.detalle}
-                                />
+                                        <LimitedWordRichEditor
+                                            key={`detalle-${richEditors.seed}`}
+                                            id={detalleId}
+                                            label="Detalle"
+                                            initialHtml={richEditors.detalle}
+                                            onChange={(v) => setData('detalle', v)}
+                                            maxWords={MAX_PALABRAS_TEXTO_LARGO}
+                                            placeholder="Aquí detalles del producto"
+                                            rows={5}
+                                            error={errors.detalle}
+                                        />
+                                    </>
+                                ) : null}
 
                                 <div className="flex flex-col gap-1.5">
                                     <label htmlFor={`${rootId}-categoria`} className="text-[13px] font-semibold text-[#1B3D6D]">
@@ -363,6 +386,13 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                     onUpdate={updateVariant}
                                     onRemove={removeVariant}
                                 />
+                                {Object.entries(errors)
+                                    .filter(([key]) => key.startsWith('variantes.'))
+                                    .map(([key, message]) => (
+                                        <p key={key} className="text-[11px] text-red-500">
+                                            {message}
+                                        </p>
+                                    ))}
                             </div>
 
                             <div className="flex flex-col gap-6">
@@ -436,19 +466,6 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                         />
                                         {errors.dimensiones && (
                                             <span className="text-red-500 text-[11px]">{errors.dimensiones}</span>
-                                        )}
-                                    </div>
-                                    <div className="flex flex-col gap-1.5 mt-1">
-                                        <label className="text-[13px] font-semibold text-[#1B3D6D]">Tipo de envío</label>
-                                        <input
-                                            type="text"
-                                            value={data.tipo_envio}
-                                            onChange={(ev) => setData('tipo_envio', ev.target.value)}
-                                            placeholder="Estándar"
-                                            className={inputClass(Boolean(errors.tipo_envio))}
-                                        />
-                                        {errors.tipo_envio && (
-                                            <span className="text-red-500 text-[11px]">{errors.tipo_envio}</span>
                                         )}
                                     </div>
                                 </div>

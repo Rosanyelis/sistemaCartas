@@ -4,7 +4,9 @@ use App\Http\Controllers\Admin\ClienteController as AdminClienteController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\HistoriaController as AdminHistoriaController;
 use App\Http\Controllers\Admin\OrdenController as AdminOrdenController;
+use App\Http\Controllers\Admin\ProductoCategoriaController as AdminProductoCategoriaController;
 use App\Http\Controllers\Admin\ProductoController as AdminProductoController;
+use App\Http\Controllers\Admin\ProductoSubcategoriaController as AdminProductoSubcategoriaController;
 use App\Http\Controllers\Admin\SuscripcionController as AdminSuscripcionController;
 use App\Http\Controllers\Auth\EmailVerificationOtpController;
 use App\Http\Controllers\Checkout\PayPalCheckoutController;
@@ -101,12 +103,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Productos
         Route::get('productos', [AdminProductoController::class, 'index'])->name('productos');
         Route::get('productos/export', [AdminProductoController::class, 'export'])->name('productos.export');
+        Route::get('productos/{producto}/formulario', [AdminProductoController::class, 'formulario'])->name('productos.formulario');
         Route::post('productos', [AdminProductoController::class, 'store'])->name('productos.store');
         Route::patch('productos/{producto}', [AdminProductoController::class, 'update'])->name('productos.update');
         Route::delete('productos/{producto}', [AdminProductoController::class, 'destroy'])->name('productos.destroy');
         Route::post('productos/{producto}/duplicate', [AdminProductoController::class, 'duplicate'])->name('productos.duplicate');
         Route::patch('productos/{producto}/toggle-status', [AdminProductoController::class, 'toggleStatus'])->name('productos.toggle-status');
         Route::patch('productos/{producto}/stock', [AdminProductoController::class, 'ajustarStock'])->name('productos.stock');
+
+        Route::get('taxonomia/producto-categorias', [AdminProductoCategoriaController::class, 'index'])->name('taxonomia.producto-categorias.index');
+        Route::post('taxonomia/producto-categorias', [AdminProductoCategoriaController::class, 'store'])->name('taxonomia.producto-categorias.store');
+        Route::delete('taxonomia/producto-categorias/{producto_categoria}', [AdminProductoCategoriaController::class, 'destroy'])->name('taxonomia.producto-categorias.destroy');
+        Route::get('taxonomia/producto-subcategorias', [AdminProductoSubcategoriaController::class, 'index'])->name('taxonomia.producto-subcategorias.index');
+        Route::post('taxonomia/producto-subcategorias', [AdminProductoSubcategoriaController::class, 'store'])->name('taxonomia.producto-subcategorias.store');
+        Route::delete('taxonomia/producto-subcategorias/{producto_subcategoria}', [AdminProductoSubcategoriaController::class, 'destroy'])->name('taxonomia.producto-subcategorias.destroy');
 
         // Legacy route aliases (backward compatibility with existing sidebar links)
         Route::get('orders', fn (Request $request) => redirect()->route('admin.ordenes', $request->query()))->name('orders');

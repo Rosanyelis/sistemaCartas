@@ -24,10 +24,9 @@ interface HistoriaGaleriaItem {
 }
 
 interface HistoriaVarianteItem {
-    nombre: string;
-    codigo_variante: string;
-    precio: string;
-    stock: number;
+    id?: number;
+    tipo?: 'papel' | 'color' | string;
+    valor?: string | null;
 }
 
 interface Story {
@@ -49,7 +48,6 @@ interface Story {
     impuesto?: string | null;
     peso?: string | null;
     dimensiones?: string | null;
-    tipo_envio?: string | null;
     duracion_meses?: number | string | null;
     galeria?: HistoriaGaleriaItem[];
     variantes?: HistoriaVarianteItem[];

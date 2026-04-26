@@ -20,22 +20,18 @@ return new class extends Migration
             $table->string('descripcion_corta');
             $table->text('descripcion_larga');
             $table->text('detalle')->nullable();
-            $table->string('categoria');
-            $table->string('subcategoria')->nullable();
+            $table->unsignedBigInteger('producto_categoria_id')->nullable();
+            $table->unsignedBigInteger('producto_subcategoria_id')->nullable();
             $table->decimal('precio_base', 12, 2);
             $table->decimal('precio_promocional', 12, 2)->nullable();
             $table->decimal('impuesto', 5, 2)->default(0);
             $table->unsignedInteger('stock')->default(0);
             $table->string('peso')->nullable();
             $table->string('dimensiones')->nullable();
-            $table->string('tipo_envio')->nullable();
-            $table->json('variantes')->nullable();
-            $table->json('galeria')->nullable();
             $table->enum('estado', ['activo', 'pausado'])->default('activo');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index('categoria');
             $table->index('estado');
         });
     }

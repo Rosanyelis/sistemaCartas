@@ -43,7 +43,7 @@ export function StockAdjuster({
         router.patch(`/admin/productos/${productoId}/stock`, {
             stock: stock,
         }, {
-            preserveState: true,
+            preserveState: false,
             preserveScroll: true,
             onSuccess: () => {
                 onOpenChange(false);

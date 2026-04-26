@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('codigo')->unique();
             $table->string('imagen')->nullable();
+            $table->string('video')->nullable();
             $table->string('descripcion_corta');
             $table->text('descripcion_larga');
             $table->text('detalle')->nullable();
@@ -27,7 +28,7 @@ return new class extends Migration
             $table->decimal('impuesto', 5, 2)->default(0);
             $table->string('peso')->nullable();
             $table->string('dimensiones')->nullable();
-            $table->string('tipo_envio')->nullable();
+            $table->integer('duracion_meses')->nullable();
             $table->enum('estado', ['activo', 'pausado'])->default('activo');
             $table->timestamp('fecha_publicacion')->nullable();
             $table->timestamps();

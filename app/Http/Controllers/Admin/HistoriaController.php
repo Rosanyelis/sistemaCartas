@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\HistoriaVarianteTipo;
 use App\Exports\Admin\HistoriasExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreHistoriaRequest;
@@ -78,10 +79,13 @@ class HistoriaController extends Controller
 
                 $historia = Historia::query()->create($data);
 
-                // Guardar variantes
+                // Guardar variantes (tipo: papel | color, valor texto)
                 if (! empty($data['variantes'])) {
                     foreach ($data['variantes'] as $variante) {
-                        $historia->variantes()->create($variante);
+                        if (! is_array($variante)) {
+                            continue;
+                        }
+                        $historia->variantes()->create($this->normalizarVarianteHistoria($variante));
                     }
                 }
 
@@ -162,7 +166,10 @@ class HistoriaController extends Controller
                     $historia->variantes()->delete();
                     if (! empty($data['variantes'])) {
                         foreach ($data['variantes'] as $variante) {
-                            $historia->variantes()->create($variante);
+                            if (! is_array($variante)) {
+                                continue;
+                            }
+                            $historia->variantes()->create($this->normalizarVarianteHistoria($variante));
                         }
                     }
                 }
@@ -230,6 +237,7 @@ class HistoriaController extends Controller
             return DB::transaction(function () use ($historia) {
                 $historia->load([
                     'galeria' => fn ($q) => $q->orderBy('id'),
+                    'variantes',
                 ]);
 
                 $copy = $historia->replicate();
@@ -274,6 +282,13 @@ class HistoriaController extends Controller
                     ]);
                 }
 
+                foreach ($historia->variantes as $variante) {
+                    $copy->variantes()->create([
+                        'tipo' => $variante->tipo,
+                        'valor' => $variante->valor,
+                    ]);
+                }
+
                 return redirect()->route('admin.historias')->with('success', 'Historia duplicada exitosamente.');
             });
         } catch (\Throwable $e) {
@@ -281,6 +296,22 @@ class HistoriaController extends Controller
 
             return redirect()->route('admin.historias')->with('error', 'No se pudo duplicar la historia. Inténtalo de nuevo.');
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $variante
+     * @return array<string, mixed>
+     */
+    private function normalizarVarianteHistoria(array $variante): array
+    {
+        $rawTipo = strtolower(trim((string) ($variante['tipo'] ?? '')));
+        $tipo = HistoriaVarianteTipo::tryFrom($rawTipo) ?? HistoriaVarianteTipo::Papel;
+        $valor = trim((string) ($variante['valor'] ?? ''));
+
+        return [
+            'tipo' => $tipo,
+            'valor' => $valor,
+        ];
     }
 
     /**

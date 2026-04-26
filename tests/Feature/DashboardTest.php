@@ -13,10 +13,11 @@ test('admin users receive the admin dashboard', function () {
     $this->actingAs($admin);
 
     $response = $this->get(route('dashboard'));
-    $response->assertOk();
-    $response->assertInertia(fn (Assert $page) => $page->component(
-        'admin/dashboard',
-    ));
+    $response->assertRedirect(route('admin.dashboard', absolute: false));
+
+    $this->get(route('admin.dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('admin/dashboard'));
 });
 
 test('client users are redirected from dashboard to orders', function () {

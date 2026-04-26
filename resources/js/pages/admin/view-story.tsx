@@ -257,21 +257,40 @@ export default function ViewStory({ historia }: Props) {
                         <div className="bg-white rounded-xl shadow-sm border border-[#F3F4F6] p-6">
                             <h3 className="text-[14px] font-bold text-[#1B3D6D] mb-4 flex items-center gap-2">
                                 <FontAwesomeIcon icon={faTags} className="text-[12px]" />
-                                Variantes de Producto
+                                Variantes
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {historia.variantes.map((v: any) => (
-                                    <div key={v.id} className="p-4 rounded-lg border border-[#F3F4F6] bg-[#F9FAFB]/50 flex justify-between items-center group hover:border-[#1B3D6D]/10 transition-all">
-                                        <div>
-                                            <p className="text-sm font-bold text-[#111827]">{v.nombre}</p>
-                                            <p className="text-[11px] text-[#7B7B7B] uppercase font-bold tracking-widest">{v.codigo_variante}</p>
+                                {historia.variantes.map((v: { id: number; tipo?: string; valor?: string | null }) => {
+                                    const tipoLabel = v.tipo === 'color' ? 'Color' : 'Papel';
+                                    const valorTexto = (v.valor ?? '').trim() || '—';
+                                    const hexOk =
+                                        v.tipo === 'color' && /^#[0-9A-Fa-f]{6}$/i.test((v.valor ?? '').trim());
+
+                                    return (
+                                    <div
+                                        key={v.id}
+                                        className="flex items-center justify-between gap-3 rounded-lg border border-[#F3F4F6] bg-[#F9FAFB]/50 p-4 transition-all group hover:border-[#1B3D6D]/10"
+                                    >
+                                        <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-bold text-[#111827] break-words">
+                                                {valorTexto}
+                                            </p>
+                                            <p className="text-[11px] font-bold uppercase tracking-widest text-[#7B7B7B]">
+                                                {tipoLabel}
+                                            </p>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-sm font-bold text-[#1B3D6D]">${Number(v.precio).toFixed(2)}</p>
-                                            <p className="text-[11px] text-[#A0A0A0]">Stock: <span className={v.stock > 0 ? 'text-[#12A05B]' : 'text-red-500'}>{v.stock}</span></p>
-                                        </div>
+                                        {hexOk ? (
+                                            <div
+                                                className="size-10 shrink-0 rounded-md border border-[#E5E7EB] shadow-inner"
+                                                style={{ backgroundColor: (v.valor ?? '').trim() }}
+                                                title={(v.valor ?? '').trim()}
+                                            />
+                                        ) : (
+                                            <span className="text-[11px] text-[#A0A0A0]">—</span>
+                                        )}
                                     </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

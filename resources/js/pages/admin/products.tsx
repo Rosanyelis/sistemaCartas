@@ -30,23 +30,26 @@ interface PaginatedData<T> {
     to: number | null;
 }
 
+type CategoriaRow = { id: number; nombre: string };
+
 interface Props {
     productos: PaginatedData<Product>;
-    categorias: string[];
+    categorias: CategoriaRow[];
     filters: {
         search?: string;
-        categoria?: string;
+        categoria_id?: string;
     };
 }
 
 export default function Products({ productos, categorias, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
-    const [selectedCategory, setSelectedCategory] = useState(filters.categoria || '');
+    const [selectedCategory, setSelectedCategory] = useState(filters.categoria_id || '');
     
     const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
     const categoryMenuRef = useRef<HTMLDivElement>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [editProductId, setEditProductId] = useState<number | null>(null);
     const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
     const [adjustStockProduct, setAdjustStockProduct] = useState<Product | null>(null);
 
@@ -84,10 +87,10 @@ export default function Products({ productos, categorias, filters }: Props) {
         applyFilters({ search: val });
     };
 
-    const handleCategorySelect = (cat: string) => {
-        setSelectedCategory(cat);
+    const handleCategorySelect = (categoriaId: string) => {
+        setSelectedCategory(categoriaId);
         setIsCategoryMenuOpen(false);
-        applyFilters({ categoria: cat });
+        applyFilters({ categoria_id: categoriaId });
     };
 
     const goToPage = (page: number) => {
@@ -99,11 +102,11 @@ export default function Products({ productos, categorias, filters }: Props) {
     };
 
     const handleDuplicate = (id: number) => {
-        router.post(`/admin/productos/${id}/duplicate`, {}, { preserveScroll: true });
+        router.post(`/admin/productos/${id}/duplicate`, {}, { preserveScroll: true, preserveState: false });
     };
 
     const handleToggleStatus = (id: number) => {
-        router.patch(`/admin/productos/${id}/toggle-status`, {}, { preserveScroll: true });
+        router.patch(`/admin/productos/${id}/toggle-status`, {}, { preserveScroll: true, preserveState: false });
     };
 
     const handleDeleteClick = (id: number) => {
@@ -114,7 +117,8 @@ export default function Products({ productos, categorias, filters }: Props) {
         if (deleteProductId !== null) {
             router.delete(`/admin/productos/${deleteProductId}`, {
                 preserveScroll: true,
-                onSuccess: () => setDeleteProductId(null)
+                preserveState: false,
+                onSuccess: () => setDeleteProductId(null),
             });
         }
     };
@@ -125,8 +129,18 @@ export default function Products({ productos, categorias, filters }: Props) {
 
     const { data: productList, current_page, last_page, from, to, total } = productos;
 
-    const renderActionMenu = (product: Product, menuKey: string) => (
+    const renderActionMenu = (product: Product) => (
         <div className="absolute right-0 top-full mt-1 w-[150px] bg-white border border-[#F3F4F6] rounded-[6px] shadow-[0_4px_15px_rgba(0,0,0,0.05)] z-20 py-1 text-left">
+            <button
+                onClick={() => {
+                    setOpenMenuId(null);
+                    setIsCreateModalOpen(false);
+                    setEditProductId(product.id);
+                }}
+                className="w-full text-left px-4 py-2.5 text-[14px] text-[#4B5563] hover:bg-gray-50 flex items-center justify-start transition-colors"
+            >
+                Editar
+            </button>
             <button onClick={() => handleAdjustStockClick(product)} className="w-full text-left px-4 py-2.5 text-[14px] text-[#4B5563] hover:bg-gray-50 flex items-center justify-start transition-colors">Ajustar stock</button>
             <button onClick={() => handleDuplicate(product.id)} className="w-full text-left px-4 py-2.5 text-[14px] text-[#4B5563] hover:bg-gray-50 flex items-center justify-start transition-colors">Duplicar</button>
             <button onClick={() => handleToggleStatus(product.id)} className="w-full text-left px-4 py-2.5 text-[14px] text-[#4B5563] hover:bg-gray-50 flex items-center justify-start transition-colors">
@@ -180,8 +194,14 @@ export default function Products({ productos, categorias, filters }: Props) {
                             {isCategoryMenuOpen && (
                                 <div className="absolute top-full right-0 mt-2 z-10 w-48 rounded-md border border-[#E5E7EB] bg-white py-1 shadow-lg">
                                     <button onClick={() => handleCategorySelect('')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Todas</button>
-                                    {categorias.map(cat => (
-                                        <button key={cat} onClick={() => handleCategorySelect(cat)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{cat}</button>
+                                    {categorias.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => handleCategorySelect(String(cat.id))}
+                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            {cat.nombre}
+                                        </button>
                                     ))}
                                 </div>
                             )}
@@ -197,7 +217,9 @@ export default function Products({ productos, categorias, filters }: Props) {
                             >
                                 <FontAwesomeIcon icon={faFilter} className="text-[#A0A0A0]" />
                                 <span className="font-medium opacity-80 md:opacity-100">
-                                    {selectedCategory || 'Categoría'}
+                                    {selectedCategory
+                                        ? categorias.find((c) => String(c.id) === selectedCategory)?.nombre ?? 'Categoría'
+                                        : 'Categoría'}
                                 </span>
                                 <FontAwesomeIcon 
                                     icon={faChevronDown} 
@@ -207,8 +229,14 @@ export default function Products({ productos, categorias, filters }: Props) {
                             {isCategoryMenuOpen && (
                                 <div className="absolute top-full left-0 mt-2 z-10 w-full md:w-48 rounded-md border border-[#E5E7EB] bg-white py-1 shadow-lg">
                                     <button onClick={() => handleCategorySelect('')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Todas</button>
-                                    {categorias.map(cat => (
-                                        <button key={cat} onClick={() => handleCategorySelect(cat)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{cat}</button>
+                                    {categorias.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => handleCategorySelect(String(cat.id))}
+                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            {cat.nombre}
+                                        </button>
                                     ))}
                                 </div>
                              )}
@@ -228,7 +256,10 @@ export default function Products({ productos, categorias, filters }: Props) {
                             </button>
 
                             <button 
-                                onClick={() => setIsCreateModalOpen(true)}
+                                onClick={() => {
+                                    setEditProductId(null);
+                                    setIsCreateModalOpen(true);
+                                }}
                                 className="flex w-full md:w-auto justify-center items-center gap-2 rounded-[4px] md:rounded-md bg-[#1B3D6D] px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#1B3D6D]/90 transition-colors"
                             >
                                 <span>Crear producto</span>
@@ -299,7 +330,7 @@ export default function Products({ productos, categorias, filters }: Props) {
                                                     >
                                                         <FontAwesomeIcon icon={faEllipsisV} className="text-[15px]" />
                                                     </button>
-                                                    {openMenuId === `desktop-${product.id}` && renderActionMenu(product, `desktop-${product.id}`)}
+                                                    {openMenuId === `desktop-${product.id}` && renderActionMenu(product)}
                                                 </div>
                                             </td>
                                         </tr>
@@ -347,7 +378,7 @@ export default function Products({ productos, categorias, filters }: Props) {
                                                         >
                                                             <FontAwesomeIcon icon={faEllipsisV} className="text-sm" />
                                                         </button>
-                                                        {openMenuId === `mobile-${product.id}` && renderActionMenu(product, `mobile-${product.id}`)}
+                                                        {openMenuId === `mobile-${product.id}` && renderActionMenu(product)}
                                                     </div>
                                                 </div>
                                             </div>
@@ -423,7 +454,15 @@ export default function Products({ productos, categorias, filters }: Props) {
                 </div>
             </div>
 
-            <CreateProductModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+            <CreateProductModal
+                isOpen={isCreateModalOpen || editProductId !== null}
+                editingProductId={editProductId}
+                onClose={() => {
+                    setIsCreateModalOpen(false);
+                    setEditProductId(null);
+                }}
+                categorias={categorias}
+            />
             
             <ConfirmDialog 
                 isOpen={deleteProductId !== null}
