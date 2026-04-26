@@ -43,8 +43,10 @@ export default function PayPalCheckoutButtons({
     lines,
     onSuccess,
 }: PayPalCheckoutButtonsProps) {
-    const page = usePage();
-    const paypal = (page.props as SharedPayPalProps).paypal;
+    const { paypal: paypalFromProps } = usePage().props;
+    const paypal =
+        paypalFromProps ??
+        ({ clientId: '', currency: 'USD', enabled: false } satisfies SharedPayPalProps['paypal']);
     const containerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
 

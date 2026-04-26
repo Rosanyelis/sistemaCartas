@@ -6,6 +6,12 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            /** Presente en páginas que comparten config de checkout PayPal */
+            paypal?: {
+                clientId: string;
+                currency: string;
+                enabled: boolean;
+            };
             flash?: {
                 success?: string | null;
                 error?: string | null;

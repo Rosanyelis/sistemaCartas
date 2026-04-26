@@ -2,22 +2,31 @@ import type { Story, Product, Testimonial } from '@/types/welcome';
 
 export const defaultStories: Story[] = [
     {
+        id: 0,
+        slug: 'secretos-que-solo-el-viento-conoce',
         title: 'Secretos que Solo el Viento Conoce',
         desc: 'Cada una de estas historias es un fragmento de una vida en el mar. Son diarios de a bordo ocultos en sobres lacrados, mensajes que han cruzado tormentas y calmas...',
         price: 'Desde $24,90',
         img: '/images/sliders/slider-1.png',
+        categoria: 'Aventura',
     },
     {
+        id: 0,
+        slug: 'memorias-de-un-viajero-perdido',
         title: 'Memorias de un Viajero Perdido',
         desc: 'Descubre el mundo a través de los ojos de un explorador que documentó cada rincón del planeta en cartas escritas a mano bajo la luz de las estrellas.',
         price: 'Desde $24,90',
         img: '/images/sliders/slider-2.jpg',
+        categoria: 'Aventura',
     },
     {
+        id: 0,
+        slug: 'amor-en-tiempos-de-guerra',
         title: 'Amor en Tiempos de Guerra',
         desc: 'La correspondencia secreta entre dos amantes separados por el frente de batalla, donde cada carta era una promesa de supervivencia y esperanza.',
         price: 'Desde $24,90',
         img: '/images/sliders/slider-3.png',
+        categoria: 'Romance',
     },
 ];
 

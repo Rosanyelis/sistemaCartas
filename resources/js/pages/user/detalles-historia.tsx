@@ -2,7 +2,7 @@ import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, Link } from '@inertiajs/react';
 import { ShieldCheck, Package, CalendarX, Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ClienteLayout from '@/layouts/cliente-layout';
 import { inclusionIconOrFallback } from '@/lib/historia-detalle-inclusion-lucide-map';
 
@@ -17,6 +17,8 @@ export interface HistoriaPublicaDetalle {
     video: string | null;
     precio_base: string;
     precio_promocional: string | null;
+    /** Opciones públicas (papel, color, etc.) */
+    variantes: { tipo: string; valor: string }[];
     galeria: { id: number; path: string; tipo: string; es_principal: boolean }[];
 }
 
@@ -24,12 +26,34 @@ interface DetalleHistoriaPageProps {
     historia: HistoriaPublicaDetalle;
 }
 
-function buildMediaFromHistoria(h: HistoriaPublicaDetalle): { url: string; type: 'image' | 'video' }[] {
-    const out: { url: string; type: 'image' | 'video' }[] = [];
+const STORY_COVER_FALLBACK = '/images/story_cover.png';
+
+/** URL para poster/miniaturas de ítems vídeo: imagen principal o placeholder del proyecto. */
+function posterThumbUrl(h: HistoriaPublicaDetalle): string {
+    const src = h.imagen?.trim();
+
+    return src && src !== '' ? src : STORY_COVER_FALLBACK;
+}
+
+export type MediaItem = {
+    url: string;
+    type: 'image' | 'video';
+    /** Siempre válida para `<img>` (vídeo → imagen principal o fallback). */
+    thumbUrl: string;
+};
+
+function buildMediaFromHistoria(h: HistoriaPublicaDetalle): MediaItem[] {
+    const out: MediaItem[] = [];
+    const videoPoster = posterThumbUrl(h);
+
     const push = (url: string | null | undefined, type: 'image' | 'video'): void => {
-        if (url) {
-            out.push({ url, type });
+        if (!url) {
+            return;
         }
+
+        const thumbUrl = type === 'video' ? videoPoster : url;
+
+        out.push({ url, type, thumbUrl });
     };
 
     push(h.video, 'video');
@@ -43,52 +67,138 @@ function buildMediaFromHistoria(h: HistoriaPublicaDetalle): { url: string; type:
     });
 
     if (out.length === 0) {
-        return [{ url: '/images/story_cover.png', type: 'image' }];
+        return [
+            {
+                url: STORY_COVER_FALLBACK,
+                type: 'image',
+                thumbUrl: STORY_COVER_FALLBACK,
+            },
+        ];
     }
 
     return out;
 }
 
-type MediaItem = { url: string; type: 'image' | 'video' };
-
-function HistoriaHeroMedia({ media }: { media: MediaItem[] }) {
+function HistoriaHeroMedia({
+    media,
+    tituloHistoria,
+}: {
+    media: MediaItem[];
+    tituloHistoria: string;
+}) {
     const [activeThumbnailIndex, setActiveThumbnailIndex] = useState(0);
+    const [heroVideoPlaying, setHeroVideoPlaying] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+
     const idx = Math.min(activeThumbnailIndex, Math.max(0, media.length - 1));
+    const active = media[idx];
+    const altPrincipal =
+        active.type === 'video'
+            ? `Vista previa del vídeo — ${tituloHistoria}`
+            : `Imagen — ${tituloHistoria}`;
+
+    const selectThumbnail = useCallback((i: number): void => {
+        videoRef.current?.pause();
+        setActiveThumbnailIndex(i);
+        setHeroVideoPlaying(false);
+    }, []);
+
+    useEffect(() => {
+        if (!heroVideoPlaying || active.type !== 'video') {
+            return;
+        }
+
+        const el = videoRef.current;
+
+        if (!el) {
+            return;
+        }
+
+        el.play().catch(() => {});
+
+        return () => {
+            el.pause();
+        };
+    }, [heroVideoPlaying, active.type, active.url]);
 
     return (
         <div className="flex w-full flex-col gap-4 lg:w-[600px]">
             <div className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[2px] bg-[#242424] shadow-[0px_3px_8px_rgba(0,0,0,0.15)] lg:aspect-[600/462]">
-                <img
-                    src={media[idx].url}
-                    alt="Detalle de historia"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-                {media[idx].type === 'video' && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-100 transition-opacity group-hover:bg-black/40">
-                        <div className="flex h-[75px] w-[75px] items-center justify-center rounded-full border-[2.5px] border-white bg-transparent text-white backdrop-blur-[2px] transition-transform duration-300 hover:scale-110 lg:h-[95px] lg:w-[95px]">
-                            <div className="ml-1 flex h-0 w-0 border-t-[12px] border-b-[12px] border-l-20 border-t-transparent border-b-transparent border-l-white lg:border-t-[15px] lg:border-b-[15px] lg:border-l-[25px]"></div>
-                        </div>
-                    </div>
-                )}
+                {active.type === 'image' ? (
+                    <img
+                        src={active.thumbUrl}
+                        alt={altPrincipal}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                ) : null}
+
+                {active.type === 'video' && !heroVideoPlaying ? (
+                    <>
+                        <img
+                            src={active.thumbUrl}
+                            alt={altPrincipal}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        />
+                        <button
+                            type="button"
+                            aria-label="Reproducir vídeo"
+                            onClick={() => setHeroVideoPlaying(true)}
+                            className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center bg-black/20 opacity-100 transition-opacity group-hover:bg-black/40"
+                        >
+                            <span
+                                aria-hidden
+                                className="pointer-events-none flex h-[75px] w-[75px] items-center justify-center rounded-full border-[2.5px] border-white bg-transparent text-white backdrop-blur-[2px] transition-transform duration-300 group-hover:scale-110 lg:h-[95px] lg:w-[95px]"
+                            >
+                                <span
+                                    aria-hidden
+                                    className="ml-1 flex h-0 w-0 border-t-[12px] border-b-[12px] border-l-20 border-t-transparent border-b-transparent border-l-white lg:border-t-[15px] lg:border-b-[15px] lg:border-l-[25px]"
+                                />
+                            </span>
+                        </button>
+                    </>
+                ) : null}
+
+                {active.type === 'video' && heroVideoPlaying ? (
+                    <video
+                        ref={videoRef}
+                        key={active.url}
+                        src={active.url}
+                        poster={active.thumbUrl}
+                        controls
+                        playsInline
+                        className="absolute inset-0 z-20 h-full w-full object-cover"
+                    />
+                ) : null}
             </div>
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide lg:justify-between lg:overflow-visible lg:pb-0">
-                {media.map((item, i) => (
-                    <button
-                        key={i}
-                        type="button"
-                        onClick={() => setActiveThumbnailIndex(i)}
-                        className={`relative h-[80px] w-[80px] min-w-[80px] shrink-0 overflow-hidden rounded-[2px] transition duration-300 lg:h-[110px] lg:w-full lg:min-w-[110px] lg:flex-1 ${activeThumbnailIndex === i ? 'ring-2 ring-[#1B3D6D] ring-offset-2' : 'opacity-60 hover:opacity-100'}`}
-                    >
-                        <img src={item.url} alt={`Thumbnail ${i}`} className="h-full w-full object-cover" />
-                        {item.type === 'video' && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                                <div className="flex h-6 w-6 items-center justify-center rounded-full border border-white/80 bg-black/20 text-white backdrop-blur-[1px]">
-                                    <div className="ml-0.5 h-0 w-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-white"></div>
+                {media.map((item, i) => {
+                    const altMini =
+                        item.type === 'video'
+                            ? `Miniatura de vídeo (${i + 1} de ${media.length}) — ${tituloHistoria}`
+                            : `Miniatura de imagen (${i + 1} de ${media.length}) — ${tituloHistoria}`;
+
+                    return (
+                        <button
+                            key={i}
+                            type="button"
+                            onClick={() => selectThumbnail(i)}
+                            className={`relative h-[80px] w-[80px] min-w-[80px] shrink-0 overflow-hidden rounded-[2px] transition duration-300 lg:h-[110px] lg:w-full lg:min-w-[110px] lg:flex-1 ${idx === i ? 'ring-2 ring-[#1B3D6D] ring-offset-2' : 'opacity-60 hover:opacity-100'}`}
+                        >
+                            <img
+                                src={item.thumbUrl}
+                                alt={altMini}
+                                className="h-full w-full object-cover"
+                            />
+                            {item.type === 'video' && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                                    <div className="flex h-6 w-6 items-center justify-center rounded-full border border-white/80 bg-black/20 text-white backdrop-blur-[1px]">
+                                        <div className="ml-0.5 h-0 w-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-white"></div>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </button>
-                ))}
+                            )}
+                        </button>
+                    );
+                })}
             </div>
         </div>
     );
@@ -164,7 +274,11 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
                 <div className="mt-[50px] w-full max-w-[1440px]">
                     {/* 1. Hero / Detalle del Producto Section */}
                     <section className="flex flex-col gap-8 border-b-[0.5px] border-[#F2F2F2] px-4 py-8 lg:mt-[50px] lg:flex-row lg:items-start lg:gap-[72px] lg:px-[72px] lg:py-[70px]">
-                        <HistoriaHeroMedia key={historia.slug} media={media} />
+                        <HistoriaHeroMedia
+                            key={historia.slug}
+                            media={media}
+                            tituloHistoria={historia.nombre}
+                        />
 
                         {/* Product Info Column */}
                         <div className="flex w-full flex-1 flex-col gap-6 lg:max-w-[624px]">
@@ -208,6 +322,19 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
                                     Por entrega mensual
                                 </span>
                             </div>
+
+                            {historia.variantes.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                    {historia.variantes.map((v, i) => (
+                                        <span
+                                            key={`${v.tipo}-${v.valor}-${i}`}
+                                            className="rounded-[2px] border border-[#E8E8E8] bg-[#FAFAFA] px-3 py-1 font-['Inter',sans-serif] text-[12px] font-medium text-[#1B3D6D] capitalize"
+                                        >
+                                            {v.tipo}: {v.valor}
+                                        </span>
+                                    ))}
+                                </div>
+                            ) : null}
 
                             {/* Subscribe Button */}
                             <button className="flex h-[47px] w-full items-center justify-center rounded-[2px] border border-[#1B3D6D] bg-[#1B3D6D] px-5 py-[14px] text-white transition hover:bg-[#1B3D6D]/90">

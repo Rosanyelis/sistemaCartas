@@ -1,9 +1,12 @@
 export interface Story {
-    id?: number;
+    id: number;
+    /** Slug de BD para enlazar a `historias.show` */
+    slug: string;
     title: string;
     desc: string;
     price: string;
     img: string;
+    categoria: string;
 }
 
 export interface Product {
