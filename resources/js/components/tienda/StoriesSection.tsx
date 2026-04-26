@@ -1,12 +1,39 @@
 import { Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
+import { show } from '@/routes/historias';
 import type { Story } from '@/types/welcome';
 
 interface StoriesSectionProps {
     stories: Story[];
 }
 
-export default function StoriesSection({ stories }: StoriesSectionProps) {
+function StoriesEmpty() {
+    return (
+        <section
+            id="historias"
+            className="flex w-full flex-col items-center justify-center bg-[#FFFCF4] py-20 lg:py-[70px]"
+        >
+            <div className="flex w-full max-w-[1296px] flex-col items-center gap-6 px-6 text-center lg:px-[72px]">
+                <h2 className="font-['Playfair_Display',serif] text-[32px] font-semibold text-[#1B3D6D] md:text-[49px]">
+                    Historias
+                </h2>
+                <div className="h-1 w-[150px] rounded-full bg-[#1B3D6D] md:w-[250px]" />
+                <p className="max-w-xl font-['Inter',sans-serif] text-[16px] leading-relaxed text-[#7B7B7B]">
+                    Pronto publicaremos historias destacadas aquí. Mientras tanto, explorá el catálogo
+                    completo.
+                </p>
+                <Link
+                    href="/historias"
+                    className="flex h-[42px] items-center justify-center rounded-[2px] bg-[#1B3D6D] px-6 font-['Inter',sans-serif] text-[16px] font-semibold text-white transition hover:bg-[#1B3D6D]/90"
+                >
+                    Ver todas las historias
+                </Link>
+            </div>
+        </section>
+    );
+}
+
+function StoriesSlider({ stories }: { stories: Story[] }) {
     const baseStories = stories;
     const extendedStories = Array(20).fill(baseStories).flat();
     const START_INDEX = baseStories.length * 10;
@@ -80,7 +107,7 @@ export default function StoriesSection({ stories }: StoriesSectionProps) {
                     >
                         {extendedStories.map((story, i) => (
                             <div
-                                key={i}
+                                key={`${story.slug}-${i}`}
                                 className={`group relative h-[450px] w-[calc(100vw-48px)] max-w-[700px] shrink-0 overflow-hidden rounded-[4px] bg-black lg:h-[540px] lg:w-[700px] ${
                                     isTransitioning
                                         ? 'transition-opacity duration-500'
@@ -123,11 +150,14 @@ export default function StoriesSection({ stories }: StoriesSectionProps) {
                                         </h4>
                                     </div>
 
-                                    <button className="flex h-[39px] w-[139px] items-center justify-center rounded-[2px] border border-white bg-white/20 px-5 py-[10px] transition-colors duration-300 group-hover:bg-white/30 hover:bg-white hover:text-[#1B3D6D]">
+                                    <Link
+                                        href={show.url(story.slug)}
+                                        className="flex h-[39px] w-[139px] items-center justify-center rounded-[2px] border border-white bg-white/20 px-5 py-[10px] transition-colors duration-300 group-hover:bg-white/30 hover:bg-white hover:text-[#1B3D6D]"
+                                    >
                                         <span className="font-['Inter',sans-serif] text-[16px] leading-[19px] font-semibold text-white transition-colors duration-300 group-hover:text-[#111]">
                                             Ver historia
                                         </span>
-                                    </button>
+                                    </Link>
                                 </div>
                             </div>
                         ))}
@@ -138,6 +168,7 @@ export default function StoriesSection({ stories }: StoriesSectionProps) {
                 <div className="z-10 mt-4 flex flex-col items-center gap-5">
                     <div className="flex flex-row items-center gap-10 lg:gap-12">
                         <button
+                            type="button"
                             onClick={handlePrevStory}
                             className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#1B3D6D] transition duration-300 hover:bg-[#1B3D6D] lg:h-[60px] lg:w-[60px]"
                         >
@@ -156,6 +187,7 @@ export default function StoriesSection({ stories }: StoriesSectionProps) {
                             </svg>
                         </button>
                         <button
+                            type="button"
                             onClick={handleNextStory}
                             className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#1B3D6D] transition duration-300 hover:bg-[#1B3D6D] lg:h-[60px] lg:w-[60px]"
                         >
@@ -176,7 +208,7 @@ export default function StoriesSection({ stories }: StoriesSectionProps) {
                     </div>
                     {/* Botón CTA mobile */}
                     <Link
-                        href="#historias"
+                        href="/historias"
                         className="flex h-[39px] items-center justify-center rounded-[2px] bg-[#1B3D6D] px-5 lg:hidden"
                     >
                         <span className="font-['Inter',sans-serif] text-[16px] leading-[19px] font-semibold text-white">
@@ -187,4 +219,12 @@ export default function StoriesSection({ stories }: StoriesSectionProps) {
             </div>
         </section>
     );
+}
+
+export default function StoriesSection({ stories }: StoriesSectionProps) {
+    if (stories.length === 0) {
+        return <StoriesEmpty />;
+    }
+
+    return <StoriesSlider stories={stories} />;
 }

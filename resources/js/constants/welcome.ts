@@ -1,5 +1,6 @@
 import type { Story, Product, Testimonial } from '@/types/welcome';
 
+/** Fallback si `welcome` no recibe `stories` desde Laravel (p. ej. props antiguas). */
 export const defaultStories: Story[] = [
     {
         id: 0,

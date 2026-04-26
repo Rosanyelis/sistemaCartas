@@ -10,12 +10,14 @@ use App\Http\Controllers\Admin\ProductoSubcategoriaController as AdminProductoSu
 use App\Http\Controllers\Admin\SuscripcionController as AdminSuscripcionController;
 use App\Http\Controllers\Auth\EmailVerificationOtpController;
 use App\Http\Controllers\Checkout\PayPalCheckoutController;
+use App\Http\Controllers\User\HistoriaCatalogoSerializer;
 use App\Http\Controllers\User\HistoriaController;
 use App\Http\Controllers\User\OrdenController;
 use App\Http\Controllers\User\ProductoController;
 use App\Http\Controllers\User\ProductoTiendaSerializer;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\SuscripcionController;
+use App\Models\Historia;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -37,9 +39,23 @@ Route::get('/', function () {
         ->values()
         ->all();
 
+    $maxDestacadas = max(1, (int) config('historias.tienda_destacadas_max', 10));
+
+    $stories = Historia::query()
+        ->where('estado', 'activo')
+        ->where('destacada', 'si')
+        ->latest('fecha_publicacion')
+        ->latest('id')
+        ->limit($maxDestacadas)
+        ->get()
+        ->map(fn (Historia $h) => HistoriaCatalogoSerializer::tarjeta($h))
+        ->values()
+        ->all();
+
     return Inertia::render('user/welcome', [
         'canRegister' => Features::enabled(Features::registration()),
         'products' => $products,
+        'stories' => $stories,
     ]);
 })->name('home');
 

@@ -14,17 +14,20 @@ import {
 import ClienteLayout from '@/layouts/cliente-layout';
 import type { Story, Product, Testimonial } from '@/types/welcome';
 
-export default function Welcome({
-    canRegister = true,
-    stories = defaultStories,
-    products = defaultProducts,
-    testimonials = defaultTestimonials,
-}: {
-    canRegister?: boolean;
+type WelcomePageProps = {
+    /** Desde BD (destacadas activas); si falta la clave, se usan datos de referencia. */
     stories?: Story[];
     products?: Product[];
     testimonials?: Testimonial[];
-}) {
+};
+
+export default function Welcome({
+    stories: storiesFromServer,
+    products = defaultProducts,
+    testimonials = defaultTestimonials,
+}: WelcomePageProps) {
+    const stories = storiesFromServer ?? defaultStories;
+
     return (
         <ClienteLayout>
             <Head>
