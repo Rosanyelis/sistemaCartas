@@ -13,18 +13,35 @@ use App\Http\Controllers\Checkout\PayPalCheckoutController;
 use App\Http\Controllers\User\HistoriaController;
 use App\Http\Controllers\User\OrdenController;
 use App\Http\Controllers\User\ProductoController;
+use App\Http\Controllers\User\ProductoTiendaSerializer;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\SuscripcionController;
-use App\Support\Store\ProductCatalog;
+use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
-Route::inertia('/', 'user/welcome', [
-    'canRegister' => Features::enabled(Features::registration()),
-    'products' => array_slice(ProductCatalog::forCatalog(), 0, 3),
-])->name('home');
+Route::get('/', function () {
+    $products = Producto::query()
+        ->where('estado', 'activo')
+        ->with([
+            'productoCategoria',
+            'productoSubcategoria',
+            'galeria' => fn ($q) => $q->orderBy('id'),
+        ])
+        ->latest()
+        ->limit(3)
+        ->get()
+        ->map(fn (Producto $p) => ProductoTiendaSerializer::tarjetaCatalogo($p))
+        ->values()
+        ->all();
+
+    return Inertia::render('user/welcome', [
+        'canRegister' => Features::enabled(Features::registration()),
+        'products' => $products,
+    ]);
+})->name('home');
 
 Route::get('/historias', [HistoriaController::class, 'index'])->name('historias');
 Route::get('/historias/{slug}', [HistoriaController::class, 'show'])->name('historias.show');

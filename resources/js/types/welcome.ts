@@ -9,9 +9,10 @@ export interface Story {
     categoria: string;
 }
 
+/** Tarjeta de catálogo público (`/productos`) y datos coherentes con el serializador de tienda. */
 export interface Product {
     id?: number;
-    /** Slug en catálogo de referencia; enlaza a la ficha de detalle */
+    /** Slug en BD; enlaza a `productos.show`. */
     slug: string;
     name: string;
     price: string;

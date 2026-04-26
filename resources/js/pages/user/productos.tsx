@@ -1,27 +1,50 @@
-import { Head, usePage } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router, usePage } from '@inertiajs/react';
+import { useMemo } from 'react';
 import CtaSection from '@/components/tienda/CtaSection';
 import FilterBarSection from '@/components/tienda/FilterBarSection';
 import GridProductsSection from '@/components/tienda/GridProductsSection';
 import ProductosHeroSection from '@/components/tienda/ProductosHeroSection';
 import ClienteLayout from '@/layouts/cliente-layout';
-import type { Product } from '@/types/welcome';
+import type { ProductosPaginator } from '@/types/producto-tienda';
+
+type ProductoCategoriaRow = {
+    id: number;
+    nombre: string;
+};
 
 type ProductosPageProps = {
-    products: Product[];
+    products: ProductosPaginator;
+    categorias: ProductoCategoriaRow[];
+    filters: {
+        categoria_id: number | null;
+    };
 };
 
 export default function Productos() {
-    const { products } = usePage<ProductosPageProps>().props;
-    const [activeCategory, setActiveCategory] = useState('Todas');
+    const { products, categorias, filters } =
+        usePage<ProductosPageProps>().props;
 
-    const categories = [
-        'Todas',
-        'Escritura',
-        'Papelería',
-        'Accesorios',
-        'Sellos de Lacre',
-    ];
+    const categoriesForBar = useMemo(
+        () => [
+            { id: null as number | null, nombre: 'Todas' },
+            ...categorias.map((c) => ({ id: c.id, nombre: c.nombre })),
+        ],
+        [categorias],
+    );
+
+    const activeCategoryId = filters.categoria_id ?? null;
+
+    const handleSelectCategory = (categoriaId: number | null) => {
+        router.get(
+            '/productos',
+            categoriaId !== null ? { categoria_id: categoriaId } : {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                replace: true,
+            },
+        );
+    };
 
     return (
         <ClienteLayout>
@@ -51,9 +74,9 @@ export default function Productos() {
             <ProductosHeroSection />
 
             <FilterBarSection
-                categories={categories}
-                activeCategory={activeCategory}
-                setActiveCategory={setActiveCategory}
+                categories={categoriesForBar}
+                activeCategoryId={activeCategoryId}
+                onSelectCategory={handleSelectCategory}
             />
 
             <GridProductsSection products={products} />

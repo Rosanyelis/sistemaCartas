@@ -1,47 +1,58 @@
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
-    faBriefcase,
-    faBoxOpen,
     faCheckCircle,
-    faLayerGroup,
     faMagnifyingGlassPlus,
     faMinus,
     faPlus,
-    faStamp,
-    faUtensilSpoon,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ShieldCheck, Package, CalendarX, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
-import ClienteLayout from '@/layouts/cliente-layout';
 import { useCart } from '@/contexts/cart-context';
-
-const INCLUDED_ICONS: Record<string, IconDefinition> = {
-    faStamp,
-    faUtensilSpoon,
-    faLayerGroup,
-    faBriefcase,
-    faBoxOpen,
-};
-
-type ProductPageRecord = {
-    slug: string;
-    name: string;
-    subtitle: string;
-    description: string;
-    unit_price: number;
-    old_price: number | null;
-    category: string;
-    images: string[];
-    included: { title: string; desc: string; icon: string }[];
-};
+import ClienteLayout from '@/layouts/cliente-layout';
+import { inclusionIconOrFallback } from '@/lib/historia-detalle-inclusion-lucide-map';
+import type { ProductoFichaPublica } from '@/types/producto-tienda';
 
 type DetalleProductoPageProps = {
-    product: ProductPageRecord;
-    /** True en `/productos/ejemplo` (datos de referencia hasta catálogo real) */
-    referenceDemo?: boolean;
+    product: ProductoFichaPublica;
 };
+
+function stripHtmlForWordCount(html: string): string {
+    return html.replace(/<[^>]*>/g, ' ');
+}
+
+function extractYoutubeEmbedUrl(url: string): string | null {
+    try {
+        const u = new URL(url);
+
+        if (u.hostname === 'youtu.be') {
+            const id = u.pathname.replace(/^\//, '');
+
+            return id ? `https://www.youtube.com/embed/${id}` : null;
+        }
+
+        if (
+            u.hostname === 'www.youtube.com' ||
+            u.hostname === 'youtube.com'
+        ) {
+            const v = u.searchParams.get('v');
+
+            if (v) {
+                return `https://www.youtube.com/embed/${v}`;
+            }
+
+            const m = u.pathname.match(/^\/embed\/([^/]+)/);
+
+            if (m?.[1]) {
+                return `https://www.youtube.com/embed/${m[1]}`;
+            }
+        }
+    } catch {
+        return null;
+    }
+
+    return null;
+}
 
 /**
  * CartProvider envuelve la app en `app.tsx` / `ssr.tsx`; el contenido sigue dentro de ClienteLayout por UI.
@@ -55,8 +66,7 @@ export default function DetalleProducto() {
 }
 
 function DetalleProductoContent() {
-    const { product, referenceDemo = false } =
-        usePage<DetalleProductoPageProps>().props;
+    const { product } = usePage<DetalleProductoPageProps>().props;
     const { addItem, openCart } = useCart();
 
     const primaryImage =
@@ -68,7 +78,10 @@ function DetalleProductoContent() {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const description = product.description;
-    const wordCount = description.trim().split(/\s+/).length;
+    const plainForCount = product.description_is_html
+        ? stripHtmlForWordCount(description)
+        : description;
+    const wordCount = plainForCount.trim().split(/\s+/).filter(Boolean).length;
     const isLongDescription = wordCount > 300;
 
     const price = Number(product.unit_price);
@@ -78,34 +91,39 @@ function DetalleProductoContent() {
             : Number(product.old_price);
     const total = (Number.isFinite(price) ? price * quantity : 0).toFixed(2);
 
-    const includedItems = product.included.map((row) => ({
-        ...row,
-        icon: INCLUDED_ICONS[row.icon] ?? faBoxOpen,
-    }));
+    const youtubeEmbed =
+        product.video && product.video.trim() !== ''
+            ? extractYoutubeEmbedUrl(product.video.trim())
+            : null;
+
+    const inStock = product.in_stock !== false;
 
     return (
         <>
-            {/* Hijos como array: evita nodos de texto por saltos de línea (Inertia Head hace Object.keys en cada hijo) */}
-            <Head>
-                {[
-                    <title key="title">
-                       Producto - Historias por Correo
-                    </title>
-                ]}
+            {/*
+              Inertia Head: no mezclar varios hijos de texto dentro de <title> (p. ej. {name} | texto),
+              porque Inertia serializa con renderTag y trataría los strings como nodos → Object.keys(null).
+              Usar la prop `title` o un único literal en el hijo del <title>.
+            */}
+            <Head
+                title={`${product.name} | Historias por Correo`}
+            >
+                <link
+                    rel="preconnect"
+                    href="https://fonts.bunny.net"
+                />
+                <link
+                    href="https://fonts.bunny.net/css?family=playfair-display:400,600,700,700i|inter:400,500,600,700|roboto:400,500"
+                    rel="stylesheet"
+                />
+                <link
+                    rel="stylesheet"
+                    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+                />
             </Head>
 
             <div className="flex w-full flex-col items-center bg-white">
                 <div className="mt-[50px] w-full max-w-[1440px]">
-                    {referenceDemo && (
-                        <div
-                            className="mx-3 mb-4 rounded-[2px] border border-amber-200 bg-amber-50 px-4 py-3 text-center font-['Inter',sans-serif] text-[13px] text-amber-950 lg:mx-[72px]"
-                            role="status"
-                        >
-                            Vista con{' '}
-                            <strong>datos de referencia</strong> del catálogo
-                            demo. Más adelante se conectará al catálogo real.
-                        </div>
-                    )}
                     <section className="flex flex-col gap-[72px] border-b-[0.5px] border-[#F2F2F2] px-3 py-12 lg:flex-row lg:items-start lg:gap-[72px] lg:px-[72px] lg:py-[70px]">
                         <div className="flex w-full flex-col gap-4 lg:w-[600px] lg:flex-row">
                             <div
@@ -149,17 +167,25 @@ function DetalleProductoContent() {
                         </div>
 
                         <div className="flex flex-1 flex-col gap-6 lg:max-w-[624px]">
-                            <div className="flex items-center justify-between">
-                                <nav className="flex items-center gap-2 font-['Inter',sans-serif] text-[13px] font-normal text-[#1B3D6D]">
+                            <div className="flex items-center justify-between gap-3">
+                                <nav className="flex flex-wrap items-center gap-2 font-['Inter',sans-serif] text-[13px] font-normal text-[#1B3D6D]">
                                     <Link href="/productos">Producto</Link>
                                     <span className="font-semibold">/</span>
                                     <span className="font-semibold">
                                         {product.category}
                                     </span>
                                 </nav>
-                                <div className="flex items-center justify-center rounded-[2px] bg-[#1DA534] px-[10px] py-[3px] text-white">
+                                <div
+                                    className={`shrink-0 rounded-[2px] px-[10px] py-[3px] text-white ${
+                                        inStock
+                                            ? 'bg-[#1DA534]'
+                                            : 'bg-[#B42318]'
+                                    }`}
+                                >
                                     <span className="font-['Inter',sans-serif] text-[13px] font-normal">
-                                        Stock disponible
+                                        {inStock
+                                            ? 'Stock disponible'
+                                            : 'Sin stock'}
                                     </span>
                                 </div>
                             </div>
@@ -276,45 +302,78 @@ function DetalleProductoContent() {
                                         className="text-[#1B3D6D]"
                                     />
                                     <span className="font-['Inter',sans-serif] text-[13px] font-normal text-[#1B3D6D]">
-                                        Catálogo demo funcional
+                                        Objetos del catálogo oficial
                                     </span>
                                 </div>
                             </div>
 
                             <hr className="border-t-[0.5px] border-[#F2F2F2]" />
 
-                            {includedItems.length > 0 && (
+                            {product.included.length > 0 && (
                                 <div className="flex flex-col gap-6">
                                     <h3 className="font-['Inter',sans-serif] text-[20px] font-semibold text-[#1E3E6C]">
                                         ¿Qué incluye cada envío?
                                     </h3>
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                                        {includedItems.map((item, i) => (
-                                            <div
-                                                key={i}
-                                                className="flex items-start gap-3"
-                                            >
-                                                <div className="flex h-6 w-6 items-center justify-center text-[#1B3D6D]">
-                                                    <FontAwesomeIcon
-                                                        icon={item.icon}
-                                                        className="text-xl"
-                                                    />
+                                        {product.included.map((item, i) => {
+                                            const Icon = inclusionIconOrFallback(
+                                                item.icon,
+                                            );
+
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    className="flex items-start gap-3"
+                                                >
+                                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center text-[#1B3D6D]">
+                                                        <Icon
+                                                            className="h-6 w-6"
+                                                            aria-hidden
+                                                        />
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-['Inter',sans-serif] text-[13px] font-semibold text-[#1B3D6D]">
+                                                            {item.title}
+                                                        </span>
+                                                        <p className="font-['Inter',sans-serif] text-[13px] font-normal text-[#7B7B7B]">
+                                                            {item.desc}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="font-['Inter',sans-serif] text-[13px] font-semibold text-[#1B3D6D]">
-                                                        {item.title}
-                                                    </span>
-                                                    <p className="font-['Inter',sans-serif] text-[13px] font-normal text-[#7B7B7B]">
-                                                        {item.desc}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
                         </div>
                     </section>
+
+                    {product.video && product.video.trim() !== '' && (
+                        <section className="border-b-[0.5px] border-[#F2F2F2] px-3 py-10 lg:px-[72px]">
+                            <h2 className="mb-4 font-['Playfair_Display',serif] text-[24px] font-semibold text-[#1B3D6D] lg:text-[28px]">
+                                Vídeo del producto
+                            </h2>
+                            <div className="aspect-video w-full max-w-[900px] overflow-hidden rounded-[2px] bg-black/5">
+                                {youtubeEmbed ? (
+                                    <iframe
+                                        title={`Vídeo: ${product.name}`}
+                                        src={youtubeEmbed}
+                                        className="h-full w-full"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                ) : (
+                                    <video
+                                        controls
+                                        className="h-full w-full"
+                                        src={product.video}
+                                    >
+                                        Tu navegador no reproduce vídeo HTML5.
+                                    </video>
+                                )}
+                            </div>
+                        </section>
+                    )}
 
                     <section className="flex flex-col items-center gap-11 border-b-[0.5px] border-[#F2F2F2] px-3 py-12 lg:items-start lg:px-[72px] lg:py-[70px]">
                         <div className="flex flex-col items-start gap-1">
@@ -324,56 +383,107 @@ function DetalleProductoContent() {
                             <div className="h-1 w-[200px] rounded-full bg-[#1B3D6D] lg:w-[250px]"></div>
                         </div>
 
-                        <div className="flex flex-col gap-8 font-['Inter',sans-serif] text-[16px] leading-[22px] text-[#7B7B7B] lg:text-[20px] lg:leading-[28px]">
-                            <div className="flex flex-col gap-6 text-left">
-                                {description
-                                    .split('\n\n')
-                                    .map((paragraph, i) => (
-                                        <p
-                                            key={i}
-                                            className={
-                                                !isExpanded &&
-                                                isLongDescription &&
-                                                i > 0
-                                                    ? 'hidden lg:block'
-                                                    : 'block'
-                                            }
+                        <div className="flex w-full flex-col gap-8 font-['Inter',sans-serif] text-[16px] leading-[22px] text-[#7B7B7B] lg:text-[20px] lg:leading-[28px]">
+                            {product.description_is_html ? (
+                                <>
+                                    <div
+                                        className={`prose prose-neutral max-w-none text-left [&_a]:text-[#1B3D6D] [&_p]:my-3 ${
+                                            !isExpanded &&
+                                            isLongDescription &&
+                                            'max-h-[280px] overflow-hidden lg:max-h-none'
+                                        }`}
+                                        dangerouslySetInnerHTML={{
+                                            __html: description,
+                                        }}
+                                    />
+                                    {!isExpanded && isLongDescription && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsExpanded(true)}
+                                            className="flex items-center justify-center gap-2 lg:hidden"
                                         >
-                                            {paragraph}
-                                        </p>
-                                    ))}
-                            </div>
+                                            <span className="font-['Inter',sans-serif] text-base font-semibold text-[#1B3D6D]">
+                                                Leer más
+                                            </span>
+                                            <ChevronDown
+                                                size={20}
+                                                className="text-[#1B3D6D]"
+                                            />
+                                        </button>
+                                    )}
+                                    {isExpanded && isLongDescription && (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setIsExpanded(false)
+                                            }
+                                            className="flex items-center justify-center gap-2 lg:hidden"
+                                        >
+                                            <span className="font-['Inter',sans-serif] text-base font-semibold text-[#1B3D6D]">
+                                                Leer menos
+                                            </span>
+                                            <ChevronDown
+                                                size={20}
+                                                className="rotate-180 text-[#1B3D6D]"
+                                            />
+                                        </button>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    <div className="flex flex-col gap-6 text-left">
+                                        {description
+                                            .split('\n\n')
+                                            .map((paragraph, i) => (
+                                                <p
+                                                    key={i}
+                                                    className={
+                                                        !isExpanded &&
+                                                        isLongDescription &&
+                                                        i > 0
+                                                            ? 'hidden lg:block'
+                                                            : 'block'
+                                                    }
+                                                >
+                                                    {paragraph}
+                                                </p>
+                                            ))}
+                                    </div>
 
-                            {!isExpanded && isLongDescription && (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsExpanded(true)}
-                                    className="flex items-center justify-center gap-2 lg:hidden"
-                                >
-                                    <span className="font-['Inter',sans-serif] text-base font-semibold text-[#1B3D6D]">
-                                        Leer más
-                                    </span>
-                                    <ChevronDown
-                                        size={20}
-                                        className="text-[#1B3D6D]"
-                                    />
-                                </button>
-                            )}
+                                    {!isExpanded && isLongDescription && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsExpanded(true)}
+                                            className="flex items-center justify-center gap-2 lg:hidden"
+                                        >
+                                            <span className="font-['Inter',sans-serif] text-base font-semibold text-[#1B3D6D]">
+                                                Leer más
+                                            </span>
+                                            <ChevronDown
+                                                size={20}
+                                                className="text-[#1B3D6D]"
+                                            />
+                                        </button>
+                                    )}
 
-                            {isExpanded && (
-                                <button
-                                    type="button"
-                                    onClick={() => setIsExpanded(false)}
-                                    className="flex items-center justify-center gap-2 lg:hidden"
-                                >
-                                    <span className="font-['Inter',sans-serif] text-base font-semibold text-[#1B3D6D]">
-                                        Leer menos
-                                    </span>
-                                    <ChevronDown
-                                        size={20}
-                                        className="rotate-180 text-[#1B3D6D]"
-                                    />
-                                </button>
+                                    {isExpanded && (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setIsExpanded(false)
+                                            }
+                                            className="flex items-center justify-center gap-2 lg:hidden"
+                                        >
+                                            <span className="font-['Inter',sans-serif] text-base font-semibold text-[#1B3D6D]">
+                                                Leer menos
+                                            </span>
+                                            <ChevronDown
+                                                size={20}
+                                                className="rotate-180 text-[#1B3D6D]"
+                                            />
+                                        </button>
+                                    )}
+                                </>
                             )}
                         </div>
                     </section>

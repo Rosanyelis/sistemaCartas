@@ -3,48 +3,80 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Support\Store\ProductCatalog;
+use App\Models\Producto;
+use App\Models\ProductoCategoria;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProductoController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $query = Producto::query()
+            ->where('estado', 'activo')
+            ->with([
+                'productoCategoria',
+                'productoSubcategoria',
+                'galeria' => fn ($q) => $q->orderBy('id'),
+            ]);
+
+        if ($request->filled('categoria_id')) {
+            $query->where('producto_categoria_id', $request->integer('categoria_id'));
+        }
+
+        $productos = $query->latest()
+            ->paginate(12)
+            ->withQueryString()
+            ->through(fn (Producto $p) => ProductoTiendaSerializer::tarjetaCatalogo($p));
+
+        $categorias = ProductoCategoria::query()
+            ->whereHas('productos', fn ($q) => $q->where('estado', 'activo'))
+            ->orderBy('nombre')
+            ->get(['id', 'nombre']);
+
         return Inertia::render('user/productos', [
-            'products' => ProductCatalog::forCatalog(),
+            'products' => $productos,
+            'categorias' => $categorias,
+            'filters' => [
+                'categoria_id' => $request->filled('categoria_id') ? $request->integer('categoria_id') : null,
+            ],
         ]);
     }
 
     /**
-     * Ficha de demostración con datos de referencia del catálogo estático (sin slug en URL).
-     * Cuando exista catálogo real, esta ruta puede redirigir o delegar al modelo de producto.
+     * Demo histórica: ahora redirige al primer producto activo en BD para no mantener dos fuentes de verdad.
+     * Si no hay productos activos, redirige al listado `/productos`.
      */
-    public function showReference(): Response
+    public function showReference(): RedirectResponse
     {
-        $product = ProductCatalog::find('kit-lacre-real');
+        $first = Producto::query()
+            ->where('estado', 'activo')
+            ->orderBy('id')
+            ->first();
 
-        if ($product === null) {
-            $product = ProductCatalog::all()[0];
+        if ($first !== null) {
+            return redirect()->route('productos.show', $first->slug);
         }
 
-        return Inertia::render('user/detalles-producto', [
-            'product' => ProductCatalog::forProductPage($product),
-            'referenceDemo' => true,
-        ]);
+        return redirect()->route('productos');
     }
 
     public function show(string $slug): Response
     {
-        $product = ProductCatalog::find($slug);
-
-        if ($product === null) {
-            abort(404);
-        }
+        $producto = Producto::query()
+            ->where('slug', $slug)
+            ->where('estado', 'activo')
+            ->with([
+                'productoCategoria',
+                'productoSubcategoria',
+                'galeria' => fn ($q) => $q->orderBy('id'),
+            ])
+            ->firstOrFail();
 
         return Inertia::render('user/detalles-producto', [
-            'product' => ProductCatalog::forProductPage($product),
-            'referenceDemo' => false,
+            'product' => ProductoTiendaSerializer::fichaProducto($producto),
         ]);
     }
 }

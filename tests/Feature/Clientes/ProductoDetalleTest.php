@@ -1,34 +1,41 @@
 <?php
 
+use App\Models\Producto;
 use Inertia\Testing\AssertableInertia as Assert;
 
-test('la ficha de producto responde ok con props de catálogo', function (): void {
-    $response = $this->get(route('productos.show', ['slug' => 'kit-lacre-real']));
+test('GET /productos/{slug} con producto activo devuelve ficha y props esperadas', function (): void {
+    Producto::factory()->create([
+        'slug' => 'objeto-ficha-test',
+        'nombre' => 'Objeto de prueba',
+        'estado' => 'activo',
+    ]);
+
+    $response = $this->get(route('productos.show', ['slug' => 'objeto-ficha-test']));
 
     $response->assertOk();
     $response->assertInertia(fn (Assert $page) => $page
         ->component('user/detalles-producto')
-        ->where('referenceDemo', false)
         ->has('product', fn (Assert $p) => $p
-            ->where('slug', 'kit-lacre-real')
-            ->where('name', 'Kit de Lacre Real')
+            ->where('slug', 'objeto-ficha-test')
+            ->where('name', 'Objeto de prueba')
+            ->has('subtitle')
+            ->has('description')
+            ->has('description_is_html')
+            ->has('unit_price')
+            ->has('category')
+            ->has('images')
+            ->has('included')
             ->etc()));
 });
 
-test('la ruta de ejemplo muestra ficha con datos de referencia', function (): void {
-    $response = $this->get(route('productos.ejemplo'));
-
-    $response->assertOk();
-    $response->assertInertia(fn (Assert $page) => $page
-        ->component('user/detalles-producto')
-        ->where('referenceDemo', true)
-        ->has('product', fn (Assert $p) => $p
-            ->where('slug', 'kit-lacre-real')
-            ->where('name', 'Kit de Lacre Real')
-            ->etc()));
-});
-
-test('slug de producto inexistente devuelve 404', function (): void {
+test('slug inexistente o producto pausado devuelve 404', function (): void {
     $this->get(route('productos.show', ['slug' => 'no-existe']))
+        ->assertNotFound();
+
+    Producto::factory()->pausado()->create([
+        'slug' => 'solo-pausado',
+    ]);
+
+    $this->get(route('productos.show', ['slug' => 'solo-pausado']))
         ->assertNotFound();
 });

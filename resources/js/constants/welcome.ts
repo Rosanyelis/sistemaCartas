@@ -30,7 +30,7 @@ export const defaultStories: Story[] = [
     },
 ];
 
-/** Alineados con `App\Support\Store\ProductCatalog` (primeros tres ítems) para enlaces a ficha */
+/** Fallback local si la página no recibe `products` desde el servidor (inicio usa productos activos de BD). */
 export const defaultProducts: Product[] = [
     {
         slug: 'sello-lacre-artesanal',
