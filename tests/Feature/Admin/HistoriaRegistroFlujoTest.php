@@ -19,19 +19,23 @@ test('registrar historia persiste HTML, detalle y variantes en base de datos', f
     $descripcionCorta = 'Resumen breve obligatorio.';
     $palabrasLarga = implode(' ', array_fill(0, 40, 'palabra'));
     $descripcionLargaHtml = '<p><strong>Inicio</strong> '.$palabrasLarga.'</p>';
-    $detalleHtml = '<p>Detalle <em>enriquecido</em> con listas.</p><ul><li>Uno</li><li>Dos</li></ul>';
+    $detalleInclusiones = [
+        ['icon' => 'Newspaper', 'title' => 'Recorte de prensa', 'description' => 'De la época en que transcurre la trama.'],
+        ['icon' => 'Mail', 'title' => 'Postal ilustrada'],
+    ];
 
     $response = $this->actingAs($admin)->post(route('admin.historias.store'), [
         'nombre' => $nombre,
         'descripcion_corta' => $descripcionCorta,
         'descripcion_larga' => $descripcionLargaHtml,
-        'detalle' => $detalleHtml,
+        'detalle' => $detalleInclusiones,
         'categoria' => 'Aventura',
         'autor' => 'Autor QA',
         'precio_base' => '19.99',
         'impuesto' => '18',
         'codigo' => $codigo,
         'estado' => 'activo',
+        'destacada' => 'si',
         'duracion_meses' => '12',
         'peso' => '0.5kg',
         'dimensiones' => '20x15x2',
@@ -48,12 +52,19 @@ test('registrar historia persiste HTML, detalle y variantes en base de datos', f
     expect($historia)->not->toBeNull();
     expect($historia->nombre)->toBe($nombre);
     expect($historia->descripcion_larga)->toContain('<strong>Inicio</strong>');
-    expect($historia->detalle)->toContain('<em>enriquecido</em>');
+    expect($historia->detalle)->toBeArray();
+    expect($historia->detalle)->toHaveCount(2);
+    expect($historia->detalle[0]['icon'])->toBe('Newspaper');
+    expect($historia->detalle[0]['title'])->toBe('Recorte de prensa');
+    expect($historia->detalle[0]['description'])->toBe('De la época en que transcurre la trama.');
+    expect($historia->detalle[1]['icon'])->toBe('Mail');
+    expect($historia->detalle[1]['title'])->toBe('Postal ilustrada');
     expect($historia->variantes)->toHaveCount(2);
     expect($historia->variantes[0]->tipo)->toBe(HistoriaVarianteTipo::Papel);
     expect($historia->variantes[0]->valor)->toBe('Couché 300 g');
     expect($historia->variantes[1]->tipo)->toBe(HistoriaVarianteTipo::Color);
     expect($historia->variantes[1]->valor)->toBe('Azul cobalto');
+    expect($historia->destacada)->toBe('si');
 });
 
 test('el listado admin de historias incluye la historia recién registrada en las props Inertia', function (): void {
@@ -73,6 +84,7 @@ test('el listado admin de historias incluye la historia recién registrada en la
         'precio_base' => '12',
         'codigo' => $codigo,
         'estado' => 'pausado',
+        'destacada' => 'no',
         'duracion_meses' => '6',
     ])->assertRedirect(route('admin.historias', absolute: false));
 
@@ -114,4 +126,27 @@ test('validación rechaza registro sin campos obligatorios', function (): void {
             'precio_base',
             'codigo',
         ]);
+});
+
+test('validación rechaza icono no permitido en detalle de inclusión', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $suffix = uniqid('', true);
+
+    $this->actingAs($admin)
+        ->post(route('admin.historias.store'), [
+            'nombre' => 'Historia icono inválido '.$suffix,
+            'descripcion_corta' => 'Corta.',
+            'descripcion_larga' => implode(' ', array_fill(0, 30, 'palabra')),
+            'detalle' => [
+                ['icon' => 'IconoInventado', 'title' => 'Título'],
+            ],
+            'categoria' => 'Test',
+            'autor' => 'Autor',
+            'precio_base' => '10',
+            'codigo' => '#ICO-'.$suffix,
+            'estado' => 'activo',
+            'destacada' => 'no',
+            'duracion_meses' => '12',
+        ])
+        ->assertSessionHasErrors(['detalle.0.icon']);
 });

@@ -19,6 +19,7 @@ test('al crear una historia se persisten variantes con tipo y valor', function (
         'precio_base' => '10.50',
         'codigo' => $codigo,
         'estado' => 'activo',
+        'destacada' => 'no',
         'duracion_meses' => '12',
         'variantes' => [
             ['tipo' => 'papel', 'valor' => 'Couché 300g'],

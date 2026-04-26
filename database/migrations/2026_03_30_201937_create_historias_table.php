@@ -30,12 +30,14 @@ return new class extends Migration
             $table->string('dimensiones')->nullable();
             $table->integer('duracion_meses')->nullable();
             $table->enum('estado', ['activo', 'pausado'])->default('activo');
+            $table->enum('destacada', ['si', 'no'])->default('no');
             $table->timestamp('fecha_publicacion')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             $table->index('categoria');
             $table->index('estado');
+            $table->index('destacada');
         });
     }
 

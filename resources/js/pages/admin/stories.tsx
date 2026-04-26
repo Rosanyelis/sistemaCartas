@@ -1,7 +1,3 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import UserLayout from '@/layouts/user-layout';
-import { Head, router } from '@inertiajs/react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faSearch,
     faFileExcel,
@@ -14,8 +10,13 @@ import {
     faEllipsisV,
     faTimes
 } from '@fortawesome/free-solid-svg-icons';
-import { CreateStoryModal } from '@/components/admin/CreateStoryModal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Head, router } from '@inertiajs/react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
+import type { HistoriaDetalleInclusionRow } from '@/components/admin/create-story/types';
+import { CreateStoryModal } from '@/components/admin/CreateStoryModal';
+import UserLayout from '@/layouts/user-layout';
 
 interface HistoriaGaleriaItem {
     id: number;
@@ -39,10 +40,11 @@ interface Story {
     autor: string;
     precio_base: string;
     estado: string;
+    destacada?: string | null;
     fecha_publicacion: string;
     descripcion_corta?: string;
     descripcion_larga?: string;
-    detalle?: string | null;
+    detalle?: HistoriaDetalleInclusionRow[] | null;
     video?: string | null;
     precio_promocional?: string | null;
     impuesto?: string | null;
@@ -96,6 +98,7 @@ export default function Stories({ historias, categorias, filters }: Props) {
             if (dateMenuRef.current && !dateMenuRef.current.contains(event.target as Node)) {
                 setIsDateMenuOpen(false);
             }
+
             if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target as Node)) {
                 setIsCategoryMenuOpen(false);
             }
@@ -103,6 +106,7 @@ export default function Stories({ historias, categorias, filters }: Props) {
         document.addEventListener("mousedown", handleClickOutside);
         const closeActionMenu = () => setOpenMenuId(null);
         document.addEventListener("click", closeActionMenu);
+
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
             document.removeEventListener("click", closeActionMenu);
@@ -184,14 +188,18 @@ export default function Stories({ historias, categorias, filters }: Props) {
     };
 
     const formatDateLabel = (dateStr: string) => {
-        if (!dateStr) return '';
+        if (!dateStr) {
+return '';
+}
+
         const date = new Date(dateStr);
+
         return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     };
 
     const { data: storyList, current_page, last_page, from, to, total } = historias;
 
-    const renderActionMenu = (story: Story, menuKey: string) => (
+    const renderActionMenu = (story: Story) => (
         <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-[#E5E7EB] rounded-md shadow-lg z-20 py-1 text-left">
             <button onClick={() => handlePreview(story)} className="w-full text-left px-4 py-2 text-[13px] text-[#4B5563] hover:bg-gray-50 transition-colors">Vista Previa</button>
             <button onClick={() => handleEdit(story)} className="w-full text-left px-4 py-2 text-[13px] text-[#4B5563] hover:bg-gray-50 transition-colors">Editar</button>
@@ -391,7 +399,7 @@ export default function Stories({ historias, categorias, filters }: Props) {
                                                 >
                                                     <FontAwesomeIcon icon={faEllipsisV} className="text-sm" />
                                                 </button>
-                                                {openMenuId === `desktop-${story.id}` && renderActionMenu(story, `desktop-${story.id}`)}
+                                                {openMenuId === `desktop-${story.id}` && renderActionMenu(story)}
                                             </td>
                                         </tr>
                                     ))
@@ -438,7 +446,7 @@ export default function Stories({ historias, categorias, filters }: Props) {
                                                         <FontAwesomeIcon icon={faEllipsisV} className="text-sm" />
                                                     </button>
                                                 </div>
-                                                {openMenuId === `mobile-${story.id}` && renderActionMenu(story, `mobile-${story.id}`)}
+                                                {openMenuId === `mobile-${story.id}` && renderActionMenu(story)}
                                             </div>
                                             <div className="text-[13.5px] text-[#4B5563] mt-1 pr-6 leading-tight max-w-[95%]">{story.nombre}</div>
                                             <div className="text-[13px] text-[#4B5563] mt-1">Precio: ${Number(story.precio_base).toFixed(2)}</div>
@@ -494,6 +502,7 @@ export default function Stories({ historias, categorias, filters }: Props) {
                                 } else if (page === current_page - 2 || page === current_page + 2) {
                                     return <span key={page} className="px-1 text-[#A0A0A0]">...</span>;
                                 }
+
                                 return null;
                             })}
 

@@ -25,7 +25,17 @@ class HistoriaFactory extends Factory
             'imagen' => 'https://picsum.photos/seed/'.fake()->word().'/200/200',
             'descripcion_corta' => fake()->sentence(),
             'descripcion_larga' => fake()->paragraphs(2, true),
-            'detalle' => fake()->paragraph(),
+            'detalle' => [
+                [
+                    'icon' => 'FileText',
+                    'title' => 'La carta escrita a mano',
+                    'description' => 'Incluye sobre y sello de época.',
+                ],
+                [
+                    'icon' => 'Gift',
+                    'title' => 'Un detalle sorpresa',
+                ],
+            ],
             'categoria' => fake()->randomElement(['Aventura', 'Romance', 'Misterio', 'Ficción', 'Infantil']),
             'autor' => fake()->name(),
             'precio_base' => fake()->randomFloat(2, 50, 500),
@@ -34,6 +44,8 @@ class HistoriaFactory extends Factory
             'peso' => fake()->randomFloat(1, 0.1, 2).'kg',
             'dimensiones' => fake()->numberBetween(10, 30).'x'.fake()->numberBetween(10, 30).'x'.fake()->numberBetween(1, 5),
             'estado' => 'activo',
+            'destacada' => fake()->randomElement(['si', 'no']),
+            'duracion_meses' => 12,
             'fecha_publicacion' => fake()->dateTimeBetween('-6 months', 'now'),
         ];
     }

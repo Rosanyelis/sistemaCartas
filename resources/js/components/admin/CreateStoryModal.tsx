@@ -1,12 +1,14 @@
-import { useEffect, useId, useMemo, useState } from 'react';
-import { useForm } from '@inertiajs/react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useForm } from '@inertiajs/react';
+import { useEffect, useId, useMemo, useState } from 'react';
+import { HISTORIA_DETALLE_INCLUSION_ICONS } from '@/constants/historia-detalle-inclusion-icons';
+import { MAX_IMAGENES_GALERIA, MAX_PALABRAS_TEXTO_LARGO } from './create-story/constants';
 import { buildHistoriaFormData } from './create-story/formDefaults';
+import { HistoriaDetalleInclusionsEditor } from './create-story/HistoriaDetalleInclusionsEditor';
 import { HistoriaMultimediaPanel } from './create-story/HistoriaMultimediaPanel';
 import { HistoriaVariantesEditor } from './create-story/HistoriaVariantesEditor';
 import { LimitedWordRichEditor } from './create-story/LimitedWordRichEditor';
-import { MAX_IMAGENES_GALERIA, MAX_PALABRAS_TEXTO_LARGO } from './create-story/constants';
 import type { GallerySlot, HistoriaParaFormulario, HistoriaVarianteForm } from './create-story/types';
 
 interface CreateStoryModalProps {
@@ -21,14 +23,14 @@ const inputClass = (hasError: boolean) =>
 
 /**
  * Modal crear/editar historia: estado con Inertia `useForm`, secciones en subcomponentes
- * y descripción larga / detalle con editor enriquecido (HTML); el contador de palabras del editor es solo orientativo (valida el servidor).
+ * y descripción larga con editor enriquecido (HTML). «Qué incluye cada envío» se edita como lista JSON en `detalle`.
  */
 export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: CreateStoryModalProps) {
     const rootId = useId();
     const descripcionLargaId = `${rootId}-descripcion-larga`;
-    const detalleId = `${rootId}-detalle`;
     const categoriaListId = `${rootId}-categorias-datalist`;
     const estadoRadioName = `${rootId}-estado`;
+    const destacadaRadioName = `${rootId}-destacada`;
 
     const initialForm = useMemo(() => buildHistoriaFormData(), []);
     const { data, setData, post, processing, errors, reset, transform } = useForm(initialForm);
@@ -40,15 +42,15 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
     const [richEditors, setRichEditors] = useState<{
         seed: number;
         descripcion_larga: string;
-        detalle: string;
     } | null>(null);
 
     /** Al abrir el modal se hidrata desde `storyToEdit` o se limpia para creación. */
+    /* eslint-disable react-hooks/set-state-in-effect -- sincronizar previews y formulario al abrir el modal */
     useEffect(() => {
         if (!isOpen) {
-            setRichEditors(null);
             return;
         }
+
         if (storyToEdit) {
             const next = buildHistoriaFormData(storyToEdit);
             setData(next);
@@ -65,7 +67,6 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
             setRichEditors({
                 seed: Date.now(),
                 descripcion_larga: next.descripcion_larga,
-                detalle: next.detalle,
             });
         } else {
             reset();
@@ -76,10 +77,10 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
             setRichEditors({
                 seed: Date.now(),
                 descripcion_larga: next.descripcion_larga,
-                detalle: next.detalle,
             });
         }
     }, [storyToEdit, isOpen, setData, reset]);
+    /* eslint-enable react-hooks/set-state-in-effect */
 
     if (!isOpen) {
         return null;
@@ -87,9 +88,11 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'imagen' | 'video') => {
         const file = e.target.files?.[0];
+
         if (!file) {
             return;
         }
+
         setData(field, file);
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -106,6 +109,7 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
         const files = Array.from(e.target.files || []);
         const availableSlots = MAX_IMAGENES_GALERIA - galleryItems.length;
         const slice = files.slice(0, availableSlots);
+
         if (slice.length === 0) {
             return;
         }
@@ -152,6 +156,7 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
         setData((prev) => {
             const updated = [...prev.variantes];
             updated[index] = { ...updated[index], [field]: value } as HistoriaVarianteForm;
+
             return { ...prev, variantes: updated };
         });
     };
@@ -172,12 +177,36 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                 Number.isFinite(dm) && dm >= 1 ? String(dm) : '12';
             const nuevos = galleryItems.filter((x): x is Extract<GallerySlot, { kind: 'nuevo' }> => x.kind === 'nuevo');
             const files = nuevos.map((x) => x.file);
-            const next = { ...form, duracion_meses, galeria: files };
+            const allowedIcons = new Set<string>(HISTORIA_DETALLE_INCLUSION_ICONS);
+            const detalleCleaned = (Array.isArray(form.detalle) ? form.detalle : [])
+                .filter((r) => r.title.trim() !== '')
+                .map((r) => {
+                    const d = r.description.trim();
+                    const iconResolved =
+                        r.icon && allowedIcons.has(r.icon) ? r.icon : 'FileText';
+                    const item: { icon: string; title: string; description?: string } = {
+                        icon: iconResolved,
+                        title: r.title.trim(),
+                    };
+
+                    if (d !== '') {
+                        item.description = d;
+                    }
+
+                    return item;
+                });
+            const next = {
+                ...form,
+                duracion_meses,
+                galeria: files,
+                detalle: JSON.stringify(detalleCleaned),
+            };
 
             if (storyToEdit?.id != null) {
                 const keepIds = galleryItems
                     .filter((x): x is Extract<GallerySlot, { kind: 'existente' }> => x.kind === 'existente')
                     .map((x) => x.id);
+
                 return {
                     ...next,
                     _method: 'patch' as const,
@@ -194,16 +223,19 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                 preserveScroll: true,
                 forceFormData: true,
                 onSuccess: () => {
+                    setRichEditors(null);
                     reset();
                     onClose();
                 },
             });
+
             return;
         }
 
         post('/admin/historias', {
             preserveScroll: true,
             onSuccess: () => {
+                setRichEditors(null);
                 reset();
                 onClose();
             },
@@ -211,6 +243,7 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
     };
 
     const handleClose = () => {
+        setRichEditors(null);
         reset();
         onClose();
     };
@@ -289,20 +322,15 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                             rows={5}
                                             error={errors.descripcion_larga}
                                         />
-
-                                        <LimitedWordRichEditor
-                                            key={`detalle-${richEditors.seed}`}
-                                            id={detalleId}
-                                            label="Detalle"
-                                            initialHtml={richEditors.detalle}
-                                            onChange={(v) => setData('detalle', v)}
-                                            maxWords={MAX_PALABRAS_TEXTO_LARGO}
-                                            placeholder="Aquí detalles del producto"
-                                            rows={5}
-                                            error={errors.detalle}
-                                        />
                                     </>
                                 ) : null}
+
+                                <HistoriaDetalleInclusionsEditor
+                                    items={data.detalle}
+                                    onChange={(items) => setData('detalle', items)}
+                                    errors={errors as Record<string, string | string[] | undefined>}
+                                    rootId={rootId}
+                                />
 
                                 <div className="flex flex-col gap-1.5">
                                     <label htmlFor={`${rootId}-categoria`} className="text-[13px] font-semibold text-[#1B3D6D]">
@@ -367,6 +395,7 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                             onChange={(ev) => setData('duracion_meses', ev.target.value)}
                                             onBlur={() => {
                                                 const n = parseInt(data.duracion_meses, 10);
+
                                                 if (!Number.isFinite(n) || n < 1) {
                                                     setData('duracion_meses', '12');
                                                 }
@@ -481,6 +510,9 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                     estado={data.estado}
                                     estadoRadioName={estadoRadioName}
                                     onEstadoChange={(v) => setData('estado', v)}
+                                    destacada={data.destacada}
+                                    destacadaRadioName={destacadaRadioName}
+                                    onDestacadaChange={(v) => setData('destacada', v)}
                                     onImageChange={(ev) => handleFileChange(ev, 'imagen')}
                                     onVideoChange={(ev) => handleFileChange(ev, 'video')}
                                     onGalleryChange={handleGalleryChange}
@@ -490,6 +522,7 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                         video: errors.video,
                                         galeria: errors.galeria,
                                         estado: errors.estado,
+                                        destacada: errors.destacada,
                                     }}
                                     fieldIds={{
                                         imagen: `${rootId}-imagen`,

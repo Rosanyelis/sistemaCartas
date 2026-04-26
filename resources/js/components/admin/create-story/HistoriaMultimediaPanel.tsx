@@ -1,6 +1,6 @@
-import type { CSSProperties } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faImage, faPlus, faTimes, faVideo } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { CSSProperties } from 'react';
 import { MAX_IMAGENES_GALERIA } from './constants';
 
 const checkerboardBackground: CSSProperties = {
@@ -15,6 +15,7 @@ interface MultimediaErrors {
     video?: string;
     galeria?: string;
     estado?: string;
+    destacada?: string;
 }
 
 interface HistoriaMultimediaPanelProps {
@@ -27,6 +28,9 @@ interface HistoriaMultimediaPanelProps {
     estado: string;
     estadoRadioName: string;
     onEstadoChange: (estado: 'activo' | 'pausado') => void;
+    destacada: 'si' | 'no';
+    destacadaRadioName: string;
+    onDestacadaChange: (v: 'si' | 'no') => void;
     onImageChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onVideoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onGalleryChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -45,6 +49,9 @@ export function HistoriaMultimediaPanel({
     estado,
     estadoRadioName,
     onEstadoChange,
+    destacada,
+    destacadaRadioName,
+    onDestacadaChange,
     onImageChange,
     onVideoChange,
     onGalleryChange,
@@ -200,6 +207,47 @@ export function HistoriaMultimediaPanel({
                     </div>
                 </label>
                 {errors.estado && <span className="text-red-500 text-[11px]">{errors.estado}</span>}
+            </div>
+
+            <div className="flex flex-col gap-4 mt-6 border-t border-[#F3F4F6] pt-6">
+                <span className="text-[13px] font-bold text-[#1B3D6D]">Destacada</span>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center mt-0.5">
+                        <input
+                            type="radio"
+                            name={destacadaRadioName}
+                            value="no"
+                            checked={destacada === 'no'}
+                            onChange={() => onDestacadaChange('no')}
+                            className="peer w-4 h-4 rounded-full border-[#DFE4EA] text-[#1B3D6D] focus:ring-[#1B3D6D] outline-none transition-all appearance-none border checked:border-[5px] checked:border-[#1B3D6D]"
+                        />
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-[14px] font-semibold text-[#1B3D6D]">No destacada</span>
+                        <span className="text-[11.5px] text-[#A0A0A0]">
+                            Aparece con el resto de historias según el listado habitual.
+                        </span>
+                    </div>
+                </label>
+                <label className="flex items-start gap-3 cursor-pointer group">
+                    <div className="relative flex items-center justify-center mt-0.5">
+                        <input
+                            type="radio"
+                            name={destacadaRadioName}
+                            value="si"
+                            checked={destacada === 'si'}
+                            onChange={() => onDestacadaChange('si')}
+                            className="peer w-4 h-4 rounded-full border-[#DFE4EA] text-[#1B3D6D] focus:ring-[#1B3D6D] outline-none transition-all appearance-none border checked:border-[5px] checked:border-[#1B3D6D]"
+                        />
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="text-[14px] font-semibold text-[#1B3D6D]">Destacada</span>
+                        <span className="text-[11.5px] text-[#A0A0A0]">
+                            Priorizar en portadas o bloques especiales donde se muestren historias destacadas.
+                        </span>
+                    </div>
+                </label>
+                {errors.destacada && <span className="text-red-500 text-[11px]">{errors.destacada}</span>}
             </div>
         </div>
     );

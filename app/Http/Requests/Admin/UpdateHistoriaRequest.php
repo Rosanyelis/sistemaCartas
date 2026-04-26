@@ -2,12 +2,16 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Admin\Concerns\PreparesHistoriaDetalleJson;
 use App\Rules\MaxWords;
+use App\Support\HistoriaDetalleInclusionIcon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateHistoriaRequest extends FormRequest
 {
+    use PreparesHistoriaDetalleJson;
+
     public function authorize(): bool
     {
         return true;
@@ -15,6 +19,8 @@ class UpdateHistoriaRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->mergeHistoriaDetalleFromRequest();
+
         if (! $this->has('variantes') || ! is_array($this->input('variantes'))) {
             return;
         }
@@ -42,7 +48,10 @@ class UpdateHistoriaRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:255'],
             'descripcion_corta' => ['required', 'string', 'max:255'],
             'descripcion_larga' => ['required', 'string', new MaxWords(500)],
-            'detalle' => ['nullable', 'string', new MaxWords(500)],
+            'detalle' => ['nullable', 'array', 'max:20'],
+            'detalle.*.icon' => ['required', 'string', Rule::in(HistoriaDetalleInclusionIcon::allowed())],
+            'detalle.*.title' => ['required', 'string', 'max:255'],
+            'detalle.*.description' => ['nullable', 'string', 'max:500'],
             'categoria' => ['required', 'string', 'max:255'],
             'autor' => ['required', 'string', 'max:255'],
             'precio_base' => ['required', 'numeric', 'min:0'],
@@ -54,6 +63,7 @@ class UpdateHistoriaRequest extends FormRequest
             'peso' => ['nullable', 'string', 'max:50'],
             'dimensiones' => ['nullable', 'string', 'max:50'],
             'estado' => ['required', 'in:activo,pausado'],
+            'destacada' => ['required', 'in:si,no'],
             'duracion_meses' => ['required', 'integer', 'min:1'],
             'variantes' => ['nullable', 'array'],
             'variantes.*.tipo' => ['required', 'string', 'in:papel,color'],
@@ -81,6 +91,15 @@ class UpdateHistoriaRequest extends FormRequest
             'nombre.required' => 'El nombre de la historia es obligatorio.',
             'codigo.unique' => 'Este código ya está en uso.',
             'galeria.max' => 'Solo se permiten hasta 5 imágenes adicionales en la galería.',
+            'detalle.array' => 'El formato de «qué incluye cada envío» no es válido.',
+            'detalle.max' => 'No se pueden añadir más de 20 ítems en «qué incluye cada envío».',
+            'detalle.*.icon.required' => 'Cada ítem debe tener un icono.',
+            'detalle.*.icon.in' => 'El icono seleccionado no está permitido.',
+            'detalle.*.title.required' => 'Cada ítem debe tener un título.',
+            'detalle.*.title.max' => 'El título de cada ítem no puede superar 255 caracteres.',
+            'detalle.*.description.max' => 'La descripción de cada ítem no puede superar 500 caracteres.',
+            'destacada.required' => 'Indica si la historia es destacada o no.',
+            'destacada.in' => 'El valor de destacada debe ser si o no.',
         ];
     }
 }

@@ -1,5 +1,18 @@
+import type { HistoriaDetalleInclusionIconName } from '@/constants/historia-detalle-inclusion-icons';
+
 /** Coincide con `App\Enums\HistoriaVarianteTipo` en backend. */
 export type HistoriaVarianteTipoForm = 'papel' | 'color';
+
+/** Coincide con la columna enum `historias.destacada` (si | no). */
+export type HistoriaDestacadaForm = 'si' | 'no';
+
+/** Una fila de «¿Qué incluye cada envío?» (JSON en `historias.detalle`). */
+export interface HistoriaDetalleInclusionRow {
+    /** Vacío hasta que el usuario elija; al guardar sin icono se usa `FileText` en el payload. */
+    icon: HistoriaDetalleInclusionIconName | '';
+    title: string;
+    description: string;
+}
 
 export interface HistoriaVarianteForm {
     tipo: HistoriaVarianteTipoForm;
@@ -24,7 +37,8 @@ export interface HistoriaParaFormulario {
     nombre?: string;
     descripcion_corta?: string;
     descripcion_larga?: string;
-    detalle?: string | null;
+    /** JSON estructurado o, en datos legacy, HTML/string (se normaliza a filas en el formulario). */
+    detalle?: HistoriaDetalleInclusionRow[] | string | null;
     categoria?: string;
     autor?: string;
     precio_base?: string | number;
@@ -33,7 +47,8 @@ export interface HistoriaParaFormulario {
     codigo?: string;
     peso?: string | null;
     dimensiones?: string | null;
-    estado?: string;    
+    estado?: string;
+    destacada?: string | null;
     imagen?: string | null;
     video?: string | null;
     variantes?: HistoriaVarianteForm[];
@@ -45,7 +60,7 @@ export interface HistoriaFormData {
     nombre: string;
     descripcion_corta: string;
     descripcion_larga: string;
-    detalle: string;
+    detalle: HistoriaDetalleInclusionRow[];
     categoria: string;
     autor: string;
     precio_base: string;
@@ -57,6 +72,7 @@ export interface HistoriaFormData {
     peso: string;
     dimensiones: string;
     estado: string;
+    destacada: HistoriaDestacadaForm;
     /** Obligatorio en API (store/update); meses de duración de la suscripción/historia. */
     duracion_meses: string;
     variantes: HistoriaVarianteForm[];

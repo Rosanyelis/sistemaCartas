@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property array<int, array{icon: string, title: string, description?: string|null}>|null $detalle JSON en columna `detalle`: «¿Qué incluye cada envío?» (icono Lucide en PascalCase, título obligatorio, descripción opcional).
+ * @property string $destacada Enum `si` | `no`: historia prioritaria en portadas o bloques destacados.
+ */
 class Historia extends Model
 {
     /** @use HasFactory<HistoriaFactory> */
@@ -32,6 +36,7 @@ class Historia extends Model
         'estado',
         'fecha_publicacion',
         'duracion_meses',
+        'destacada',
     ];
 
     /**
@@ -40,6 +45,7 @@ class Historia extends Model
     protected function casts(): array
     {
         return [
+            'detalle' => 'array',
             'precio_base' => 'decimal:2',
             'precio_promocional' => 'decimal:2',
             'impuesto' => 'decimal:2',
