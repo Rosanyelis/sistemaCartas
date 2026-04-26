@@ -29,7 +29,13 @@ class ProductoFactory extends Factory
             'imagen' => 'https://picsum.photos/seed/'.fake()->word().'/200/200',
             'descripcion_corta' => fake()->sentence(),
             'descripcion_larga' => fake()->paragraphs(2, true),
-            'detalle' => fake()->paragraph(),
+            'detalle' => [
+                [
+                    'icon' => 'Package',
+                    'title' => 'Embalaje',
+                    'description' => 'Protección estándar en envío.',
+                ],
+            ],
             'producto_categoria_id' => $categoria->id,
             'producto_subcategoria_id' => $subcategoria->id,
             'precio_base' => fake()->randomFloat(2, 50, 500),

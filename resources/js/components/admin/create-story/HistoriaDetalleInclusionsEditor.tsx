@@ -24,6 +24,12 @@ interface HistoriaDetalleInclusionsEditorProps {
     onChange: (items: HistoriaDetalleInclusionRow[]) => void;
     errors: Record<string, string | string[] | undefined>;
     rootId: string;
+    /** Título de la sección (p. ej. historias vs productos). */
+    sectionTitle?: string;
+    /** Texto de ayuda bajo el título. */
+    sectionHint?: string;
+    /** Mensaje cuando no hay filas. */
+    emptyStateHint?: string;
 }
 
 export function HistoriaDetalleInclusionsEditor({
@@ -31,6 +37,9 @@ export function HistoriaDetalleInclusionsEditor({
     onChange,
     errors,
     rootId,
+    sectionTitle = '¿Qué incluye cada envío?',
+    sectionHint = 'Lista (icono, título obligatorio, descripción opcional).',
+    emptyStateHint = 'Sin ítems. Añade filas para mostrar la sección en la ficha pública.',
 }: HistoriaDetalleInclusionsEditorProps) {
     const err = (key: string): string | undefined => {
         const v = errors[key];
@@ -80,10 +89,8 @@ export function HistoriaDetalleInclusionsEditor({
         <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <span className="text-[13px] font-semibold text-[#1B3D6D]">¿Qué incluye cada envío?</span>
-                    <p className="text-[11.5px] text-[#A0A0A0] mt-0.5">
-                        Lista (icono, título obligatorio, descripción opcional).
-                    </p>
+                    <span className="text-[13px] font-semibold text-[#1B3D6D]">{sectionTitle}</span>
+                    <p className="text-[11.5px] text-[#A0A0A0] mt-0.5">{sectionHint}</p>
                 </div>
                 <button
                     type="button"
@@ -101,7 +108,7 @@ export function HistoriaDetalleInclusionsEditor({
 
             {items.length === 0 ? (
                 <p className="text-[12px] text-[#7B7B7B] border border-dashed border-[#DFE4EA] rounded-[4px] px-3 py-4 text-center">
-                    Sin ítems. Añade filas para mostrar la sección en la ficha pública.
+                    {emptyStateHint}
                 </p>
             ) : null}
 

@@ -2,14 +2,17 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Admin\Concerns\PreparesHistoriaDetalleJson;
 use App\Http\Requests\Concerns\FlashesValidationError;
 use App\Rules\MaxWords;
+use App\Support\HistoriaDetalleInclusionIcon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateProductoRequest extends FormRequest
 {
     use FlashesValidationError;
+    use PreparesHistoriaDetalleJson;
 
     public function authorize(): bool
     {
@@ -18,6 +21,8 @@ class UpdateProductoRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        $this->mergeHistoriaDetalleFromRequest();
+
         if ($this->has('producto_subcategoria_id') && $this->input('producto_subcategoria_id') === '') {
             $this->merge(['producto_subcategoria_id' => null]);
         }
@@ -32,7 +37,10 @@ class UpdateProductoRequest extends FormRequest
             'nombre' => ['required', 'string', 'max:255'],
             'descripcion_corta' => ['required', 'string', 'max:255'],
             'descripcion_larga' => ['required', 'string', new MaxWords(500)],
-            'detalle' => ['nullable', 'string', new MaxWords(500)],
+            'detalle' => ['nullable', 'array', 'max:20'],
+            'detalle.*.icon' => ['required', 'string', Rule::in(HistoriaDetalleInclusionIcon::allowed())],
+            'detalle.*.title' => ['required', 'string', 'max:255'],
+            'detalle.*.description' => ['nullable', 'string', 'max:500'],
             'producto_categoria_id' => ['required', 'integer', 'exists:producto_categorias,id'],
             'producto_subcategoria_id' => [
                 'nullable',
@@ -52,12 +60,22 @@ class UpdateProductoRequest extends FormRequest
                 Rule::unique('productos', 'codigo')->ignore($this->route('producto')),
             ],
             'stock' => ['required', 'integer', 'min:0'],
-            'imagen' => ['nullable', 'string'],
+            'imagen' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime', 'max:20480'],
             'peso' => ['nullable', 'string', 'max:50'],
             'dimensiones' => ['nullable', 'string', 'max:50'],
-            'variantes' => ['nullable', 'array'],
-            'galeria' => ['nullable', 'array'],
             'estado' => ['required', 'in:activo,pausado'],
+            'galeria' => ['nullable', 'array', 'max:5'],
+            'galeria.*' => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'producto_gallery_sync' => ['sometimes', 'boolean'],
+            'galeria_keep_ids' => ['sometimes', 'array', 'max:5'],
+            'galeria_keep_ids.*' => [
+                'integer',
+                Rule::exists('producto_galerias', 'id')->where(function ($query) {
+                    $query->where('producto_id', $this->route('producto')->id)
+                        ->where('es_principal', false);
+                }),
+            ],
         ];
     }
 
@@ -71,6 +89,14 @@ class UpdateProductoRequest extends FormRequest
             'producto_categoria_id.required' => 'La categoría es obligatoria.',
             'producto_categoria_id.exists' => 'La categoría seleccionada no es válida.',
             'producto_subcategoria_id.exists' => 'La subcategoría no corresponde a la categoría elegida.',
+            'galeria.max' => 'Solo se permiten hasta 5 imágenes adicionales en la galería.',
+            'detalle.array' => 'El formato de «qué incluye el envío / el producto» no es válido.',
+            'detalle.max' => 'No se pueden añadir más de 20 ítems en esta sección.',
+            'detalle.*.icon.required' => 'Cada ítem debe tener un icono.',
+            'detalle.*.icon.in' => 'El icono seleccionado no está permitido.',
+            'detalle.*.title.required' => 'Cada ítem debe tener un título.',
+            'detalle.*.title.max' => 'El título de cada ítem no puede superar 255 caracteres.',
+            'detalle.*.description.max' => 'La descripción de cada ítem no puede superar 500 caracteres.',
         ];
     }
 }

@@ -1,10 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { router, useForm } from '@inertiajs/react';
+import { faTimes, faPencil } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes, faPlus, faImage, faPencil } from '@fortawesome/free-solid-svg-icons';
-import { LimitedWordTextarea } from '@/components/admin/create-story/LimitedWordTextarea';
-import { MAX_PALABRAS_TEXTO_LARGO } from '@/components/admin/create-story/constants';
+import { router, useForm } from '@inertiajs/react';
+import type { ChangeEvent, FormEvent } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { ProductoMultimediaPanel } from '@/components/admin/create-product/ProductoMultimediaPanel';
+import { MAX_IMAGENES_GALERIA, MAX_PALABRAS_TEXTO_LARGO } from '@/components/admin/create-story/constants';
+import { normalizeDetalleInclusiones } from '@/components/admin/create-story/formDefaults';
+import { HistoriaDetalleInclusionsEditor } from '@/components/admin/create-story/HistoriaDetalleInclusionsEditor';
+import { LimitedWordRichEditor } from '@/components/admin/create-story/LimitedWordRichEditor';
+import type { GallerySlot, HistoriaDetalleInclusionRow } from '@/components/admin/create-story/types';
 import { ProductoTaxonomyManageModal } from '@/components/admin/ProductoTaxonomyManageModal';
+import { HISTORIA_DETALLE_INCLUSION_ICONS } from '@/constants/historia-detalle-inclusion-icons';
 
 export type CategoriaOption = {
     id: number;
@@ -13,11 +19,11 @@ export type CategoriaOption = {
 
 type SubRow = { id: number; nombre: string };
 
-export type ProductoFormData = {
+export type ProductoModalFormData = {
     nombre: string;
     descripcion_corta: string;
     descripcion_larga: string;
-    detalle: string;
+    detalle: HistoriaDetalleInclusionRow[];
     producto_categoria_id: string | number;
     producto_subcategoria_id: string | number;
     precio_base: string;
@@ -25,17 +31,29 @@ export type ProductoFormData = {
     impuesto: string;
     codigo: string;
     stock: number;
-    imagen: string;
     peso: string;
     dimensiones: string;
     estado: string;
+    imagen: File | null;
+    video: File | null;
+    galeria: File[];
+    producto_gallery_sync?: boolean;
+    galeria_keep_ids?: number[];
+    _method?: 'patch';
+};
+
+type ProductoGaleriaJsonItem = {
+    id: number;
+    path: string;
+    tipo: string;
+    es_principal: boolean;
 };
 
 type ProductoFormularioJson = {
     nombre: string;
     descripcion_corta: string;
     descripcion_larga: string;
-    detalle: string;
+    detalle: HistoriaDetalleInclusionRow[] | string | null | unknown;
     producto_categoria_id: number;
     producto_subcategoria_id: number | null;
     precio_base: string;
@@ -44,11 +62,11 @@ type ProductoFormularioJson = {
     codigo: string;
     stock: number;
     imagen: string;
+    video?: string;
     peso: string;
     dimensiones: string;
     estado: string;
-    variantes: unknown;
-    galeria: unknown;
+    galeria?: ProductoGaleriaJsonItem[];
 };
 
 interface CreateProductModalProps {
@@ -59,50 +77,73 @@ interface CreateProductModalProps {
     editingProductId?: number | null;
 }
 
-export const CreateProductModal: React.FC<CreateProductModalProps> = ({
+export function CreateProductModal({
     isOpen,
     onClose,
     categorias,
     editingProductId = null,
-}) => {
-    const { data, setData, post, patch, processing, errors, reset } = useForm<ProductoFormData>({
-        nombre: '',
-        descripcion_corta: '',
-        descripcion_larga: '',
-        detalle: '',
-        producto_categoria_id: '' as string | number,
-        producto_subcategoria_id: '' as string | number,
-        precio_base: '',
-        precio_promocional: '',
-        impuesto: '',
-        codigo: '',
-        stock: 0,
-        imagen: '',
-        peso: '',
-        dimensiones: '',
-        estado: 'activo',
-    });
+}: CreateProductModalProps) {
+    const rootId = useId();
+    const descripcionLargaId = `${rootId}-descripcion-larga`;
+    const estadoRadioName = `${rootId}-estado`;
+
+    const initialForm = useMemo(
+        (): ProductoModalFormData => ({
+            nombre: '',
+            descripcion_corta: '',
+            descripcion_larga: '',
+            detalle: [],
+            producto_categoria_id: '' as string | number,
+            producto_subcategoria_id: '' as string | number,
+            precio_base: '',
+            precio_promocional: '',
+            impuesto: '',
+            codigo: '',
+            stock: 0,
+            peso: '',
+            dimensiones: '',
+            estado: 'activo',
+            imagen: null,
+            video: null,
+            galeria: [],
+        }),
+        [],
+    );
+
+    const { data, setData, post, processing, errors, reset, transform } = useForm(initialForm);
 
     const [subRows, setSubRows] = useState<SubRow[]>([]);
     const [subcategoriasLoading, setSubcategoriasLoading] = useState(false);
     const [taxonomyModal, setTaxonomyModal] = useState<'categoria' | 'subcategoria' | null>(null);
     const [loadingProduct, setLoadingProduct] = useState(false);
     const [loadError, setLoadError] = useState<string | null>(null);
-    const wasModalOpenRef = useRef(false);
-    const prevEditingProductIdRef = useRef<number | null>(null);
+    const [imgPreview, setImgPreview] = useState<string | null>(null);
+    const [videoPreview, setVideoPreview] = useState<string | null>(null);
+    const [galleryItems, setGalleryItems] = useState<GallerySlot[]>([]);
+    const [richEditors, setRichEditors] = useState<{
+        seed: number;
+        descripcion_larga: string;
+    } | null>(null);
 
     const isEditMode = editingProductId != null && editingProductId > 0;
+
+    /** Evita re-hidratar en bucle: `reset`/`setData` de Inertia no deben ir en deps del efecto de apertura. */
+    const openCycleRef = useRef(0);
 
     useEffect(() => {
         if (!isOpen || data.producto_categoria_id === '' || data.producto_categoria_id === null) {
             setSubRows([]);
             setSubcategoriasLoading(false);
+
             return;
         }
+
         const catId = Number(data.producto_categoria_id);
+
         if (!Number.isFinite(catId) || catId <= 0) {
             setSubRows([]);
             setSubcategoriasLoading(false);
+
             return;
         }
 
@@ -116,9 +157,11 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
         )
             .then(async (r) => {
                 const j = (await r.json()) as { data?: SubRow[] };
+
                 if (!r.ok) {
                     throw new Error('subcategorias');
                 }
+
                 if (!cancelled) {
                     const rows = Array.isArray(j.data) ? j.data : [];
                     setSubRows(
@@ -139,20 +182,23 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                     setSubcategoriasLoading(false);
                 }
             });
+
         return () => {
             cancelled = true;
         };
     }, [isOpen, data.producto_categoria_id]);
 
-    /** Si la subcategoría elegida ya no existe en la categoría actual, limpiar */
     useEffect(() => {
         if (data.producto_subcategoria_id === '' || data.producto_subcategoria_id === null) {
             return;
         }
+
         const sid = Number(data.producto_subcategoria_id);
+
         if (!Number.isFinite(sid) || subRows.length === 0 || subcategoriasLoading) {
             return;
         }
+
         if (!subRows.some((s) => s.id === sid)) {
             setData('producto_subcategoria_id', '');
         }
@@ -160,25 +206,28 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
 
     useEffect(() => {
         if (!isOpen) {
-            wasModalOpenRef.current = false;
-            prevEditingProductIdRef.current = null;
             return;
         }
-        const justOpened = !wasModalOpenRef.current;
-        wasModalOpenRef.current = true;
-        const hadEditMode = prevEditingProductIdRef.current != null;
-        prevEditingProductIdRef.current = isEditMode && editingProductId ? editingProductId : null;
 
         if (!isEditMode) {
-            if (justOpened || hadEditMode) {
-                reset();
-            }
+            openCycleRef.current += 1;
+            reset();
+            setImgPreview(null);
+            setVideoPreview(null);
+            setGalleryItems([]);
             setLoadError(null);
             setLoadingProduct(false);
+            setRichEditors({
+                seed: Date.now(),
+                descripcion_larga: initialForm.descripcion_larga,
+            });
+
             return;
         }
 
         let cancelled = false;
+        openCycleRef.current += 1;
+        const fetchCycle = openCycleRef.current;
         setLoadError(null);
         setLoadingProduct(true);
         void fetch(`/admin/productos/${editingProductId}/formulario`, {
@@ -189,17 +238,20 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                 if (!r.ok) {
                     throw new Error('No se pudo cargar el producto.');
                 }
+
                 return r.json() as Promise<ProductoFormularioJson>;
             })
             .then((payload) => {
-                if (cancelled) {
+                if (cancelled || fetchCycle !== openCycleRef.current) {
                     return;
                 }
+
+                const detalleRows = normalizeDetalleInclusiones(payload.detalle);
                 setData({
                     nombre: payload.nombre,
                     descripcion_corta: payload.descripcion_corta,
                     descripcion_larga: payload.descripcion_larga,
-                    detalle: payload.detalle ?? '',
+                    detalle: detalleRows,
                     producto_categoria_id: payload.producto_categoria_id,
                     producto_subcategoria_id:
                         payload.producto_subcategoria_id != null ? payload.producto_subcategoria_id : '',
@@ -208,26 +260,44 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                     impuesto: payload.impuesto ?? '',
                     codigo: payload.codigo,
                     stock: payload.stock,
-                    imagen: payload.imagen ?? '',
+                    imagen: null,
+                    video: null,
+                    galeria: [],
                     peso: payload.peso ?? '',
                     dimensiones: payload.dimensiones ?? '',
                     estado: payload.estado === 'pausado' ? 'pausado' : 'activo',
                 });
+                setImgPreview(payload.imagen || null);
+                setVideoPreview(payload.video || null);
+                const extras = (payload.galeria ?? []).filter((g) => !g.es_principal);
+                setGalleryItems(
+                    extras.map((g) => ({
+                        kind: 'existente' as const,
+                        id: g.id,
+                        preview: g.path,
+                    })),
+                );
+                setRichEditors({
+                    seed: Date.now(),
+                    descripcion_larga: payload.descripcion_larga,
+                });
             })
             .catch(() => {
-                if (!cancelled) {
+                if (!cancelled && fetchCycle === openCycleRef.current) {
                     setLoadError('No se pudo cargar el producto. Cierra e inténtalo de nuevo.');
                 }
             })
             .finally(() => {
-                if (!cancelled) {
+                if (!cancelled && fetchCycle === openCycleRef.current) {
                     setLoadingProduct(false);
                 }
             });
+
         return () => {
             cancelled = true;
         };
-        // reset/setData provienen de useForm (Inertia); dependencias explícitas evitan bucles con reset()
+        // reset/setData: estables en la práctica, pero incluirlos re-dispara el efecto y puede provocar bucles (pantalla en blanco).
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- solo isOpen, modo edición e id de producto
     }, [isOpen, isEditMode, editingProductId]);
 
     useEffect(() => {
@@ -240,7 +310,12 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
             setTaxonomyModal(null);
             setLoadError(null);
             setLoadingProduct(false);
+            setImgPreview(null);
+            setVideoPreview(null);
+            setGalleryItems([]);
+            setRichEditors(null);
         }
+
         return () => {
             document.body.style.overflow = 'unset';
         };
@@ -250,27 +325,139 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
         return null;
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleFileChange = (e: ChangeEvent<HTMLInputElement>, field: 'imagen' | 'video') => {
+        const file = e.target.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        setData(field, file);
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            if (field === 'imagen') {
+                setImgPreview(reader.result as string);
+            } else {
+                setVideoPreview(reader.result as string);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleGalleryChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const availableSlots = MAX_IMAGENES_GALERIA - galleryItems.length;
+        const slice = files.slice(0, availableSlots);
+
+        if (slice.length === 0) {
+            return;
+        }
+
+        void Promise.all(
+            slice.map(
+                (file) =>
+                    new Promise<{ file: File; preview: string }>((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve({ file, preview: reader.result as string });
+                        reader.onerror = () => reject(reader.error);
+                        reader.readAsDataURL(file);
+                    }),
+            ),
+        ).then((read) => {
+            setGalleryItems((prev) => [
+                ...prev,
+                ...read.map((item) => ({
+                    kind: 'nuevo' as const,
+                    clientKey: `nuevo-${item.file.name}-${item.file.size}-${item.file.lastModified}-${
+                        typeof crypto !== 'undefined' && 'randomUUID' in crypto
+                            ? crypto.randomUUID()
+                            : `${Date.now()}-${Math.random()}`
+                    }`,
+                    file: item.file,
+                    preview: item.preview,
+                })),
+            ]);
+        });
+    };
+
+    const removeGalleryImage = (index: number) => {
+        setGalleryItems((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
+
         if (loadingProduct) {
             return;
         }
+
+        transform((form) => {
+            const nuevos = galleryItems.filter((x): x is Extract<GallerySlot, { kind: 'nuevo' }> => x.kind === 'nuevo');
+            const files = nuevos.map((x) => x.file);
+            const allowedIcons = new Set<string>(HISTORIA_DETALLE_INCLUSION_ICONS);
+            const detalleCleaned = (Array.isArray(form.detalle) ? form.detalle : [])
+                .filter((r) => r.title.trim() !== '')
+                .map((r) => {
+                    const d = r.description.trim();
+                    const iconResolved = r.icon && allowedIcons.has(r.icon) ? r.icon : 'FileText';
+                    const item: { icon: string; title: string; description?: string } = {
+                        icon: iconResolved,
+                        title: r.title.trim(),
+                    };
+
+                    if (d !== '') {
+                        item.description = d;
+                    }
+
+                    return item;
+                });
+            const next = {
+                ...form,
+                galeria: files,
+                detalle: JSON.stringify(detalleCleaned),
+            };
+
+            if (isEditMode && editingProductId) {
+                const keepIds = galleryItems
+                    .filter((x): x is Extract<GallerySlot, { kind: 'existente' }> => x.kind === 'existente')
+                    .map((x) => x.id);
+
+                return {
+                    ...next,
+                    _method: 'patch' as const,
+                    producto_gallery_sync: true,
+                    galeria_keep_ids: keepIds,
+                };
+            }
+
+            return next;
+        });
+
         const visitOptions = {
             preserveScroll: true,
             preserveState: true,
+            forceFormData: true,
             onSuccess: () => {
+                setRichEditors(null);
                 reset();
                 onClose();
             },
         };
+
         if (isEditMode && editingProductId) {
-            patch(`/admin/productos/${editingProductId}`, visitOptions);
-        } else {
-            post('/admin/productos', visitOptions);
+            post(`/admin/productos/${editingProductId}`, visitOptions);
+
+            return;
         }
+
+        post('/admin/productos', {
+            ...visitOptions,
+            forceFormData: true,
+        });
     };
 
     const handleClose = () => {
+        setRichEditors(null);
         reset();
         onClose();
     };
@@ -341,30 +528,32 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                                     )}
                                 </div>
 
-                                <LimitedWordTextarea
-                                    id="producto-descripcion-larga"
-                                    label={
-                                        <>
-                                            Descripción larga<span className="text-[#EF4444]">*</span>
-                                        </>
-                                    }
-                                    value={data.descripcion_larga}
-                                    onChange={(v) => setData('descripcion_larga', v)}
-                                    maxWords={MAX_PALABRAS_TEXTO_LARGO}
-                                    placeholder="Versátil y de alta calidad, ideal para manualidades..."
-                                    rows={5}
-                                    error={errors.descripcion_larga}
-                                />
+                                {richEditors ? (
+                                    <LimitedWordRichEditor
+                                        key={`descripcion-larga-${richEditors.seed}`}
+                                        id={descripcionLargaId}
+                                        label={
+                                            <>
+                                                Descripción larga<span className="text-[#EF4444]">*</span>
+                                            </>
+                                        }
+                                        initialHtml={richEditors.descripcion_larga}
+                                        onChange={(v) => setData('descripcion_larga', v)}
+                                        maxWords={MAX_PALABRAS_TEXTO_LARGO}
+                                        placeholder="Versátil y de alta calidad, ideal para manualidades..."
+                                        rows={5}
+                                        error={errors.descripcion_larga}
+                                    />
+                                ) : null}
 
-                                <LimitedWordTextarea
-                                    id="producto-detalle"
-                                    label="Detalle"
-                                    value={data.detalle}
-                                    onChange={(v) => setData('detalle', v)}
-                                    maxWords={MAX_PALABRAS_TEXTO_LARGO}
-                                    placeholder="Aquí detalles del producto"
-                                    rows={4}
-                                    error={errors.detalle}
+                                <HistoriaDetalleInclusionsEditor
+                                    items={data.detalle}
+                                    onChange={(items) => setData('detalle', items)}
+                                    errors={errors as Record<string, string | string[] | undefined>}
+                                    rootId={rootId}
+                                    sectionTitle="¿Qué incluye el envío o el producto?"
+                                    sectionHint="Lista (icono Lucide, título obligatorio, descripción opcional). Misma estructura que en historias."
+                                    emptyStateHint="Sin ítems. Añade filas para mostrar inclusiones en la ficha del producto."
                                 />
 
                                 <div>
@@ -567,99 +756,32 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
                                     </div>
                                 </div>
 
-                                <div className="mt-2">
-                                    <label className="mb-3 block text-[13.5px] font-semibold text-[#1B3D6D]">Variantes(Opcional)</label>
-                                    <div className="flex flex-col gap-4">
-                                        <div>
-                                            <label className="mb-1.5 block text-[12.5px] text-[#4B5563]">Color</label>
-                                            <select className="w-full appearance-none rounded-[4px] border border-[#E5E7EB] bg-white px-3 py-2 text-[13.5px] text-[#4B5563] outline-none">
-                                                <option>Beige</option>
-                                                <option>Blanco</option>
-                                                <option>Negro</option>
-                                            </select>
-                                        </div>
-                                        <div>
-                                            <label className="mb-1.5 block text-[12.5px] text-[#4B5563]">Material</label>
-                                            <select className="w-full appearance-none rounded-[4px] border border-[#E5E7EB] bg-white px-3 py-2 text-[13.5px] text-[#4B5563] outline-none">
-                                                <option>Papel</option>
-                                                <option>Cartón</option>
-                                            </select>
-                                        </div>
-                                        <div className="mt-1 text-center">
-                                            <button
-                                                type="button"
-                                                className="inline-flex items-center gap-2 rounded-[4px] border border-[#1B3D6D] px-4 py-1.5 text-[12px] font-medium text-[#1B3D6D] transition-colors hover:bg-[#F8F9FA]"
-                                            >
-                                                <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
-                                                Agregar Variante
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="mt-2">
-                                    <label className="mb-3 block text-[13.5px] font-semibold text-[#1B3D6D]">Imágenes y multimedia</label>
-                                    <div className="relative flex h-[150px] w-full items-center justify-center overflow-hidden rounded-[6px] border border-[#E5E7EB] bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2ZmZiIvPgo8cmVjdCB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmM2Y0ZjYiLz4KPHJlY3QgeD0iMTAiIHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiNmM2Y0ZjYiLz4KPC9zdmc+')]" />
-                                    <div className="mt-3 text-center">
-                                        <button
-                                            type="button"
-                                            className="inline-flex items-center gap-2 rounded-[4px] border border-[#1B3D6D] px-4 py-1.5 text-[12px] font-medium text-[#1B3D6D] transition-colors hover:bg-[#F8F9FA]"
-                                        >
-                                            <FontAwesomeIcon icon={faImage} className="text-[11px]" />
-                                            Subir Imagen
-                                        </button>
-                                        {errors.imagen ? <span className="mt-1 block text-[11px] text-red-500">{errors.imagen}</span> : null}
-                                    </div>
-                                </div>
-
-                                <div className="mt-4 flex flex-col gap-4">
-                                    <label className="group flex cursor-pointer items-start gap-3">
-                                        <div className="relative mt-0.5 flex items-center justify-center">
-                                            <input
-                                                type="radio"
-                                                name="estado"
-                                                value="activo"
-                                                checked={data.estado === 'activo'}
-                                                onChange={() => setData('estado', 'activo')}
-                                                className="peer sr-only"
-                                            />
-                                            <div className="h-4 w-4 rounded-[3px] border border-[#D1D5DB] transition-all peer-checked:border-[#1B3D6D] peer-checked:bg-[#1B3D6D]" />
-                                            <FontAwesomeIcon
-                                                icon={faPlus}
-                                                className="pointer-events-none absolute text-[9px] text-white opacity-0 rotate-45 peer-checked:opacity-100"
-                                            />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[13.5px] font-medium text-[#111827]">Activo</span>
-                                            <span className="text-[12px] text-[#A0A0A0]">Está publicado en el sitio web y recibiendo ventas.</span>
-                                        </div>
-                                    </label>
-
-                                    <label className="group flex cursor-pointer items-start gap-3">
-                                        <div className="relative mt-0.5 flex items-center justify-center">
-                                            <input
-                                                type="radio"
-                                                name="estado"
-                                                value="pausado"
-                                                checked={data.estado === 'pausado'}
-                                                onChange={() => setData('estado', 'pausado')}
-                                                className="peer sr-only"
-                                            />
-                                            <div className="h-4 w-4 rounded-[3px] border border-[#D1D5DB] transition-all peer-checked:border-[#1B3D6D] peer-checked:bg-[#1B3D6D]" />
-                                            <FontAwesomeIcon
-                                                icon={faPlus}
-                                                className="pointer-events-none absolute text-[9px] text-white opacity-0 rotate-45 peer-checked:opacity-100"
-                                            />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[13.5px] font-medium text-[#111827]">Pausado</span>
-                                            <span className="text-[12px] text-[#A0A0A0]">
-                                                No aparece en el sitio web pero sigue en la base de datos y en la &quot;lista de productos&quot;.
-                                            </span>
-                                        </div>
-                                    </label>
-                                    {errors.estado ? <span className="text-[11px] text-red-500">{errors.estado}</span> : null}
-                                </div>
+                                <ProductoMultimediaPanel
+                                    imgPreview={imgPreview}
+                                    videoPreview={videoPreview}
+                                    galleryPreviews={galleryItems.map((g) => g.preview)}
+                                    galleryPreviewKeys={galleryItems.map((g) =>
+                                        g.kind === 'existente' ? `e-${g.id}` : g.clientKey,
+                                    )}
+                                    galeriaLength={galleryItems.length}
+                                    estado={data.estado}
+                                    estadoRadioName={estadoRadioName}
+                                    onEstadoChange={(v) => setData('estado', v)}
+                                    onImageChange={(ev) => handleFileChange(ev, 'imagen')}
+                                    onVideoChange={(ev) => handleFileChange(ev, 'video')}
+                                    onGalleryChange={handleGalleryChange}
+                                    onRemoveGalleryImage={removeGalleryImage}
+                                    errors={{
+                                        imagen: errors.imagen,
+                                        video: errors.video,
+                                        galeria: errors.galeria,
+                                        estado: errors.estado,
+                                    }}
+                                    fieldIds={{
+                                        imagen: `${rootId}-imagen`,
+                                        video: `${rootId}-video`,
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>
@@ -715,4 +837,4 @@ export const CreateProductModal: React.FC<CreateProductModalProps> = ({
             `}</style>
         </div>
     );
-};
+}

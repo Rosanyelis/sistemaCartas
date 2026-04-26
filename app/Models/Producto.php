@@ -7,8 +7,12 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+/**
+ * @property array<int, array{icon: string, title: string, description?: string|null}>|null $detalle
+ */
 class Producto extends Model
 {
     /** @use HasFactory<ProductoFactory> */
@@ -19,6 +23,7 @@ class Producto extends Model
         'slug',
         'codigo',
         'imagen',
+        'video',
         'descripcion_corta',
         'descripcion_larga',
         'detalle',
@@ -30,8 +35,6 @@ class Producto extends Model
         'stock',
         'peso',
         'dimensiones',
-        'variantes',
-        'galeria',
         'estado',
     ];
 
@@ -41,13 +44,20 @@ class Producto extends Model
     protected function casts(): array
     {
         return [
+            'detalle' => 'array',
             'precio_base' => 'decimal:2',
             'precio_promocional' => 'decimal:2',
             'impuesto' => 'decimal:2',
             'stock' => 'integer',
-            'variantes' => 'array',
-            'galeria' => 'array',
         ];
+    }
+
+    /**
+     * @return HasMany<ProductoGaleria, $this>
+     */
+    public function galeria(): HasMany
+    {
+        return $this->hasMany(ProductoGaleria::class);
     }
 
     /**

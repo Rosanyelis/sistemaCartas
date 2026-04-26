@@ -13,6 +13,8 @@ use App\Services\Admin\ExportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -65,12 +67,14 @@ class ProductoController extends Controller
 
     public function formulario(Producto $producto): JsonResponse
     {
+        $producto->load(['galeria' => fn ($q) => $q->orderBy('id')]);
+
         return response()->json([
             'id' => $producto->id,
             'nombre' => $producto->nombre,
             'descripcion_corta' => $producto->descripcion_corta,
             'descripcion_larga' => $producto->descripcion_larga,
-            'detalle' => $producto->detalle ?? '',
+            'detalle' => $producto->detalle ?? [],
             'producto_categoria_id' => $producto->producto_categoria_id,
             'producto_subcategoria_id' => $producto->producto_subcategoria_id,
             'precio_base' => (string) $producto->precio_base,
@@ -79,23 +83,58 @@ class ProductoController extends Controller
             'codigo' => $producto->codigo,
             'stock' => $producto->stock,
             'imagen' => $producto->imagen ?? '',
+            'video' => $producto->video ?? '',
             'peso' => $producto->peso ?? '',
             'dimensiones' => $producto->dimensiones ?? '',
             'estado' => $producto->estado,
-            'variantes' => $producto->variantes,
-            'galeria' => $producto->galeria,
+            'galeria' => $producto->galeria->map(fn ($g) => [
+                'id' => $g->id,
+                'path' => $g->path,
+                'tipo' => $g->tipo,
+                'es_principal' => $g->es_principal,
+            ])->values()->all(),
         ]);
     }
 
     public function store(StoreProductoRequest $request): RedirectResponse
     {
         try {
-            $data = $request->validated();
-            $data['slug'] = Str::slug($data['nombre']).'-'.Str::random(5);
+            return DB::transaction(function () use ($request) {
+                $data = $request->validated();
+                unset($data['galeria']);
+                $data['slug'] = Str::slug($data['nombre']).'-'.Str::random(5);
 
-            Producto::query()->create($data);
+                if ($request->hasFile('imagen')) {
+                    $data['imagen'] = '/storage/'.$request->file('imagen')->store('productos/imagenes', 'public');
+                }
 
-            return redirect()->route('admin.productos')->with('success', 'Producto creado exitosamente.');
+                if ($request->hasFile('video')) {
+                    $data['video'] = '/storage/'.$request->file('video')->store('productos/videos', 'public');
+                }
+
+                $producto = Producto::query()->create($data);
+
+                if ($request->hasFile('galeria')) {
+                    foreach ($request->file('galeria') as $imageFile) {
+                        $pt = '/storage/'.$imageFile->store('productos/galeria', 'public');
+                        $producto->galeria()->create([
+                            'path' => $pt,
+                            'tipo' => 'imagen',
+                            'es_principal' => false,
+                        ]);
+                    }
+                }
+
+                if (isset($data['imagen'])) {
+                    $producto->galeria()->create([
+                        'path' => $data['imagen'],
+                        'tipo' => 'imagen',
+                        'es_principal' => true,
+                    ]);
+                }
+
+                return redirect()->route('admin.productos')->with('success', 'Producto creado exitosamente.');
+            });
         } catch (Throwable $e) {
             report($e);
 
@@ -106,9 +145,75 @@ class ProductoController extends Controller
     public function update(UpdateProductoRequest $request, Producto $producto): RedirectResponse
     {
         try {
-            $producto->update($request->validated());
+            return DB::transaction(function () use ($request, $producto) {
+                $data = $request->validated();
+                $syncGallery = $request->boolean('producto_gallery_sync');
+                $keepIds = collect($data['galeria_keep_ids'] ?? [])
+                    ->map(fn ($id) => (int) $id)
+                    ->unique()
+                    ->values()
+                    ->all();
 
-            return redirect()->route('admin.productos')->with('success', 'Producto actualizado exitosamente.');
+                unset($data['galeria'], $data['galeria_keep_ids'], $data['producto_gallery_sync']);
+
+                if ($request->hasFile('imagen')) {
+                    if ($producto->imagen) {
+                        Storage::disk('public')->delete(str_replace('/storage/', '', $producto->imagen));
+                    }
+                    $data['imagen'] = '/storage/'.$request->file('imagen')->store('productos/imagenes', 'public');
+                }
+
+                if ($request->hasFile('video')) {
+                    if ($producto->video) {
+                        Storage::disk('public')->delete(str_replace('/storage/', '', $producto->video));
+                    }
+                    $data['video'] = '/storage/'.$request->file('video')->store('productos/videos', 'public');
+                }
+
+                if (! $request->hasFile('imagen')) {
+                    unset($data['imagen']);
+                }
+                if (! $request->hasFile('video')) {
+                    unset($data['video']);
+                }
+
+                $producto->update($data);
+
+                if ($syncGallery) {
+                    foreach ($producto->galeria()->where('es_principal', false)->whereNotIn('id', $keepIds)->get() as $old) {
+                        Storage::disk('public')->delete(str_replace('/storage/', '', $old->path));
+                        $old->delete();
+                    }
+                } elseif ($request->hasFile('galeria')) {
+                    $oldImages = $producto->galeria()->where('es_principal', false)->get();
+                    foreach ($oldImages as $old) {
+                        Storage::disk('public')->delete(str_replace('/storage/', '', $old->path));
+                    }
+                    $producto->galeria()->where('es_principal', false)->delete();
+                }
+
+                if ($request->hasFile('galeria')) {
+                    foreach ($request->file('galeria') as $imageFile) {
+                        $pt = '/storage/'.$imageFile->store('productos/galeria', 'public');
+                        $producto->galeria()->create([
+                            'path' => $pt,
+                            'tipo' => 'imagen',
+                            'es_principal' => false,
+                        ]);
+                    }
+                }
+
+                if ($request->hasFile('imagen')) {
+                    $producto->galeria()->where('es_principal', true)->delete();
+                    $producto->galeria()->create([
+                        'path' => $data['imagen'],
+                        'tipo' => 'imagen',
+                        'es_principal' => true,
+                    ]);
+                }
+
+                return redirect()->route('admin.productos')->with('success', 'Producto actualizado exitosamente.');
+            });
         } catch (Throwable $e) {
             report($e);
 
@@ -132,19 +237,87 @@ class ProductoController extends Controller
     public function duplicate(Producto $producto): RedirectResponse
     {
         try {
-            $copy = $producto->replicate();
-            $copy->nombre = $producto->nombre.' (Copia)';
-            $copy->slug = Str::slug($copy->nombre).'-'.Str::random(5);
-            $copy->codigo = $producto->codigo.'-'.Str::random(4);
-            $copy->estado = 'pausado';
-            $copy->save();
+            return DB::transaction(function () use ($producto) {
+                $producto->load([
+                    'galeria' => fn ($q) => $q->orderBy('id'),
+                ]);
 
-            return redirect()->route('admin.productos')->with('success', 'Producto duplicado exitosamente.');
+                $copy = $producto->replicate();
+                $copy->nombre = $producto->nombre.' (Copia)';
+                $copy->slug = Str::slug($copy->nombre).'-'.Str::random(5);
+                $copy->codigo = $producto->codigo.'-'.Str::random(4);
+                $copy->estado = 'pausado';
+                $copy->save();
+
+                /** @var array<string, ?string> $rutasPublicasAntiguasANuevas */
+                $rutasPublicasAntiguasANuevas = [];
+                $resolverRuta = function (?string $rutaPublica) use (&$rutasPublicasAntiguasANuevas): ?string {
+                    if ($rutaPublica === null || $rutaPublica === '') {
+                        return null;
+                    }
+                    if (array_key_exists($rutaPublica, $rutasPublicasAntiguasANuevas)) {
+                        return $rutasPublicasAntiguasANuevas[$rutaPublica];
+                    }
+                    $nueva = $this->copiarArchivoDesdeRutaPublicaStorage($rutaPublica);
+                    $rutasPublicasAntiguasANuevas[$rutaPublica] = $nueva;
+
+                    return $nueva;
+                };
+
+                if ($producto->imagen) {
+                    $copy->imagen = $resolverRuta($producto->imagen) ?? $producto->imagen;
+                }
+                if ($producto->video) {
+                    $copy->video = $resolverRuta($producto->video) ?? $producto->video;
+                }
+                $copy->save();
+
+                foreach ($producto->galeria as $item) {
+                    $nuevaRuta = $resolverRuta($item->path);
+                    if ($nuevaRuta === null) {
+                        continue;
+                    }
+                    $copy->galeria()->create([
+                        'path' => $nuevaRuta,
+                        'tipo' => $item->tipo,
+                        'es_principal' => $item->es_principal,
+                    ]);
+                }
+
+                return redirect()->route('admin.productos')->with('success', 'Producto duplicado exitosamente.');
+            });
         } catch (Throwable $e) {
             report($e);
 
             return redirect()->route('admin.productos')->with('error', 'No se pudo duplicar el producto. Inténtalo de nuevo.');
         }
+    }
+
+    /**
+     * Copia un fichero existente en el disco `public` y devuelve la nueva URL bajo `/storage/...`.
+     */
+    private function copiarArchivoDesdeRutaPublicaStorage(string $rutaPublica): ?string
+    {
+        if (! str_starts_with($rutaPublica, '/storage/')) {
+            return null;
+        }
+
+        $relativo = substr($rutaPublica, strlen('/storage/'));
+        $disco = Storage::disk('public');
+
+        if (! $disco->exists($relativo)) {
+            return null;
+        }
+
+        $directorio = pathinfo($relativo, PATHINFO_DIRNAME);
+        $extension = pathinfo($relativo, PATHINFO_EXTENSION);
+        $sufijo = $extension !== '' ? '.'.$extension : '';
+        $nombreNuevo = Str::uuid().$sufijo;
+        $relativoDestino = ($directorio !== '.' && $directorio !== '') ? $directorio.'/'.$nombreNuevo : $nombreNuevo;
+
+        $disco->copy($relativo, $relativoDestino);
+
+        return '/storage/'.$relativoDestino;
     }
 
     public function toggleStatus(Producto $producto): RedirectResponse
