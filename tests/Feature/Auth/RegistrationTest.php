@@ -21,5 +21,10 @@ test('new users can register', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+
+    if (Features::enabled(Features::emailVerification())) {
+        $response->assertRedirect(route('verification.notice'));
+    } else {
+        $response->assertRedirect(route('dashboard', absolute: false));
+    }
 });

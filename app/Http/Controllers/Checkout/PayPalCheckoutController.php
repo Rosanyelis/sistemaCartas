@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Checkout;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkout\CapturePayPalOrderRequest;
 use App\Http\Requests\Checkout\CreatePayPalOrderRequest;
+use App\Models\Producto;
 use App\Models\StoreOrder;
 use App\Services\PayPalService;
-use App\Support\Store\ProductCatalog;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -28,15 +28,32 @@ class PayPalCheckoutController extends Controller
         $total = 0.0;
 
         foreach ($items as $line) {
-            $product = ProductCatalog::find($line['slug']);
-            if ($product === null) {
+            $producto = Producto::query()
+                ->where('slug', $line['slug'])
+                ->where('estado', 'activo')
+                ->first();
+
+            if ($producto === null) {
                 return response()->json(['message' => 'Producto no encontrado.'], 422);
             }
+
             $qty = $line['quantity'];
-            $lineTotal = round($product['unit_price'] * $qty, 2);
+
+            if ($producto->stock < $qty) {
+                return response()->json([
+                    'message' => 'Stock insuficiente para «'.$producto->nombre.'».',
+                ], 422);
+            }
+
+            $unitPrice = (float) $producto->precio;
+            $lineTotal = round($unitPrice * $qty, 2);
             $total += $lineTotal;
             $resolved[] = [
-                'product' => $product,
+                'product' => [
+                    'slug' => $producto->slug,
+                    'name' => $producto->nombre,
+                    'unit_price' => $unitPrice,
+                ],
                 'quantity' => $qty,
                 'line_total' => $lineTotal,
             ];

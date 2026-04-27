@@ -19,6 +19,7 @@ use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\SuscripcionController;
 use App\Models\Historia;
 use App\Models\Producto;
+use App\Support\ValidPublicStoreRedirect;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -74,12 +75,26 @@ Route::post('/checkout/paypal/capture', [PayPalCheckoutController::class, 'captu
 Route::middleware('auth')->group(function () {
     // Override Fortify's default verify-email prompt to prevent auto-redirecting when we want to show success
     Route::get('/email/verify', function (Request $request) {
-        return $request->user()->hasVerifiedEmail() && ! session('show_success')
-            ? redirect()->intended(config('fortify.home'))
-            : Inertia::render('auth/verify-email', [
-                'status' => session('status'),
-                'showSuccess' => session('show_success', false),
-            ]);
+        if ($request->user()->hasVerifiedEmail() && ! session('show_success')) {
+            return redirect()->intended(config('fortify.home'));
+        }
+
+        $redirectAfterVerify = ValidPublicStoreRedirect::validate(
+            session('verified_storefront_redirect'),
+            $request,
+        ) ?? ValidPublicStoreRedirect::validate(
+            $request->query('redirect'),
+            $request,
+        ) ?? ValidPublicStoreRedirect::validate(
+            session('storefront_redirect_after_verify'),
+            $request,
+        );
+
+        return Inertia::render('auth/verify-email', [
+            'status' => session('status'),
+            'showSuccess' => session('show_success', false),
+            'redirectAfterVerify' => $redirectAfterVerify,
+        ]);
     })->name('verification.notice');
 
     Route::post('/email/verification-otp', [EmailVerificationOtpController::class, 'verify'])

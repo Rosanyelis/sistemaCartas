@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Producto;
 use App\Models\StoreOrder;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
@@ -14,7 +15,7 @@ beforeEach(function (): void {
     ]);
 });
 
-test('invitado puede crear orden paypal con ítems válidos del catálogo', function (): void {
+test('invitado puede crear orden paypal con ítems válidos de productos activos', function (): void {
     Http::fake([
         'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
             'access_token' => 'fake-access-token',
@@ -26,9 +27,18 @@ test('invitado puede crear orden paypal con ítems válidos del catálogo', func
         ], 201),
     ]);
 
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-paypal-demo',
+        'nombre' => 'Producto demo PayPal',
+        'stock' => 50,
+        'precio_base' => 12.45,
+        'precio_promocional' => null,
+        'estado' => 'activo',
+    ]);
+
     $response = $this->postJson(route('checkout.paypal.order'), [
         'items' => [
-            ['slug' => 'kit-lacre-real', 'quantity' => 2],
+            ['slug' => $producto->slug, 'quantity' => 2],
         ],
     ]);
 
@@ -42,8 +52,11 @@ test('invitado puede crear orden paypal con ítems válidos del catálogo', func
     ]);
 
     $this->assertDatabaseHas('store_order_items', [
-        'product_slug' => 'kit-lacre-real',
+        'product_slug' => 'producto-paypal-demo',
+        'product_name' => 'Producto demo PayPal',
         'quantity' => 2,
+        'unit_price' => 12.45,
+        'line_total' => 24.90,
     ]);
 });
 
@@ -56,7 +69,50 @@ test('crear orden paypal rechaza slug desconocido', function (): void {
         ],
     ]);
 
-    $response->assertStatus(422);
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['items.0.slug']);
+
+    $errors = $response->json('errors') ?? [];
+    expect($errors['items.0.slug'] ?? [])->toContain('Hay un producto no válido en el carrito.');
+    Http::assertNothingSent();
+});
+
+test('crear orden paypal rechaza producto en estado pausado', function (): void {
+    Http::fake();
+
+    $producto = Producto::factory()->pausado()->create([
+        'slug' => 'producto-pausado-paypal',
+        'stock' => 10,
+    ]);
+
+    $response = $this->postJson(route('checkout.paypal.order'), [
+        'items' => [
+            ['slug' => $producto->slug, 'quantity' => 1],
+        ],
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonValidationErrors(['items.0.slug']);
+    Http::assertNothingSent();
+});
+
+test('crear orden paypal rechaza cantidad mayor al stock', function (): void {
+    Http::fake();
+
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-sin-stock-paypal',
+        'stock' => 2,
+        'estado' => 'activo',
+    ]);
+
+    $response = $this->postJson(route('checkout.paypal.order'), [
+        'items' => [
+            ['slug' => $producto->slug, 'quantity' => 5],
+        ],
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonPath('message', 'Stock insuficiente para «'.$producto->nombre.'».');
     Http::assertNothingSent();
 });
 
@@ -120,9 +176,14 @@ test('captura sin orden local devuelve 404', function (): void {
 test('paypal deshabilitado devuelve 503 al crear orden', function (): void {
     Config::set('paypal.enabled', false);
 
+    $producto = Producto::factory()->create([
+        'stock' => 10,
+        'estado' => 'activo',
+    ]);
+
     $response = $this->postJson(route('checkout.paypal.order'), [
         'items' => [
-            ['slug' => 'kit-lacre-real', 'quantity' => 1],
+            ['slug' => $producto->slug, 'quantity' => 1],
         ],
     ]);
 

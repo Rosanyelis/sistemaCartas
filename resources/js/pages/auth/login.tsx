@@ -1,27 +1,29 @@
+import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Form, Head, Link } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { register, home } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
 
 type Props = {
     status?: string;
     canResetPassword: boolean;
     canRegister: boolean;
+    /** Ruta pública de retorno (validada en el servidor) tras autenticarse. */
+    redirect?: string | null;
 };
 
 export default function Login({
     status,
     canResetPassword,
     canRegister,
+    redirect: redirectTo,
 }: Props) {
     return (
         <AuthLayout
@@ -39,6 +41,13 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
+                        {redirectTo ? (
+                            <input
+                                type="hidden"
+                                name="redirect"
+                                value={redirectTo}
+                            />
+                        ) : null}
                         <div className="flex flex-col gap-1.5">
                             <div className="relative">
                                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-[13px]">
@@ -107,7 +116,15 @@ export default function Login({
                             <div className="text-center text-[14px] leading-relaxed text-[#636363] md:text-[16px]">
                                 ¿Aún no tienes cuenta?{' '}
                                 <Link
-                                    href={register()}
+                                    href={
+                                        redirectTo
+                                            ? register.url({
+                                                  query: {
+                                                      redirect: redirectTo,
+                                                  },
+                                              })
+                                            : register.url()
+                                    }
                                     className="block font-bold underline"
                                     tabIndex={5}
                                 >

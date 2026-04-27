@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Support\ValidPublicStoreRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -34,6 +35,14 @@ class EmailVerificationOtpController extends Controller
 
         $user->markEmailAsVerified();
         $user->clearOtp();
+
+        $pending = session()->pull('storefront_redirect_after_verify');
+        if (is_string($pending)) {
+            $valid = ValidPublicStoreRedirect::validate($pending, $request);
+            if (is_string($valid)) {
+                session()->flash('verified_storefront_redirect', $valid);
+            }
+        }
 
         session()->flash('show_success', true);
 

@@ -1,9 +1,9 @@
 import { faUser } from '@fortawesome/free-regular-svg-icons';
 import { faCartShopping } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CartDrawer from '@/components/tienda/CartDrawer';
 import { useCart } from '@/contexts/cart-context';
 
@@ -15,6 +15,7 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
     const { auth } = usePage().props as any;
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { isDrawerOpen, openCart, itemCount } = useCart();
+    const cartQueryHandled = useRef(false);
 
     useEffect(() => {
         if (isDrawerOpen || isMobileMenuOpen) {
@@ -23,6 +24,36 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
             document.body.style.overflow = 'unset';
         }
     }, [isDrawerOpen, isMobileMenuOpen]);
+
+    useEffect(() => {
+        if (typeof window === 'undefined' || cartQueryHandled.current) {
+            return;
+        }
+
+        const p = new URLSearchParams(window.location.search);
+
+        if (p.get('openCart') !== '1') {
+            return;
+        }
+
+        cartQueryHandled.current = true;
+        const wantCheckout = p.get('checkout') === '1';
+
+        p.delete('openCart');
+        p.delete('checkout');
+
+        if (wantCheckout) {
+            openCart({ view: 'checkout' });
+        } else {
+            openCart();
+        }
+
+        const qs = p.toString();
+        const path = window.location.pathname;
+        const cleanUrl = `${path}${qs ? `?${qs}` : ''}${window.location.hash}`;
+
+        window.history.replaceState(window.history.state, '', cleanUrl);
+    }, [openCart]);
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-[#FFFCF4] font-['Inter',sans-serif] text-[#3e352f]">

@@ -4,12 +4,28 @@ import {
     faPlus,
     faMinus,
     faInfo,
+    faCircleCheck,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { router, usePage } from '@inertiajs/react';
 import { ShieldCheck, Truck, History } from 'lucide-react';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import PayPalCheckoutButtons from '@/components/tienda/PayPalCheckoutButtons';
+import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/cart-context';
+import {
+    flushSaveCartToStorage,
+    setResumeCheckoutIntent,
+} from '@/lib/cart-storage';
+import { login } from '@/routes';
+
+const RESUME_CART_PATH = '/?openCart=1&checkout=1';
 
 const CartDrawer: React.FC = () => {
     const {
@@ -19,16 +35,59 @@ const CartDrawer: React.FC = () => {
         clearCart,
         isDrawerOpen: isOpen,
         closeCart,
+        consumePendingDrawerView,
     } = useCart();
+    const { auth } = usePage().props as { auth: { user: unknown } };
     const [view, setView] = React.useState<'cart' | 'checkout'>('cart');
     const [selectedPayment, setSelectedPayment] =
         useState<string>('paypal');
+    const [purchaseSuccessOpen, setPurchaseSuccessOpen] = useState(false);
+    const prevIsOpen = useRef(false);
+
+    const handleProceedToPay = useCallback(() => {
+        if (auth?.user) {
+            setView('checkout');
+
+            return;
+        }
+
+        flushSaveCartToStorage(items);
+        setResumeCheckoutIntent(true);
+        const url = login.url({
+            query: { redirect: RESUME_CART_PATH },
+        });
+        router.visit(url, { preserveScroll: false, preserveState: false });
+    }, [auth?.user, items]);
 
     useEffect(() => {
         if (!isOpen) {
-            setView('cart');
+            const id = requestAnimationFrame(() => {
+                setView('cart');
+            });
+
+            return () => cancelAnimationFrame(id);
         }
+
+        return undefined;
     }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen && !prevIsOpen.current) {
+            const v = consumePendingDrawerView();
+
+            if (v === 'checkout') {
+                const id = requestAnimationFrame(() => {
+                    setView('checkout');
+                });
+
+                return () => cancelAnimationFrame(id);
+            }
+        }
+
+        prevIsOpen.current = isOpen;
+
+        return undefined;
+    }, [isOpen, consumePendingDrawerView]);
 
     const subtotal = items.reduce(
         (acc, item) => acc + item.price * item.quantity,
@@ -50,12 +109,16 @@ const CartDrawer: React.FC = () => {
         clearCart();
         setView('cart');
         closeCart();
-        window.alert(
-            '¡Pago capturado correctamente! (Sandbox)\n\nPuedes verificar la venta en developer.paypal.com → Actividad.',
-        );
+        setPurchaseSuccessOpen(true);
     }, [clearCart, closeCart]);
 
+    const handleGoToOrdersPanel = useCallback(() => {
+        setPurchaseSuccessOpen(false);
+        router.visit('/user/orders');
+    }, []);
+
     return (
+        <>
         <div
             className={`fixed inset-0 z-[100] ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
         >
@@ -312,12 +375,14 @@ const CartDrawer: React.FC = () => {
 
                                         <button
                                             type="button"
-                                            onClick={() => setView('checkout')}
+                                            onClick={handleProceedToPay}
                                             disabled={items.length === 0}
                                             className="mt-2 w-full rounded-[2px] bg-[#1B3D6D] py-[14px] text-white shadow-lg transition hover:bg-[#163158] disabled:cursor-not-allowed disabled:opacity-50"
                                         >
                                             <span className="font-['Inter',sans-serif] text-[15px] font-bold tracking-wide">
-                                                Proceder al pago
+                                                {auth?.user
+                                                    ? 'Proceder al pago'
+                                                    : 'Iniciar sesión y pagar'}
                                             </span>
                                         </button>
 
@@ -525,6 +590,60 @@ const CartDrawer: React.FC = () => {
                 />
             </aside>
         </div>
+
+        {purchaseSuccessOpen ? (
+            <div
+                className="fixed inset-0 z-[200] flex items-center justify-center p-4 pointer-events-auto"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="purchase-success-title"
+            >
+                <button
+                    type="button"
+                    className="absolute inset-0 bg-black/40 transition-opacity hover:bg-black/45"
+                    aria-label="Cerrar diálogo"
+                    onClick={() => setPurchaseSuccessOpen(false)}
+                />
+                <div className="relative z-[1] w-full max-w-[420px] rounded-[2px] border border-[#DCDCDC] bg-white p-6 shadow-[0px_12px_40px_rgba(0,0,0,0.12)] md:p-8">
+                    <div className="mb-4 flex justify-center">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-[2px] bg-[#E8F0FA]">
+                            <FontAwesomeIcon
+                                icon={faCircleCheck}
+                                className="text-2xl text-[#1B3D6D]"
+                            />
+                        </div>
+                    </div>
+                    <h2
+                        id="purchase-success-title"
+                        className="mb-3 text-center font-['Inter',sans-serif] text-[20px] font-bold text-[#1B3D6D] md:text-[22px]"
+                    >
+                        Compra exitosa
+                    </h2>
+                    <p className="text-center font-['Inter',sans-serif] text-[14px] leading-relaxed text-[#5C5C5C] md:text-[15px]">
+                        Puede ingresar a su panel para observar los detalles
+                        de su transacción.
+                    </p>
+                    <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setPurchaseSuccessOpen(false)}
+                            className="h-[44px] rounded-[2px] border-2 border-[#1B3D6D] bg-white font-['Inter',sans-serif] text-[14px] font-semibold text-[#1B3D6D] shadow-none hover:bg-[#F5F8FC] hover:text-[#1B3D6D] dark:bg-white dark:text-[#1B3D6D] dark:border-[#1B3D6D] dark:hover:bg-[#F5F8FC] sm:min-w-[140px]"
+                        >
+                            Cerrar
+                        </Button>
+                        <Button
+                            type="button"
+                            onClick={handleGoToOrdersPanel}
+                            className="h-[44px] rounded-[2px] bg-[#1B3D6D] font-['Inter',sans-serif] text-[14px] font-semibold text-white shadow-sm hover:bg-[#254a7a] sm:min-w-[180px]"
+                        >
+                            Ir a mi panel
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        ) : null}
+        </>
     );
 };
 

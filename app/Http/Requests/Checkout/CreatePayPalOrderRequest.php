@@ -2,11 +2,15 @@
 
 namespace App\Http\Requests\Checkout;
 
-use App\Support\Store\ProductCatalog;
+use App\Models\Producto;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+/**
+ * Pago de carrito: slugs deben existir en `productos` con estado activo (SoftDeletes aplicado por el modelo).
+ * Suscripciones a historias: fases futuras (otro shape de `items.*`).
+ */
 class CreatePayPalOrderRequest extends FormRequest
 {
     public function authorize(): bool
@@ -21,7 +25,12 @@ class CreatePayPalOrderRequest extends FormRequest
     {
         return [
             'items' => ['required', 'array', 'min:1', 'max:50'],
-            'items.*.slug' => ['required', 'string', 'max:120', Rule::in(ProductCatalog::slugs())],
+            'items.*.slug' => [
+                'required',
+                'string',
+                'max:120',
+                Rule::exists(Producto::class, 'slug')->where('estado', 'activo'),
+            ],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:99'],
         ];
     }
@@ -33,7 +42,7 @@ class CreatePayPalOrderRequest extends FormRequest
     {
         return [
             'items.required' => 'El carrito está vacío.',
-            'items.*.slug.in' => 'Hay un producto no válido en el carrito.',
+            'items.*.slug.exists' => 'Hay un producto no válido en el carrito.',
         ];
     }
 }

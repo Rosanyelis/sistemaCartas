@@ -15,13 +15,17 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import InputError from '@/components/input-error';
 
+type VerifyEmailProps = {
+    status?: string;
+    showSuccess?: boolean;
+    redirectAfterVerify?: string | null;
+};
+
 export default function VerifyEmail({
     status: initialStatus,
     showSuccess = false,
-}: {
-    status?: string;
-    showSuccess?: boolean;
-}) {
+    redirectAfterVerify = null,
+}: VerifyEmailProps) {
     const [step, setStep] = useState(showSuccess ? 2 : 1); // 1: OTP, 2: Success
     const [otp, setOtp] = useState(['', '', '', '', '', '']);
     const [timer, setTimer] = useState(60);
@@ -204,7 +208,11 @@ export default function VerifyEmail({
             {step === 2 && (
                 <div className="flex w-full flex-col gap-6">
                     <Button
-                        onClick={() => router.visit(dashboard())}
+                        onClick={() =>
+                            router.visit(
+                                redirectAfterVerify ?? dashboard().url,
+                            )
+                        }
                         className="h-[44px] w-full bg-[#385E88] text-[18px] font-bold text-white shadow-md transition-all hover:bg-[#4E76A0] md:h-[50px] md:text-[22px]"
                     >
                         Empezar ahora{' '}
