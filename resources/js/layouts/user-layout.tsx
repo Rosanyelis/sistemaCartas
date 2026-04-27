@@ -12,6 +12,7 @@ import {
     faFileLines,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { appFontLinks } from '@/components/AppFontLinks';
 import { FlashToasts } from '@/components/FlashToasts';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { ReactNode, useState } from 'react';
@@ -93,8 +94,10 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
           ];
 
     return (
-        <div className="flex min-h-screen bg-[#F5F6F7]">
-            <Head title={title} />
+        <div className="flex min-h-screen bg-[#F5F6F7] font-['Inter',sans-serif]">
+            <Head title={title}>
+                {appFontLinks()}
+            </Head>
             {/* Overlay Mobile */}
             {isSidebarOpen && (
                 <div

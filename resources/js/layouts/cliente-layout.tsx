@@ -1,9 +1,10 @@
 import { faUser } from '@fortawesome/free-regular-svg-icons';
 import { faCartShopping } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { useState, useEffect, useRef } from 'react';
+import { appFontLinks } from '@/components/AppFontLinks';
 import CartDrawer from '@/components/tienda/CartDrawer';
 import { useCart } from '@/contexts/cart-context';
 
@@ -57,6 +58,9 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-[#FFFCF4] font-['Inter',sans-serif] text-[#3e352f]">
+            <Head>
+                {appFontLinks()}
+            </Head>
             {/* Header / Navegación */}
             <header className="fixed top-0 z-[70] w-full border-b border-[#e8e4d9] bg-white shadow-[0px_0px_16px_rgba(0,0,0,0.04)]">
                 <div className="mx-auto flex h-[80px] max-w-7xl items-center justify-between px-5 md:px-[71px]">
@@ -144,9 +148,9 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                                     />
                                 </Link>
                             )}
-                            <button
-                                type="button"
-                                onClick={openCart}
+                                    <button
+                                        type="button"
+                                        onClick={() => openCart()}
                                 className={`relative flex h-10 w-10 items-center justify-center transition duration-300 ${isDrawerOpen ? 'bg-[#D7C181] text-[#1B3D6D] shadow-md' : 'bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] hover:bg-[#eae4d3]'}`}
                             >
                                 {itemCount > 0 && (
@@ -185,9 +189,9 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                                 />
                             </Link>
                         )}
-                        <button
-                            type="button"
-                            onClick={openCart}
+                                <button
+                                    type="button"
+                                    onClick={() => openCart()}
                             className={`relative flex h-10 w-10 items-center justify-center transition duration-300 ${isDrawerOpen ? 'bg-[#D7C181] text-[#1B3D6D] shadow-md' : 'bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] hover:bg-[#eae4d3]'}`}
                         >
                             {itemCount > 0 && (
