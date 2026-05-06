@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\User;
 
 use App\Models\Historia;
+use App\Support\HistoriaSuscripcionPrecio;
 
 /**
  * Serialización mínima de una historia para tarjetas en la tienda (Inertia).
@@ -46,6 +47,9 @@ final class HistoriaCatalogoSerializer
             'video' => $historia->video,
             'precio_base' => (string) $historia->precio_base,
             'precio_promocional' => $historia->precio_promocional !== null ? (string) $historia->precio_promocional : null,
+            'precio_suscripcion' => $historia->precio_suscripcion !== null ? (string) $historia->precio_suscripcion : null,
+            'duracion_meses' => $historia->duracion_meses,
+            'subscription_unit_price' => (string) HistoriaSuscripcionPrecio::montoPorCiclo($historia),
             'variantes' => $historia->variantes->map(fn ($v) => [
                 'tipo' => $v->tipo->value,
                 'valor' => $v->valor,

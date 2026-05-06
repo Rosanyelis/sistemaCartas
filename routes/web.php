@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\ProductoSubcategoriaController as AdminProductoSu
 use App\Http\Controllers\Admin\SuscripcionController as AdminSuscripcionController;
 use App\Http\Controllers\Auth\EmailVerificationOtpController;
 use App\Http\Controllers\Checkout\PayPalCheckoutController;
+use App\Http\Controllers\Checkout\PayPalSubscriptionCheckoutController;
+use App\Http\Controllers\Checkout\PayPalWebhookController;
 use App\Http\Controllers\User\HistoriaCatalogoSerializer;
 use App\Http\Controllers\User\HistoriaController;
 use App\Http\Controllers\User\OrdenController;
@@ -72,6 +74,9 @@ Route::post('/checkout/paypal/order', [PayPalCheckoutController::class, 'createO
 Route::post('/checkout/paypal/capture', [PayPalCheckoutController::class, 'capture'])
     ->name('checkout.paypal.capture');
 
+Route::post('/webhooks/paypal', PayPalWebhookController::class)
+    ->name('webhooks.paypal');
+
 Route::middleware('auth')->group(function () {
     // Override Fortify's default verify-email prompt to prevent auto-redirecting when we want to show success
     Route::get('/email/verify', function (Request $request) {
@@ -104,6 +109,9 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/checkout/paypal/subscription/draft', [PayPalSubscriptionCheckoutController::class, 'draft'])
+        ->name('checkout.paypal.subscription.draft');
+
     Route::get('dashboard', function (Request $request) {
         if ($request->user()->isAdmin()) {
             return redirect()->route('admin.dashboard');

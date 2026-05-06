@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/react';
 import { ShieldCheck, Package, CalendarX, Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ClienteLayout from '@/layouts/cliente-layout';
+import { useCart } from '@/contexts/cart-context';
 import { inclusionIconOrFallback } from '@/lib/historia-detalle-inclusion-lucide-map';
 
 export interface HistoriaPublicaDetalle {
@@ -17,6 +18,10 @@ export interface HistoriaPublicaDetalle {
     video: string | null;
     precio_base: string;
     precio_promocional: string | null;
+    precio_suscripcion: string | null;
+    duracion_meses: number | null;
+    /** Precio por ciclo de suscripción (PayPal), coherente con backend */
+    subscription_unit_price: string;
     /** Opciones públicas (papel, color, etc.) */
     variantes: { tipo: string; valor: string }[];
     galeria: { id: number; path: string; tipo: string; es_principal: boolean }[];
@@ -252,6 +257,30 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
 
     const tituloPagina = `${historia.nombre} | Historias por Correo`;
 
+    const { addHistoriaSuscripcion, openCart } = useCart();
+
+    const handleAddSuscripcion = useCallback(() => {
+        const dur =
+            typeof historia.duracion_meses === 'number' &&
+            !Number.isNaN(historia.duracion_meses)
+                ? historia.duracion_meses
+                : 1;
+        const unit = Number.parseFloat(historia.subscription_unit_price);
+        const price = Number.isFinite(unit) ? unit : 0;
+        const cover = posterThumbUrl(historia);
+
+        addHistoriaSuscripcion({
+            slug: historia.slug,
+            name: historia.nombre,
+            subtitle: `Suscripción PayPal · ciclo cada ${dur} mes(es)`,
+            price,
+            image: cover,
+            duracion_meses: dur,
+            badge: 'Suscripción',
+        });
+        openCart({ view: 'checkout' });
+    }, [addHistoriaSuscripcion, historia, openCart]);
+
     return (
         <ClienteLayout>
             <Head>
@@ -337,9 +366,14 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
                             ) : null}
 
                             {/* Subscribe Button */}
-                            <button className="flex h-[47px] w-full items-center justify-center rounded-[2px] border border-[#1B3D6D] bg-[#1B3D6D] px-5 py-[14px] text-white transition hover:bg-[#1B3D6D]/90">
+                            <button
+                                type="button"
+                                onClick={handleAddSuscripcion}
+                                className="flex h-[47px] w-full items-center justify-center rounded-[2px] border border-[#1B3D6D] bg-[#1B3D6D] px-5 py-[14px] text-white transition hover:bg-[#1B3D6D]/90"
+                            >
                                 <span className="font-['Inter',sans-serif] text-base font-semibold">
-                                    Suscribirme a esta historia
+                                    Añadir suscripción al carrito (
+                                    {historia.subscription_unit_price} USD / ciclo)
                                 </span>
                             </button>
 

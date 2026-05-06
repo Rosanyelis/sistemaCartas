@@ -5,12 +5,16 @@ namespace App\Http\Controllers\Checkout;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkout\CapturePayPalOrderRequest;
 use App\Http\Requests\Checkout\CreatePayPalOrderRequest;
+use App\Mail\Checkout\StoreOrderPaidMail;
+use App\Models\PasarelaEvento;
 use App\Models\Producto;
 use App\Models\StoreOrder;
+use App\Services\PasarelaEventoRecorder;
 use App\Services\PayPalService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 class PayPalCheckoutController extends Controller
@@ -74,7 +78,7 @@ class PayPalCheckoutController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($request, $orderId, $total, $resolved): void {
+            $localOrderId = DB::transaction(function () use ($request, $orderId, $total, $resolved): int {
                 $order = StoreOrder::query()->create([
                     'user_id' => $request->user()?->id,
                     'paypal_order_id' => $orderId,
@@ -93,6 +97,21 @@ class PayPalCheckoutController extends Controller
                         'line_total' => $row['line_total'],
                     ]);
                 }
+
+                PasarelaEventoRecorder::recordOrFetchByPayPalEventId(
+                    null,
+                    'CHECKOUT_ORDER_CREATED',
+                    PasarelaEvento::ESTADO_PENDIENTE,
+                    [
+                        'paypal_order_id' => $orderId,
+                        'local_order_id' => $order->id,
+                    ],
+                    null,
+                    $order->id,
+                    null,
+                );
+
+                return $order->id;
             });
         } catch (Throwable $e) {
             report($e);
@@ -105,7 +124,7 @@ class PayPalCheckoutController extends Controller
 
         return response()->json([
             'orderId' => $orderId,
-            'localOrderId' => StoreOrder::query()->where('paypal_order_id', $orderId)->value('id'),
+            'localOrderId' => $localOrderId,
         ]);
     }
 
@@ -122,6 +141,7 @@ class PayPalCheckoutController extends Controller
         try {
             return DB::transaction(function () use ($orderId, $payPal): JsonResponse {
                 $storeOrder = StoreOrder::query()
+                    ->with('user')
                     ->where('paypal_order_id', $orderId)
                     ->lockForUpdate()
                     ->first();
@@ -158,6 +178,18 @@ class PayPalCheckoutController extends Controller
                         'failure_message' => $parsed['message'] ?? $e->getMessage(),
                         'failure_payload' => $e->response?->json() ?? ['raw' => $e->getMessage()],
                     ]);
+                    PasarelaEventoRecorder::recordOrFetchByPayPalEventId(
+                        null,
+                        'CHECKOUT_ORDER_CAPTURE_FAILED',
+                        PasarelaEvento::ESTADO_RECHAZADO,
+                        [
+                            'paypal_order_id' => $orderId,
+                            'paypal_error' => $parsed['name'] ?? null,
+                        ],
+                        $parsed['message'] ?? $e->getMessage(),
+                        $storeOrder->id,
+                        null,
+                    );
                     report($e);
 
                     $hint = $parsed['message'] ?? 'Intenta de nuevo o usa otro método.';
@@ -172,6 +204,15 @@ class PayPalCheckoutController extends Controller
                         'failure_message' => $e->getMessage(),
                         'failure_payload' => ['exception' => $e::class],
                     ]);
+                    PasarelaEventoRecorder::recordOrFetchByPayPalEventId(
+                        null,
+                        'CHECKOUT_ORDER_CAPTURE_FAILED',
+                        PasarelaEvento::ESTADO_RECHAZADO,
+                        ['paypal_order_id' => $orderId],
+                        $e->getMessage(),
+                        $storeOrder->id,
+                        null,
+                    );
                     report($e);
 
                     return response()->json([
@@ -190,6 +231,28 @@ class PayPalCheckoutController extends Controller
                     'failure_message' => null,
                     'failure_payload' => null,
                 ]);
+
+                PasarelaEventoRecorder::recordOrFetchByPayPalEventId(
+                    null,
+                    'CHECKOUT_ORDER_CAPTURED',
+                    PasarelaEvento::ESTADO_COMPLETADO,
+                    [
+                        'paypal_order_id' => $orderId,
+                        'local_order_id' => $storeOrder->id,
+                    ],
+                    null,
+                    $storeOrder->id,
+                    null,
+                );
+
+                $orderIdForMail = $storeOrder->id;
+                DB::afterCommit(function () use ($orderIdForMail): void {
+                    $fresh = StoreOrder::query()->with('user')->find($orderIdForMail);
+                    $email = $fresh?->user?->email;
+                    if ($fresh !== null && is_string($email) && $email !== '') {
+                        Mail::to($email)->send(new StoreOrderPaidMail($fresh));
+                    }
+                });
 
                 return response()->json([
                     'status' => 'completed',

@@ -13,7 +13,11 @@ import {
     loadCartFromStorage,
     saveCartToStorage,
 } from '@/lib/cart-storage';
-import type { CartLine } from '@/types/cart-line';
+import {
+    cartLineKey,
+    type CartLine,
+    type CartLineProduct,
+} from '@/types/cart-line';
 
 export type { CartLine } from '@/types/cart-line';
 
@@ -38,9 +42,20 @@ type CartContextValue = {
         quantity?: number;
         badge?: string;
     }) => void;
-    updateQuantity: (slug: string, delta: number) => void;
-    removeItem: (slug: string) => void;
+    addHistoriaSuscripcion: (input: {
+        slug: string;
+        name: string;
+        subtitle: string;
+        price: number;
+        image: string;
+        duracion_meses: number;
+        badge?: string;
+    }) => void;
+    updateQuantity: (lineKey: string, delta: number) => void;
+    removeItem: (lineKey: string) => void;
     clearCart: () => void;
+    clearProductLines: () => void;
+    clearHistoriaSubscriptionLines: () => void;
     consumePendingDrawerView: () => 'cart' | 'checkout' | null;
     clearPendingDrawerView: () => void;
 };
@@ -88,11 +103,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }) => {
             const qty = input.quantity ?? 1;
             setItems((prev) => {
-                const found = prev.find((l) => l.slug === input.slug);
+                const found = prev.find(
+                    (l): l is CartLineProduct =>
+                        l.kind === 'product' && l.slug === input.slug,
+                );
 
                 if (found) {
                     return prev.map((l) =>
-                        l.slug === input.slug
+                        l.kind === 'product' && l.slug === input.slug
                             ? {
                                   ...l,
                                   quantity: Math.min(99, l.quantity + qty),
@@ -101,27 +119,70 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     );
                 }
 
-                return [
-                    ...prev,
-                    {
-                        slug: input.slug,
-                        name: input.name,
-                        subtitle: input.subtitle,
-                        price: input.price,
-                        image: input.image,
-                        quantity: qty,
-                        badge: input.badge ?? 'Pago Único',
-                    },
-                ];
+                const row: CartLineProduct = {
+                    kind: 'product',
+                    slug: input.slug,
+                    name: input.name,
+                    subtitle: input.subtitle,
+                    price: input.price,
+                    image: input.image,
+                    quantity: qty,
+                    badge: input.badge ?? 'Pago Único',
+                };
+
+                return [...prev, row];
             });
         },
         [],
     );
 
-    const updateQuantity = useCallback((slug: string, delta: number) => {
+    const addHistoriaSuscripcion = useCallback(
+        (input: {
+            slug: string;
+            name: string;
+            subtitle: string;
+            price: number;
+            image: string;
+            duracion_meses: number;
+            badge?: string;
+        }) => {
+            setItems((prev) => {
+                const filtered = prev.filter(
+                    (l) =>
+                        !(
+                            l.kind === 'historia_suscripcion' &&
+                            l.slug === input.slug
+                        ),
+                );
+                const row = {
+                    kind: 'historia_suscripcion' as const,
+                    slug: input.slug,
+                    name: input.name,
+                    subtitle: input.subtitle,
+                    price: input.price,
+                    image: input.image,
+                    quantity: 1 as const,
+                    badge: input.badge ?? 'Suscripción PayPal',
+                    duracion_meses: Math.max(
+                        1,
+                        Math.min(120, Math.floor(input.duracion_meses)),
+                    ),
+                };
+
+                return [...filtered, row];
+            });
+        },
+        [],
+    );
+
+    const updateQuantity = useCallback((lineKey: string, delta: number) => {
         setItems((prev) =>
             prev.map((l) => {
-                if (l.slug !== slug) {
+                if (cartLineKey(l) !== lineKey) {
+                    return l;
+                }
+
+                if (l.kind === 'historia_suscripcion') {
                     return l;
                 }
 
@@ -132,13 +193,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
         );
     }, []);
 
-    const removeItem = useCallback((slug: string) => {
-        setItems((prev) => prev.filter((l) => l.slug !== slug));
+    const removeItem = useCallback((lineKey: string) => {
+        setItems((prev) => prev.filter((l) => cartLineKey(l) !== lineKey));
     }, []);
 
     const clearCart = useCallback(() => {
         setItems([]);
         clearCartStorage();
+    }, []);
+
+    const clearProductLines = useCallback(() => {
+        setItems((prev) => prev.filter((l) => l.kind !== 'product'));
+    }, []);
+
+    const clearHistoriaSubscriptionLines = useCallback(() => {
+        setItems((prev) => prev.filter((l) => l.kind !== 'historia_suscripcion'));
     }, []);
 
     const openCart = useCallback((options?: OpenCartOptions) => {
@@ -181,9 +250,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
             openCart,
             closeCart,
             addItem,
+            addHistoriaSuscripcion,
             updateQuantity,
             removeItem,
             clearCart,
+            clearProductLines,
+            clearHistoriaSubscriptionLines,
             consumePendingDrawerView,
             clearPendingDrawerView,
         }),
@@ -195,9 +267,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
             openCart,
             closeCart,
             addItem,
+            addHistoriaSuscripcion,
             updateQuantity,
             removeItem,
             clearCart,
+            clearProductLines,
+            clearHistoriaSubscriptionLines,
             consumePendingDrawerView,
             clearPendingDrawerView,
         ],

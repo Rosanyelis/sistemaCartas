@@ -1,11 +1,14 @@
 <?php
 
+use App\Models\PasarelaEvento;
 use App\Models\Producto;
 use App\Models\StoreOrder;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 
 beforeEach(function (): void {
+    Mail::fake();
     Config::set([
         'paypal.client_id' => 'test_client_id',
         'paypal.client_secret' => 'test_client_secret',
@@ -57,6 +60,14 @@ test('invitado puede crear orden paypal con ítems válidos de productos activos
         'quantity' => 2,
         'unit_price' => 12.45,
         'line_total' => 24.90,
+    ]);
+
+    $orderId = StoreOrder::query()->where('paypal_order_id', 'PAYPAL-ORDER-DEMO-1')->value('id');
+    expect($orderId)->not->toBeNull();
+    $this->assertDatabaseHas('pasarela_eventos', [
+        'store_order_id' => $orderId,
+        'event_type' => 'CHECKOUT_ORDER_CREATED',
+        'estado' => PasarelaEvento::ESTADO_PENDIENTE,
     ]);
 });
 

@@ -1,34 +1,22 @@
 import { usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import {
-    capture as paypalCaptureRoute,
-    order as paypalCreateOrderRoute,
-} from '@/routes/checkout/paypal';
+import { draft as subscriptionDraftRoute } from '@/routes/checkout/paypal/subscription';
 import { loadPayPalScript } from '@/lib/load-paypal-script';
 import { postJson } from '@/lib/json-fetch';
+import type { SharedPayPalProps } from '@/components/tienda/PayPalCheckoutButtons';
 
-export type SharedPayPalProps = {
-    paypal: {
-        clientId: string;
-        currency: string;
-        enabled: boolean;
-    };
+type PayPalSubscriptionButtonsProps = {
+    historiaSlug: string;
+    /** Opcional: vincular la suscripción a una orden de productos de la misma sesión */
+    storeOrderId?: number | null;
+    onSuccess: () => void;
 };
 
-export type PayPalLine = {
-    slug: string;
-    quantity: number;
-};
-
-type PayPalCheckoutButtonsProps = {
-    lines: PayPalLine[];
-    onSuccess?: (info?: { localOrderId?: number }) => void;
-};
-
-export default function PayPalCheckoutButtons({
-    lines,
+export default function PayPalSubscriptionButtons({
+    historiaSlug,
+    storeOrderId,
     onSuccess,
-}: PayPalCheckoutButtonsProps) {
+}: PayPalSubscriptionButtonsProps) {
     const { paypal: paypalFromProps } = usePage().props;
     const paypal =
         paypalFromProps ??
@@ -36,7 +24,7 @@ export default function PayPalCheckoutButtons({
     const containerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const linesKey = lines.map((l) => `${l.slug}:${l.quantity}`).join('|');
+    const depsKey = `${historiaSlug}|${storeOrderId ?? ''}`;
 
     useEffect(() => {
         setError(null);
@@ -49,10 +37,6 @@ export default function PayPalCheckoutButtons({
             return;
         }
 
-        if (lines.length === 0) {
-            return;
-        }
-
         const el = containerRef.current;
         let cancelled = false;
 
@@ -61,7 +45,7 @@ export default function PayPalCheckoutButtons({
                 await loadPayPalScript(
                     paypal.clientId,
                     paypal.currency,
-                    'capture',
+                    'subscription',
                 );
             } catch {
                 if (!cancelled) {
@@ -78,52 +62,35 @@ export default function PayPalCheckoutButtons({
             el.innerHTML = '';
 
             const buttons = window.paypal.Buttons({
-                createOrder: async () => {
+                style: { label: 'subscribe' },
+                createSubscription: async () => {
+                    const body: {
+                        historia_slug: string;
+                        store_order_id?: number;
+                    } = { historia_slug: historiaSlug };
+                    if (storeOrderId != null) {
+                        body.store_order_id = storeOrderId;
+                    }
+
                     const { ok, data } = await postJson<{
-                        orderId?: string;
+                        subscriptionID?: string;
                         message?: string;
-                    }>(paypalCreateOrderRoute.url(), { items: lines });
+                    }>(subscriptionDraftRoute.url(), body);
 
-                    if (!ok || !data.orderId) {
+                    if (!ok || !data.subscriptionID) {
                         throw new Error(
-                            data.message ?? 'No se pudo crear la orden',
+                            data.message ?? 'No se pudo crear la suscripción',
                         );
                     }
 
-                    return data.orderId;
+                    return data.subscriptionID;
                 },
-                onApprove: async (data: { orderID: string }) => {
-                    const { ok, data: cap } = await postJson<{
-                        message?: string;
-                        paypal_error?: string;
-                        detail?: string;
-                        localOrderId?: number;
-                    }>(paypalCaptureRoute.url(), {
-                        order_id: data.orderID,
-                    });
-
-                    if (!ok) {
-                        const msg =
-                            cap.message ??
-                            'No se pudo completar el cobro con PayPal.';
-                        setError(
-                            cap.detail
-                                ? `${msg} (${cap.detail})`
-                                : msg,
-                        );
-                        throw new Error(msg);
-                    }
-
-                    onSuccess?.({
-                        localOrderId:
-                            typeof cap?.localOrderId === 'number'
-                                ? cap.localOrderId
-                                : undefined,
-                    });
+                onApprove: async () => {
+                    onSuccess();
                 },
                 onError: (err) => {
                     console.error(err);
-                    setError('PayPal reportó un error. Revisa la consola.');
+                    setError('PayPal reportó un error al suscribirte.');
                 },
             });
 
@@ -138,13 +105,21 @@ export default function PayPalCheckoutButtons({
                 el.innerHTML = '';
             }
         };
-    }, [linesKey, lines, onSuccess, paypal.clientId, paypal.currency, paypal.enabled]);
+    }, [
+        depsKey,
+        historiaSlug,
+        onSuccess,
+        paypal.clientId,
+        paypal.currency,
+        paypal.enabled,
+        storeOrderId,
+    ]);
 
     if (!paypal.enabled || !paypal.clientId) {
         return (
             <p className="rounded-[2px] border border-amber-200 bg-amber-50 p-3 font-['Inter',sans-serif] text-[13px] text-amber-900">
                 {error ??
-                    'Añade credenciales sandbox de PayPal en el archivo .env para probar el cobro.'}
+                    'Añade credenciales sandbox de PayPal en el archivo .env para activar suscripciones.'}
             </p>
         );
     }

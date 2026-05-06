@@ -17,8 +17,10 @@ import React, {
     useState,
 } from 'react';
 import PayPalCheckoutButtons from '@/components/tienda/PayPalCheckoutButtons';
+import PayPalSubscriptionButtons from '@/components/tienda/PayPalSubscriptionButtons';
 import { Button } from '@/components/ui/button';
 import { useCart } from '@/contexts/cart-context';
+import { cartLineKey } from '@/types/cart-line';
 import {
     flushSaveCartToStorage,
     setResumeCheckoutIntent,
@@ -27,20 +29,39 @@ import { login } from '@/routes';
 
 const RESUME_CART_PATH = '/?openCart=1&checkout=1';
 
+type TiendaPageProps = {
+    auth: { user: unknown };
+    paymentMethods?: {
+        id: number;
+        titular: string | null;
+        detalles: string | null;
+        is_default: boolean;
+        tipo_nombre: string | null;
+    }[];
+};
+
 const CartDrawer: React.FC = () => {
     const {
         items,
         updateQuantity,
         removeItem,
         clearCart,
+        clearProductLines,
+        clearHistoriaSubscriptionLines,
         isDrawerOpen: isOpen,
         closeCart,
         consumePendingDrawerView,
     } = useCart();
-    const { auth } = usePage().props as { auth: { user: unknown } };
+    const { auth, paymentMethods = [] } = usePage().props as TiendaPageProps;
     const [view, setView] = React.useState<'cart' | 'checkout'>('cart');
-    const [selectedPayment, setSelectedPayment] =
-        useState<string>('paypal');
+    const [selectedPayment, setSelectedPayment] = useState<string>(() => {
+        const d = paymentMethods.find((m) => m.is_default);
+
+        return d ? `saved-${d.id}` : 'paypal';
+    });
+    const [lastProductOrderId, setLastProductOrderId] = useState<number | null>(
+        null,
+    );
     const [purchaseSuccessOpen, setPurchaseSuccessOpen] = useState(false);
     const prevIsOpen = useRef(false);
 
@@ -96,21 +117,44 @@ const CartDrawer: React.FC = () => {
     const iva = subtotal * 0.21;
     const total = subtotal;
 
-    const paypalLines = useMemo(
-        () =>
-            items.map((i) => ({
-                slug: i.slug,
-                quantity: i.quantity,
-            })),
+    const productLines = useMemo(
+        () => items.filter((i) => i.kind === 'product'),
         [items],
     );
 
-    const handlePayPalSuccess = useCallback(() => {
-        clearCart();
+    const historiaLines = useMemo(
+        () => items.filter((i) => i.kind === 'historia_suscripcion'),
+        [items],
+    );
+
+    const paypalLines = useMemo(
+        () =>
+            productLines.map((i) => ({
+                slug: i.slug,
+                quantity: i.quantity,
+            })),
+        [productLines],
+    );
+
+    const handlePayPalSuccess = useCallback(
+        (info?: { localOrderId?: number }) => {
+            clearProductLines();
+            if (info?.localOrderId != null) {
+                setLastProductOrderId(info.localOrderId);
+            }
+            setView('cart');
+            closeCart();
+            setPurchaseSuccessOpen(true);
+        },
+        [clearProductLines, closeCart],
+    );
+
+    const handleSubscriptionPayPalSuccess = useCallback(() => {
+        clearHistoriaSubscriptionLines();
         setView('cart');
         closeCart();
         setPurchaseSuccessOpen(true);
-    }, [clearCart, closeCart]);
+    }, [clearHistoriaSubscriptionLines, closeCart]);
 
     const handleGoToOrdersPanel = useCallback(() => {
         setPurchaseSuccessOpen(false);
@@ -166,13 +210,15 @@ const CartDrawer: React.FC = () => {
                                     <div className="flex flex-col gap-2">
                                         {items.map((item) => (
                                             <div
-                                                key={item.slug}
+                                                key={cartLineKey(item)}
                                                 className="relative flex gap-3 rounded-[2px] bg-white p-2.5 shadow-[0px_4px_12px_rgba(0,0,0,0.02)]"
                                             >
                                                 <button
                                                     type="button"
                                                     onClick={() =>
-                                                        removeItem(item.slug)
+                                                        removeItem(
+                                                            cartLineKey(item),
+                                                        )
                                                     }
                                                     className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-[2px] bg-[#EFEFEF] text-[#7B7B7B] transition hover:bg-[#E5E5E5] hover:text-red-500"
                                                     aria-label="Quitar del carrito"
@@ -214,45 +260,58 @@ const CartDrawer: React.FC = () => {
                                                                     )}
                                                             </span>
                                                             <div className="flex h-[22px] shrink-0 items-center rounded-[2px] bg-[#F5F5FF] px-1 shadow-[inset_0px_1px_2px_rgba(0,0,0,0.04)]">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        updateQuantity(
-                                                                            item.slug,
-                                                                            -1,
-                                                                        )
-                                                                    }
-                                                                    className="flex px-1.5 text-[#1B3D6D] transition hover:opacity-50"
-                                                                >
-                                                                    <FontAwesomeIcon
-                                                                        icon={
-                                                                            faMinus
-                                                                        }
-                                                                        className="text-[7px]"
-                                                                    />
-                                                                </button>
-                                                                <span className="min-w-[16px] text-center font-['Roboto',sans-serif] text-[12px] font-medium text-[#1B3D6D]">
-                                                                    {
-                                                                        item.quantity
-                                                                    }
-                                                                </span>
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() =>
-                                                                        updateQuantity(
-                                                                            item.slug,
-                                                                            1,
-                                                                        )
-                                                                    }
-                                                                    className="flex px-1.5 text-[#1B3D6D] transition hover:opacity-50"
-                                                                >
-                                                                    <FontAwesomeIcon
-                                                                        icon={
-                                                                            faPlus
-                                                                        }
-                                                                        className="text-[7px]"
-                                                                    />
-                                                                </button>
+                                                                {item.kind ===
+                                                                'product' ? (
+                                                                    <>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                updateQuantity(
+                                                                                    cartLineKey(
+                                                                                        item,
+                                                                                    ),
+                                                                                    -1,
+                                                                                )
+                                                                            }
+                                                                            className="flex px-1.5 text-[#1B3D6D] transition hover:opacity-50"
+                                                                        >
+                                                                            <FontAwesomeIcon
+                                                                                icon={
+                                                                                    faMinus
+                                                                                }
+                                                                                className="text-[7px]"
+                                                                            />
+                                                                        </button>
+                                                                        <span className="min-w-[16px] text-center font-['Roboto',sans-serif] text-[12px] font-medium text-[#1B3D6D]">
+                                                                            {
+                                                                                item.quantity
+                                                                            }
+                                                                        </span>
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={() =>
+                                                                                updateQuantity(
+                                                                                    cartLineKey(
+                                                                                        item,
+                                                                                    ),
+                                                                                    1,
+                                                                                )
+                                                                            }
+                                                                            className="flex px-1.5 text-[#1B3D6D] transition hover:opacity-50"
+                                                                        >
+                                                                            <FontAwesomeIcon
+                                                                                icon={
+                                                                                    faPlus
+                                                                                }
+                                                                                className="text-[7px]"
+                                                                            />
+                                                                        </button>
+                                                                    </>
+                                                                ) : (
+                                                                    <span className="px-2 font-['Roboto',sans-serif] text-[11px] font-medium text-[#1B3D6D]">
+                                                                        1 ciclo
+                                                                    </span>
+                                                                )}
                                                             </div>
                                                             <span className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D]">
                                                                 $
@@ -474,32 +533,67 @@ const CartDrawer: React.FC = () => {
                                     </div>
 
                                     <div className="flex flex-col gap-3">
-                                        <label
-                                            className={`relative flex cursor-pointer items-center justify-between rounded-[2px] border p-4 transition-all duration-300 ${selectedPayment === 'stripe' ? 'border-[#1B3D6D] bg-[#E1EFFF]' : 'border-[#DCDCDC] bg-white'}`}
-                                            onClick={() =>
-                                                setSelectedPayment('stripe')
-                                            }
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div
-                                                    className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedPayment === 'stripe' ? 'border-[#1B3D6D] bg-[#1B3D6D]' : 'border-[#DCDCDC]'}`}
+                                        {paymentMethods.length > 0 ? (
+                                            <>
+                                                <p className="font-['Inter',sans-serif] text-[11px] leading-relaxed text-[#7B7B7B]">
+                                                    Métodos guardados en tu
+                                                    perfil (referencia). El
+                                                    cobro de esta tienda usa
+                                                    PayPal: productos con
+                                                    Orders y suscripciones a
+                                                    historias con PayPal
+                                                    Subscriptions (no se
+                                                    tokeniza aquí el
+                                                    recurrente).
+                                                </p>
+                                                {paymentMethods.map((m) => (
+                                                    <label
+                                                        key={m.id}
+                                                        className={`relative flex cursor-pointer items-center justify-between rounded-[2px] border p-4 transition-all duration-300 ${selectedPayment === `saved-${m.id}` ? 'border-[#1B3D6D] bg-[#E1EFFF]' : 'border-[#DCDCDC] bg-white'}`}
+                                                        onClick={() =>
+                                                            setSelectedPayment(
+                                                                `saved-${m.id}`,
+                                                            )
+                                                        }
+                                                    >
+                                                        <div className="flex items-center gap-3">
+                                                            <div
+                                                                className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedPayment === `saved-${m.id}` ? 'border-[#1B3D6D] bg-[#1B3D6D]' : 'border-[#DCDCDC]'}`}
+                                                            >
+                                                                {selectedPayment ===
+                                                                    `saved-${m.id}` && (
+                                                                    <div className="h-2 w-2 rounded-full bg-white" />
+                                                                )}
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D]">
+                                                                    {m.titular ??
+                                                                        'Método'}
+                                                                </span>
+                                                                <span className="font-['Inter',sans-serif] text-[11px] text-[#7B7B7B]">
+                                                                    {m.tipo_nombre ??
+                                                                        '—'}
+                                                                    {m.is_default
+                                                                        ? ' · Predeterminado'
+                                                                        : ''}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </label>
+                                                ))}
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setSelectedPayment(
+                                                            'paypal',
+                                                        )
+                                                    }
+                                                    className="text-left font-['Inter',sans-serif] text-[12px] font-semibold text-[#1B3D6D] underline"
                                                 >
-                                                    {selectedPayment ===
-                                                        'stripe' && (
-                                                        <div className="h-2 w-2 rounded-full bg-white" />
-                                                    )}
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#1B3D6D]">
-                                                        Tarjeta (Stripe)
-                                                    </span>
-                                                    <span className="font-['Inter',sans-serif] text-[12px] font-light text-[#1B3D6D] opacity-70">
-                                                        No conectado en esta
-                                                        demo
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </label>
+                                                    Usar otro método (PayPal)
+                                                </button>
+                                            </>
+                                        ) : null}
 
                                         <label
                                             className={`relative flex cursor-pointer items-center justify-between rounded-[2px] border p-4 transition-all duration-300 ${selectedPayment === 'paypal' ? 'border-[#1B3D6D] bg-[#E1EFFF]' : 'border-[#DCDCDC] bg-white'}`}
@@ -532,13 +626,12 @@ const CartDrawer: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {selectedPayment === 'paypal' && (
+                                {productLines.length > 0 && (
                                     <div className="flex flex-col gap-2">
                                         <p className="font-['Inter',sans-serif] text-[12px] text-[#7B7B7B]">
-                                            Inicia sesión con una cuenta
-                                            sandbox de comprador (facilitada
-                                            en PayPal Developer) para
-                                            completar el flujo.
+                                            Pago único de productos: inicia
+                                            sesión en PayPal (sandbox) para
+                                            completar el cobro.
                                         </p>
                                         <PayPalCheckoutButtons
                                             lines={paypalLines}
@@ -547,15 +640,47 @@ const CartDrawer: React.FC = () => {
                                     </div>
                                 )}
 
-                                {selectedPayment === 'stripe' && (
-                                    <button
-                                        type="button"
-                                        className="mt-2 w-full rounded-[2px] border border-dashed border-[#DCDCDC] py-[14px] font-['Inter',sans-serif] text-[14px] text-[#7B7B7B]"
-                                    >
-                                        Stripe no está conectado en esta
-                                        presentación
-                                    </button>
-                                )}
+                                {historiaLines.length > 0 ? (
+                                    <div className="flex flex-col gap-3 border-t border-[#DCDCDC] pt-4">
+                                        <h4 className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D]">
+                                            Suscripciones a historias
+                                        </h4>
+                                        <p className="font-['Inter',sans-serif] text-[11px] leading-relaxed text-[#7B7B7B]">
+                                            Cada historia se aprueba con el
+                                            botón de PayPal (plan recurrente).
+                                            Tras aprobar, PayPal enviará
+                                            webhooks para activar tu acceso.
+                                        </p>
+                                        {!auth?.user ? (
+                                            <p className="font-['Inter',sans-serif] text-[12px] text-amber-800">
+                                                Inicia sesión para suscribirte
+                                                a las historias del carrito.
+                                            </p>
+                                        ) : (
+                                            historiaLines.map((h) => (
+                                                <div
+                                                    key={cartLineKey(h)}
+                                                    className="flex flex-col gap-2 rounded-[2px] border border-[#DCDCDC] bg-white p-3"
+                                                >
+                                                    <p className="font-['Inter',sans-serif] text-[13px] font-semibold text-[#1B3D6D]">
+                                                        {h.name}
+                                                    </p>
+                                                    <PayPalSubscriptionButtons
+                                                        historiaSlug={
+                                                            h.slug
+                                                        }
+                                                        storeOrderId={
+                                                            lastProductOrderId
+                                                        }
+                                                        onSuccess={
+                                                            handleSubscriptionPayPalSuccess
+                                                        }
+                                                    />
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                ) : null}
 
                                 <button
                                     type="button"

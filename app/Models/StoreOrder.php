@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property-read Collection<int, PasarelaEvento> $pasarelaEventos
+ */
 class StoreOrder extends Model
 {
     public const STATUS_PENDING_PAYMENT = 'pending_payment';
@@ -53,5 +57,21 @@ class StoreOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(StoreOrderItem::class);
+    }
+
+    /**
+     * @return HasMany<PasarelaEvento, $this>
+     */
+    public function pasarelaEventos(): HasMany
+    {
+        return $this->hasMany(PasarelaEvento::class);
+    }
+
+    /**
+     * @return HasMany<Suscripcion, $this>
+     */
+    public function suscripciones(): HasMany
+    {
+        return $this->hasMany(Suscripcion::class);
     }
 }

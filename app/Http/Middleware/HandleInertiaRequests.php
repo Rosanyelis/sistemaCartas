@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\MetodoPagoUsuario;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -47,6 +48,29 @@ class HandleInertiaRequests extends Middleware
                 'currency' => config('paypal.currency'),
                 'enabled' => (bool) config('paypal.enabled'),
             ],
+            'paymentMethods' => static function () use ($request): array {
+                $user = $request->user();
+                if ($user === null) {
+                    return [];
+                }
+
+                return $user->metodosPago()
+                    ->with('tipo')
+                    ->orderByDesc('is_default')
+                    ->orderBy('id')
+                    ->get()
+                    ->map(static function (MetodoPagoUsuario $m): array {
+                        return [
+                            'id' => $m->id,
+                            'titular' => $m->titular,
+                            'detalles' => $m->detalles,
+                            'is_default' => (bool) $m->is_default,
+                            'tipo_nombre' => $m->relationLoaded('tipo') ? ($m->tipo?->nombre) : null,
+                        ];
+                    })
+                    ->values()
+                    ->all();
+            },
             // Valores simples (no closures anidadas): Inertia resuelve bien el JSON en cada visita, p. ej. tras redirect con flash.
             'flash' => [
                 'success' => $request->session()->get('success'),

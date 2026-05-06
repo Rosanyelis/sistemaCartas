@@ -4,7 +4,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { router } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import UserLayout from '@/layouts/user-layout';
 import type {
     PedidoLineaCliente,
@@ -45,9 +45,17 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
     const [startDate, setStartDate] = useState(filters.start_date ?? '');
     const [endDate, setEndDate] = useState(filters.end_date ?? '');
 
+    const searchTermRef = useRef(searchTerm);
+    searchTermRef.current = searchTerm;
+
     const { data: rows, current_page, last_page, from, to, total } = ordenes;
 
+    /** Sincroniza con la URL solo si el usuario no está escribiendo en el buscador (evita pisar el texto al tipear). */
     useEffect(() => {
+        const el = document.getElementById('orders-search');
+        if (el !== null && document.activeElement === el) {
+            return;
+        }
         setSearchTerm(filters.search ?? '');
     }, [filters.search]);
 
@@ -58,6 +66,41 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
     useEffect(() => {
         setEndDate(filters.end_date ?? '');
     }, [filters.end_date]);
+
+    /** Búsqueda en tiempo real (debounce) alineada con el filtro del servidor. */
+    useEffect(() => {
+        const normalized = searchTerm.trim();
+        const server = (filters.search ?? '').trim();
+        if (normalized === server) {
+            return;
+        }
+
+        const id = window.setTimeout(() => {
+            const latest = searchTermRef.current.trim();
+            if (latest !== normalized) {
+                return;
+            }
+
+            const params: Record<string, string> = {};
+            if (latest !== '') {
+                params.search = latest;
+            }
+            if (startDate) {
+                params.start_date = startDate;
+            }
+            if (endDate) {
+                params.end_date = endDate;
+            }
+            params.page = '1';
+
+            router.get('/user/orders', params, {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        }, 320);
+
+        return () => window.clearTimeout(id);
+    }, [searchTerm, filters.search, startDate, endDate]);
 
     const buildQuery = (overrides: {
         search?: string;
@@ -171,6 +214,7 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
                                 />
                             </span>
                             <input
+                                id="orders-search"
                                 type="text"
                                 value={searchTerm}
                                 onChange={handleSearch}
