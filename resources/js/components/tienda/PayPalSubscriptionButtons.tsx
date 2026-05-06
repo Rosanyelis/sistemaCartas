@@ -1,9 +1,16 @@
 import { usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import { draft as subscriptionDraftRoute } from '@/routes/checkout/paypal/subscription';
 import { loadPayPalScript } from '@/lib/load-paypal-script';
 import { postJson } from '@/lib/json-fetch';
 import type { SharedPayPalProps } from '@/components/tienda/PayPalCheckoutButtons';
+
+/**
+ * Ruta nombrada `checkout.paypal.subscription.draft` en `routes/web.php`.
+ * No importar `@/routes/checkout/paypal/subscription`: esos archivos están en
+ * `.gitignore` y solo existen tras `php artisan wayfinder:generate`; en servidores
+ * donde `npm run build` corre sin PHP disponible el build fallaba (ENOENT).
+ */
+const PAYPAL_SUBSCRIPTION_DRAFT_URL = '/checkout/paypal/subscription/draft';
 
 type PayPalSubscriptionButtonsProps = {
     historiaSlug: string;
@@ -75,7 +82,7 @@ export default function PayPalSubscriptionButtons({
                     const { ok, data } = await postJson<{
                         subscriptionID?: string;
                         message?: string;
-                    }>(subscriptionDraftRoute.url(), body);
+                    }>(PAYPAL_SUBSCRIPTION_DRAFT_URL, body);
 
                     if (!ok || !data.subscriptionID) {
                         throw new Error(
