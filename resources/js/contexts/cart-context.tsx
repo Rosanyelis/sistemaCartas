@@ -93,17 +93,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
         itemsRef.current = items;
     }, [items]);
 
-    useEffect(() => {
+    /**
+     * Restaurar sesión antes del pintado (no usar rAF): si el usuario hace clic
+     * muy rápido en «Suscribirme», un setItems retardado desde storage podía
+     * pisar la suscripción recién añadida.
+     */
+    useLayoutEffect(() => {
         const loaded = loadCartFromStorage();
-        const id = requestAnimationFrame(() => {
-            if (loaded !== null && loaded.length > 0) {
-                setItems(loaded);
-            }
-
-            setRestored(true);
-        });
-
-        return () => cancelAnimationFrame(id);
+        const next =
+            loaded !== null && loaded.length > 0 ? loaded : [];
+        setItems(next);
+        itemsRef.current = next;
+        setRestored(true);
     }, []);
 
     useLayoutEffect(() => {

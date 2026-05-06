@@ -391,7 +391,7 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
                                 className="flex h-[47px] w-full items-center justify-center rounded-[2px] border border-[#1B3D6D] bg-[#1B3D6D] px-5 py-[14px] text-white transition hover:bg-[#1B3D6D]/90"
                             >
                                 <span className="font-['Inter',sans-serif] text-base font-semibold">
-                                    Añadir suscripción al carrito (
+                                    Suscribirme a esta historia (
                                     {historia.subscription_unit_price} USD / ciclo)
                                 </span>
                             </button>
