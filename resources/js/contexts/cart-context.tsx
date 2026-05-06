@@ -11,6 +11,7 @@ import {
 import type { ReactNode } from 'react';
 import {
     clearCartStorage,
+    flushSaveCartToStorage,
     loadCartFromStorage,
     saveCartToStorage,
 } from '@/lib/cart-storage';
@@ -175,6 +176,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             }
 
             setItems(next);
+            itemsRef.current = next;
+            flushSaveCartToStorage(next);
 
             return true;
         },
@@ -232,7 +235,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 ),
             };
 
-            setItems([...filtered, row]);
+            const next = [...filtered, row];
+            setItems(next);
+            itemsRef.current = next;
+            flushSaveCartToStorage(next);
 
             return true;
         },

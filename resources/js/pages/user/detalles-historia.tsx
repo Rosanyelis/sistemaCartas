@@ -1,6 +1,6 @@
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { ShieldCheck, Package, CalendarX, Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CartConflictModal from '@/components/tienda/CartConflictModal';
@@ -33,6 +33,23 @@ interface DetalleHistoriaPageProps {
 }
 
 const STORY_COVER_FALLBACK = '/images/story_cover.png';
+
+function parseSubscriptionUnitPrice(
+    raw: string | number | null | undefined,
+): number {
+    if (typeof raw === 'number' && Number.isFinite(raw)) {
+        return raw;
+    }
+
+    const normalized = String(raw ?? '')
+        .trim()
+        .replace(/\s/g, '')
+        .replace(',', '.');
+
+    const n = Number.parseFloat(normalized);
+
+    return Number.isFinite(n) ? n : 0;
+}
 
 /** URL para poster/miniaturas de ítems vídeo: imagen principal o placeholder del proyecto. */
 function posterThumbUrl(h: HistoriaPublicaDetalle): string {
@@ -210,7 +227,12 @@ function HistoriaHeroMedia({
     );
 }
 
-export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) {
+export default function DetalleHistoria({
+    historia: historiaProp,
+}: DetalleHistoriaPageProps) {
+    const pageProps = usePage<DetalleHistoriaPageProps>().props;
+    const historia = historiaProp ?? pageProps.historia;
+
     const media = useMemo(() => buildMediaFromHistoria(historia), [historia]);
 
     const [isExpanded, setIsExpanded] = useState(false);
@@ -276,8 +298,7 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
             !Number.isNaN(historia.duracion_meses)
                 ? historia.duracion_meses
                 : 1;
-        const unit = Number.parseFloat(historia.subscription_unit_price);
-        const price = Number.isFinite(unit) ? unit : 0;
+        const price = parseSubscriptionUnitPrice(historia.subscription_unit_price);
         const cover = posterThumbUrl(historia);
 
         const payload = {

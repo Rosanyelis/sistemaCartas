@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
+import { createPortal } from 'react-dom';
 
 type CartConflictModalProps = {
     open: boolean;
@@ -20,11 +21,11 @@ export default function CartConflictModal({
     onConfirm,
     onCancel,
 }: CartConflictModalProps) {
-    if (!open) {
+    if (!open || typeof document === 'undefined') {
         return null;
     }
 
-    return (
+    return createPortal(
         <div
             className="fixed inset-0 z-[220] flex items-center justify-center p-4 pointer-events-auto"
             role="dialog"
@@ -72,6 +73,7 @@ export default function CartConflictModal({
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body,
     );
 }
