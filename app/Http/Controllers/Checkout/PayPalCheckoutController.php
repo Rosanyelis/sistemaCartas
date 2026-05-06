@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Checkout;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkout\CapturePayPalOrderRequest;
 use App\Http\Requests\Checkout\CreatePayPalOrderRequest;
+use App\Mail\Checkout\StoreOrderCaptureFailedMail;
 use App\Mail\Checkout\StoreOrderPaidMail;
 use App\Models\PasarelaEvento;
 use App\Models\Producto;
 use App\Models\StoreOrder;
 use App\Services\PasarelaEventoRecorder;
 use App\Services\PayPalService;
+use App\Support\PayPalErrorMessage;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -173,6 +175,7 @@ class PayPalCheckoutController extends Controller
                         'name' => null,
                         'message' => null,
                     ];
+                    $mapped = PayPalErrorMessage::fromParsed($parsed['name'] ?? null, $parsed['message'] ?? null);
                     $storeOrder->update([
                         'status' => StoreOrder::STATUS_CAPTURE_FAILED,
                         'failure_message' => $parsed['message'] ?? $e->getMessage(),
@@ -192,7 +195,13 @@ class PayPalCheckoutController extends Controller
                     );
                     report($e);
 
-                    $hint = $parsed['message'] ?? 'Intenta de nuevo o usa otro método.';
+                    $this->queueStoreOrderCaptureFailedMail(
+                        $storeOrder->id,
+                        $mapped,
+                        $parsed['name'] ?? $mapped['code'],
+                    );
+
+                    $hint = $mapped['user_message'];
 
                     return response()->json([
                         'message' => 'PayPal rechazó la captura. '.$hint,
@@ -214,6 +223,13 @@ class PayPalCheckoutController extends Controller
                         null,
                     );
                     report($e);
+
+                    $mapped = PayPalErrorMessage::fromParsed(null, $e->getMessage());
+                    $this->queueStoreOrderCaptureFailedMail(
+                        $storeOrder->id,
+                        $mapped,
+                        null,
+                    );
 
                     return response()->json([
                         'message' => 'No se pudo capturar el pago en PayPal.',
@@ -247,7 +263,7 @@ class PayPalCheckoutController extends Controller
 
                 $orderIdForMail = $storeOrder->id;
                 DB::afterCommit(function () use ($orderIdForMail): void {
-                    $fresh = StoreOrder::query()->with('user')->find($orderIdForMail);
+                    $fresh = StoreOrder::query()->with(['user', 'items'])->find($orderIdForMail);
                     $email = $fresh?->user?->email;
                     if ($fresh !== null && is_string($email) && $email !== '') {
                         Mail::to($email)->send(new StoreOrderPaidMail($fresh));
@@ -268,5 +284,31 @@ class PayPalCheckoutController extends Controller
                 'detail' => app()->hasDebugModeEnabled() ? $e->getMessage() : null,
             ], 500);
         }
+    }
+
+    /**
+     * @param  array{code: ?string, user_message: string, detail: ?string}  $mapped
+     */
+    private function queueStoreOrderCaptureFailedMail(int $storeOrderId, array $mapped, ?string $paypalErrorCode): void
+    {
+        DB::afterCommit(function () use ($storeOrderId, $mapped, $paypalErrorCode): void {
+            $fresh = StoreOrder::query()->with(['user', 'items'])->find($storeOrderId);
+            if ($fresh === null) {
+                return;
+            }
+            $email = $fresh->user?->email;
+            if (! is_string($email) || $email === '') {
+                return;
+            }
+            $rawName = $fresh->user?->name;
+            $recipientName = is_string($rawName) && $rawName !== '' ? $rawName : 'cliente';
+            Mail::to($email)->send(new StoreOrderCaptureFailedMail(
+                $fresh,
+                $recipientName,
+                $paypalErrorCode,
+                $mapped['user_message'],
+                $mapped['detail'],
+            ));
+        });
     }
 }

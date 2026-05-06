@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Mail\Auth\EmailVerifiedWelcomeMail;
 use App\Models\User;
 use App\Support\ValidPublicStoreRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 
 class EmailVerificationOtpController extends Controller
@@ -35,6 +37,11 @@ class EmailVerificationOtpController extends Controller
 
         $user->markEmailAsVerified();
         $user->clearOtp();
+
+        $email = $user->email;
+        if (is_string($email) && $email !== '') {
+            Mail::to($email)->send(new EmailVerifiedWelcomeMail($user));
+        }
 
         $pending = session()->pull('storefront_redirect_after_verify');
         if (is_string($pending)) {

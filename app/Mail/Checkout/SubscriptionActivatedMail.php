@@ -4,13 +4,14 @@ namespace App\Mail\Checkout;
 
 use App\Models\Suscripcion;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class SubscriptionActivatedMail extends Mailable
+class SubscriptionActivatedMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -19,14 +20,25 @@ class SubscriptionActivatedMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Suscripción activada',
+            subject: 'Suscripción activada — Historias por Correo',
         );
     }
 
     public function content(): Content
     {
+        $name = $this->suscripcion->user?->name;
+        $recipientName = is_string($name) && $name !== '' ? $name : null;
+
         return new Content(
-            markdown: 'mail.checkout.subscription-activated',
+            view: 'mail.checkout.subscription-activated',
+            with: [
+                'suscripcion' => $this->suscripcion,
+                'recipientName' => $recipientName,
+                'emailTitle' => 'Suscripción activada',
+                'ctaUrl' => route('user.subscriptions', [], true),
+                'ctaLabel' => 'Gestiona tus suscripciones y próximas fechas.',
+                'ctaText' => 'Ver mis suscripciones',
+            ],
         );
     }
 

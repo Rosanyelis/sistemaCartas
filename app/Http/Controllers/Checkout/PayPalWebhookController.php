@@ -9,6 +9,7 @@ use App\Mail\Checkout\SubscriptionRenewedMail;
 use App\Models\PasarelaEvento;
 use App\Models\Suscripcion;
 use App\Services\PayPalService;
+use App\Support\PayPalErrorMessage;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -163,25 +164,70 @@ class PayPalWebhookController extends Controller
      */
     private function handleSubscriptionPaymentFailed(array $payload, ?string $eventId): void
     {
-        $suscripcion = $this->resolveSuscripcionFromResource($payload['resource'] ?? []);
+        $resource = is_array($payload['resource'] ?? null) ? $payload['resource'] : [];
+        $suscripcion = $this->resolveSuscripcionFromResource($resource);
         if ($suscripcion === null) {
             $this->saveEvent($eventId, 'BILLING.SUBSCRIPTION.PAYMENT.FAILED', PasarelaEvento::ESTADO_RECHAZADO, $payload, 'Suscripción no encontrada');
 
             return;
         }
 
-        $msg = 'Cobro recurrente rechazado por PayPal.';
+        $extracted = $this->extractSubscriptionPaymentFailureFromResource($resource);
+        $msg = $extracted['motivoUsuario'];
         $suscripcion->update([
             'estado' => 'pendiente',
-            'paypal_last_payload' => is_array($payload['resource'] ?? null) ? $payload['resource'] : [],
+            'paypal_last_payload' => $resource,
         ]);
 
         $this->saveEvent($eventId, 'BILLING.SUBSCRIPTION.PAYMENT.FAILED', PasarelaEvento::ESTADO_RECHAZADO, $payload, $msg, null, $suscripcion->id);
 
         $user = $suscripcion->user;
         if ($user !== null && $user->email !== null && $user->email !== '') {
-            Mail::to($user->email)->send(new PaymentFailedMail('Suscripción', $msg));
+            $suscripcion->loadMissing('historia');
+            Mail::to($user->email)->send(new PaymentFailedMail(
+                $suscripcion,
+                $extracted['paypalReasonCode'],
+                $extracted['motivoUsuario'],
+                $extracted['detallePaypal'],
+                $extracted['importeFormateado'],
+            ));
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $resource
+     * @return array{paypalReasonCode: ?string, motivoUsuario: string, detallePaypal: ?string, importeFormateado: ?string}
+     */
+    private function extractSubscriptionPaymentFailureFromResource(array $resource): array
+    {
+        $last = data_get($resource, 'billing_info.last_failed_payment');
+        if (! is_array($last)) {
+            return [
+                'paypalReasonCode' => null,
+                'motivoUsuario' => 'PayPal no pudo cobrar la renovación de tu suscripción. Revisa el método de pago en tu cuenta PayPal.',
+                'detallePaypal' => null,
+                'importeFormateado' => null,
+            ];
+        }
+
+        $code = isset($last['reason_code']) && is_string($last['reason_code']) ? $last['reason_code'] : null;
+        $desc = isset($last['reason_description']) && is_string($last['reason_description'])
+            ? $last['reason_description']
+            : null;
+        $mapped = PayPalErrorMessage::fromParsed($code, $desc);
+        $value = data_get($last, 'amount.value');
+        $cur = data_get($last, 'amount.currency_code');
+        $importe = null;
+        if (is_string($value) && is_string($cur)) {
+            $importe = $cur.' '.number_format((float) $value, 2, ',', '.');
+        }
+
+        return [
+            'paypalReasonCode' => $code ?? $mapped['code'],
+            'motivoUsuario' => $mapped['user_message'],
+            'detallePaypal' => $mapped['detail'],
+            'importeFormateado' => $importe,
+        ];
     }
 
     /**

@@ -33,12 +33,17 @@ class VerifyEmailOtp extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $name = $notifiable->name ?? null;
+        $recipientName = is_string($name) && $name !== '' ? $name : null;
+
         return (new MailMessage)
-            ->subject('Verifica tu correo electrónico')
-            ->greeting('Hola!')
-            ->line('Tu código de verificación es: '.$this->otp)
-            ->line('Este código expirará en 10 minutos.')
-            ->line('Si no creaste una cuenta, no es necesario realizar ninguna otra acción.');
+            ->subject('Código de verificación — Historias por Correo')
+            ->view('mail.auth.verify-email-otp', [
+                'recipientName' => $recipientName,
+                'otp' => $this->otp,
+                'expiresInMinutes' => 10,
+                'emailTitle' => 'Verificación de correo',
+            ]);
     }
 
     /**

@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Mail\Checkout;
+namespace App\Mail\Auth;
 
-use App\Models\StoreOrder;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -11,33 +11,32 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class StoreOrderPaidMail extends Mailable implements ShouldQueue
+class EmailVerifiedWelcomeMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
-    public function __construct(public StoreOrder $order) {}
+    public function __construct(public User $user) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Compra confirmada — pedido #'.$this->order->id.' | Historias por Correo',
+            subject: 'Cuenta activa — bienvenido a Historias por Correo',
         );
     }
 
     public function content(): Content
     {
-        $name = $this->order->user?->name;
+        $name = $this->user->name;
         $recipientName = is_string($name) && $name !== '' ? $name : null;
 
         return new Content(
-            view: 'mail.checkout.store-order-paid',
+            view: 'mail.auth.email-verified-welcome',
             with: [
-                'order' => $this->order,
                 'recipientName' => $recipientName,
-                'emailTitle' => 'Compra confirmada',
-                'ctaUrl' => route('user.orders', [], true),
-                'ctaLabel' => 'Consulta el detalle de tu compra.',
-                'ctaText' => 'Ver mis pedidos',
+                'emailTitle' => 'Cuenta activa',
+                'ctaUrl' => route('productos', [], true),
+                'ctaLabel' => 'Explora el catálogo de historias y productos.',
+                'ctaText' => 'Ir a la tienda',
             ],
         );
     }

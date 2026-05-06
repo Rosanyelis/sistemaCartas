@@ -1,5 +1,6 @@
 <?php
 
+use App\Mail\Checkout\PaymentFailedMail;
 use App\Models\Historia;
 use App\Models\PasarelaEvento;
 use App\Models\Suscripcion;
@@ -69,4 +70,53 @@ test('webhook activa suscripción y registra pasarela_eventos', function (): voi
     $dup->assertOk()->assertJson(['status' => 'duplicate']);
 
     expect(PasarelaEvento::query()->where('paypal_event_id', 'WH-EVT-ACTIVATE-1')->count())->toBe(1);
+});
+
+test('webhook cobro suscripción fallido envía correo al usuario', function (): void {
+    $user = User::factory()->create(['email' => 'sub@example.test']);
+    $historia = Historia::factory()->create(['estado' => 'activo', 'duracion_meses' => 1]);
+
+    $suscripcion = Suscripcion::query()->create([
+        'user_id' => $user->id,
+        'historia_id' => $historia->id,
+        'store_order_id' => null,
+        'tipo' => 'PayPal',
+        'cantidad' => 1,
+        'fecha_adquisicion' => now()->toDateString(),
+        'fecha_finalizacion' => null,
+        'proximo_cobro' => null,
+        'estado' => 'activa',
+        'paypal_subscription_id' => 'I-SUB-FAIL-MAIL',
+        'paypal_plan_id' => 'P-PLAN-F',
+        'paypal_product_id' => 'PROD-F',
+    ]);
+
+    $payload = [
+        'id' => 'WH-EVT-PAY-FAIL-1',
+        'event_type' => 'BILLING.SUBSCRIPTION.PAYMENT.FAILED',
+        'resource' => [
+            'id' => 'I-SUB-FAIL-MAIL',
+            'custom_id' => (string) $suscripcion->id,
+            'billing_info' => [
+                'last_failed_payment' => [
+                    'reason_code' => 'INSUFFICIENT_FUNDS',
+                    'reason_description' => 'Funds unavailable',
+                    'amount' => [
+                        'currency_code' => 'USD',
+                        'value' => '12.50',
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    $response = $this->postJson(route('webhooks.paypal'), $payload);
+
+    $response->assertOk()->assertJson(['status' => 'ok']);
+
+    Mail::assertQueued(PaymentFailedMail::class, function (PaymentFailedMail $mail) use ($suscripcion): bool {
+        return $mail->suscripcion->is($suscripcion)
+            && $mail->paypalReasonCode === 'INSUFFICIENT_FUNDS'
+            && $mail->importeFormateado === 'USD 12,50';
+    });
 });

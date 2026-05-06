@@ -1,8 +1,11 @@
 <?php
 
+use App\Mail\Checkout\StoreOrderCaptureFailedMail;
 use App\Models\PasarelaEvento;
 use App\Models\Producto;
 use App\Models\StoreOrder;
+use App\Models\StoreOrderItem;
+use App\Models\User;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -199,4 +202,53 @@ test('paypal deshabilitado devuelve 503 al crear orden', function (): void {
     ]);
 
     $response->assertStatus(503);
+});
+
+test('captura paypal rechazada con usuario registrado envía correo de aviso', function (): void {
+    Mail::fake();
+
+    $user = User::factory()->create(['email' => 'payer@example.test']);
+    $order = StoreOrder::query()->create([
+        'user_id' => $user->id,
+        'paypal_order_id' => 'PAYPAL-ORDER-FAIL',
+        'status' => StoreOrder::STATUS_PENDING_PAYMENT,
+        'currency' => 'USD',
+        'total' => 10.00,
+    ]);
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => 'item-x',
+        'product_name' => 'Producto X',
+        'quantity' => 1,
+        'unit_price' => 10.00,
+        'line_total' => 10.00,
+    ]);
+
+    Http::fake([
+        'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
+            'access_token' => 'fake-access-token',
+            'token_type' => 'Bearer',
+        ], 200),
+        'api-m.sandbox.paypal.com/v2/checkout/orders/PAYPAL-ORDER-FAIL/capture' => Http::response([
+            'name' => 'INSTRUMENT_DECLINED',
+            'message' => 'The instrument presented was either declined by the processor or bank, or it can\'t be used for this payment.',
+        ], 422),
+    ]);
+
+    $response = $this->postJson(route('checkout.paypal.capture'), [
+        'order_id' => 'PAYPAL-ORDER-FAIL',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonPath('paypal_error', 'INSTRUMENT_DECLINED');
+
+    $this->assertDatabaseHas('store_orders', [
+        'paypal_order_id' => 'PAYPAL-ORDER-FAIL',
+        'status' => StoreOrder::STATUS_CAPTURE_FAILED,
+    ]);
+
+    Mail::assertQueued(StoreOrderCaptureFailedMail::class, function (StoreOrderCaptureFailedMail $mail): bool {
+        return $mail->paypalErrorCode === 'INSTRUMENT_DECLINED'
+            && str_contains($mail->motivoUsuario, 'rechazó');
+    });
 });
