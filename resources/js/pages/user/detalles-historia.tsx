@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, Link } from '@inertiajs/react';
 import { ShieldCheck, Package, CalendarX, Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import CartConflictModal from '@/components/tienda/CartConflictModal';
 import ClienteLayout from '@/layouts/cliente-layout';
 import { useCart } from '@/contexts/cart-context';
 import { inclusionIconOrFallback } from '@/lib/historia-detalle-inclusion-lucide-map';
@@ -258,6 +259,16 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
     const tituloPagina = `${historia.nombre} | Historias por Correo`;
 
     const { addHistoriaSuscripcion, openCart } = useCart();
+    const [cartConflictOpen, setCartConflictOpen] = useState(false);
+    const pendingHistoriaSubRef = useRef<{
+        slug: string;
+        name: string;
+        subtitle: string;
+        price: number;
+        image: string;
+        duracion_meses: number;
+        badge: string;
+    } | null>(null);
 
     const handleAddSuscripcion = useCallback(() => {
         const dur =
@@ -269,7 +280,7 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
         const price = Number.isFinite(unit) ? unit : 0;
         const cover = posterThumbUrl(historia);
 
-        addHistoriaSuscripcion({
+        const payload = {
             slug: historia.slug,
             name: historia.nombre,
             subtitle: `Suscripción PayPal · ciclo cada ${dur} mes(es)`,
@@ -277,7 +288,15 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
             image: cover,
             duracion_meses: dur,
             badge: 'Suscripción',
-        });
+        };
+
+        const ok = addHistoriaSuscripcion(payload);
+        if (!ok) {
+            pendingHistoriaSubRef.current = payload;
+            setCartConflictOpen(true);
+
+            return;
+        }
         openCart({ view: 'checkout' });
     }, [addHistoriaSuscripcion, historia, openCart]);
 
@@ -376,6 +395,11 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
                                     {historia.subscription_unit_price} USD / ciclo)
                                 </span>
                             </button>
+                            <p className="font-['Inter',sans-serif] text-[11px] leading-relaxed text-[#7B7B7B]">
+                                El carrito no permite mezclar suscripciones con
+                                productos del catálogo: si ya tienes productos,
+                                te pediremos confirmación para reemplazarlos.
+                            </p>
 
                             {/* Verification Lines */}
                             <div className="flex flex-wrap gap-x-8 gap-y-2">
@@ -619,6 +643,27 @@ export default function DetalleHistoria({ historia }: DetalleHistoriaPageProps) 
                     </section>
                 </div>
             </div>
+            <CartConflictModal
+                open={cartConflictOpen}
+                title="Tu carrito tiene productos"
+                description="No es posible combinar productos y suscripciones en el mismo carrito. Si continúas, se vaciarán los productos y se añadirá esta suscripción."
+                confirmLabel="Vaciar productos y añadir suscripción"
+                onCancel={() => {
+                    setCartConflictOpen(false);
+                    pendingHistoriaSubRef.current = null;
+                }}
+                onConfirm={() => {
+                    const payload = pendingHistoriaSubRef.current;
+                    if (payload) {
+                        addHistoriaSuscripcion(payload, {
+                            replaceOtherKind: true,
+                        });
+                    }
+                    pendingHistoriaSubRef.current = null;
+                    setCartConflictOpen(false);
+                    openCart({ view: 'checkout' });
+                }}
+            />
         </ClienteLayout>
     );
 }

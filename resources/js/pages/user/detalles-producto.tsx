@@ -7,7 +7,8 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ShieldCheck, Package, CalendarX, ChevronDown } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import CartConflictModal from '@/components/tienda/CartConflictModal';
 import { useCart } from '@/contexts/cart-context';
 import ClienteLayout from '@/layouts/cliente-layout';
 import { inclusionIconOrFallback } from '@/lib/historia-detalle-inclusion-lucide-map';
@@ -65,9 +66,21 @@ export default function DetalleProducto() {
     );
 }
 
+type PendingProductPayload = {
+    slug: string;
+    name: string;
+    subtitle: string;
+    price: number;
+    image: string;
+    quantity: number;
+    badge: string;
+};
+
 function DetalleProductoContent() {
     const { product } = usePage<DetalleProductoPageProps>().props;
     const { addItem, openCart } = useCart();
+    const [cartConflictOpen, setCartConflictOpen] = useState(false);
+    const pendingProductRef = useRef<PendingProductPayload | null>(null);
 
     const primaryImage =
         product.images[0] ?? '/images/products/product-1.png';
@@ -97,6 +110,16 @@ function DetalleProductoContent() {
             : null;
 
     const inStock = product.in_stock !== false;
+
+    const buildProductCartPayload = (): PendingProductPayload => ({
+        slug: product.slug,
+        name: product.name,
+        subtitle: product.subtitle,
+        price: Number.isFinite(price) ? price : 0,
+        image: primaryImage,
+        quantity,
+        badge: 'Pago Único',
+    });
 
     return (
         <>
@@ -265,17 +288,16 @@ function DetalleProductoContent() {
                                 <button
                                     type="button"
                                     onClick={() => {
-                                        addItem({
-                                            slug: product.slug,
-                                            name: product.name,
-                                            subtitle: product.subtitle,
-                                            price: Number.isFinite(price)
-                                                ? price
-                                                : 0,
-                                            image: primaryImage,
-                                            quantity,
-                                            badge: 'Pago Único',
-                                        });
+                                        const payload =
+                                            buildProductCartPayload();
+                                        const ok = addItem(payload);
+                                        if (!ok) {
+                                            pendingProductRef.current =
+                                                payload;
+                                            setCartConflictOpen(true);
+
+                                            return;
+                                        }
                                         openCart();
                                     }}
                                     className="flex h-[47px] flex-1 items-center justify-center gap-2 rounded-[2px] border border-[#1B3D6D] bg-[#1B3D6D] px-5 py-[14px] text-white transition hover:bg-[#1B3D6D]/90"
@@ -526,6 +548,25 @@ function DetalleProductoContent() {
                     </section>
                 </div>
             </div>
+            <CartConflictModal
+                open={cartConflictOpen}
+                title="Tu carrito tiene suscripciones"
+                description="No es posible combinar productos y suscripciones en el mismo carrito. Si continúas, se vaciarán las suscripciones y se añadirá este producto."
+                confirmLabel="Vaciar suscripciones y añadir producto"
+                onCancel={() => {
+                    setCartConflictOpen(false);
+                    pendingProductRef.current = null;
+                }}
+                onConfirm={() => {
+                    const payload = pendingProductRef.current;
+                    if (payload) {
+                        addItem(payload, { replaceOtherKind: true });
+                    }
+                    pendingProductRef.current = null;
+                    setCartConflictOpen(false);
+                    openCart();
+                }}
+            />
         </>
     );
 }

@@ -1,3 +1,4 @@
+import { normalizeCartItemsHomogeneous } from '@/lib/cart-mode';
 import type { CartLine } from '@/types/cart-line';
 
 const STORAGE_KEY = 'sistemaCartas:cart_v2';
@@ -113,7 +114,7 @@ export function loadCartFromStorage(): CartLine[] | null {
             return null;
         }
 
-        return items;
+        return normalizeCartItemsHomogeneous(items);
     } catch {
         return null;
     }

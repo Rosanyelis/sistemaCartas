@@ -3,7 +3,7 @@ import {
     faMagnifyingGlass,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import UserLayout from '@/layouts/user-layout';
 import type {
@@ -194,13 +194,15 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
 
     return (
         <UserLayout title="Mis Órdenes">
+            <Head title="Mis órdenes" />
             <div className="flex w-full flex-col gap-5 font-['Inter',sans-serif]">
-                <div className="mb-2 flex flex-col gap-1.5 md:mb-0">
-                    <h1 className="font-['Playfair_Display',serif] text-[24px] font-bold leading-tight text-[#1B3D6D] md:text-[22px]">
-                        ¡Hola, {auth.user.name.split(' ')[0]} bienvenido! 👋
+                <div className="mb-2 flex flex-col gap-1.5 px-1 md:mb-0 md:px-0">
+                    <h1 className="font-['Inter'] text-[24px] leading-tight font-bold text-[#1B3D6D] md:text-[28px]">
+                        Mis órdenes
                     </h1>
-                    <p className="text-[15px] font-medium text-[#7B7B7B] md:text-[13px]">
-                        Estas son tus compras (detalle por producto)…
+                    <p className="font-['Inter'] text-[12px] font-normal text-[#1B3D6D] md:text-[14px]">
+                        Compras registradas (detalle por producto). ¡Hola,{' '}
+                        {auth.user.name.split(' ')[0]}!
                     </p>
                 </div>
 

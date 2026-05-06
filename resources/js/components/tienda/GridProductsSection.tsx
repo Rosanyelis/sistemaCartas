@@ -1,4 +1,6 @@
 import { Link } from '@inertiajs/react';
+import { useRef, useState } from 'react';
+import CartConflictModal from '@/components/tienda/CartConflictModal';
 import { useCart } from '@/contexts/cart-context';
 import { show } from '@/routes/productos';
 import type { ProductosPaginator } from '@/types/producto-tienda';
@@ -22,6 +24,15 @@ export default function GridProductsSection({
 }: GridProductsSectionProps) {
     const { addItem, openCart } = useCart();
     const items = products.data ?? [];
+    const [cartConflictOpen, setCartConflictOpen] = useState(false);
+    const pendingGridProductRef = useRef<{
+        slug: string;
+        name: string;
+        subtitle: string;
+        price: number;
+        image: string;
+        badge: string;
+    } | null>(null);
 
     return (
         <section className="flex w-full flex-col items-center justify-center bg-white px-6 py-20 lg:px-[72px] lg:pt-[70px] lg:pb-[100px]">
@@ -78,14 +89,22 @@ export default function GridProductsSection({
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                addItem({
+                                                const payload = {
                                                     slug: product.slug,
                                                     name: product.name,
                                                     subtitle: product.desc,
                                                     price: product.unit_price,
                                                     image: product.img,
                                                     badge: 'Pago Único',
-                                                });
+                                                };
+                                                const ok = addItem(payload);
+                                                if (!ok) {
+                                                    pendingGridProductRef.current =
+                                                        payload;
+                                                    setCartConflictOpen(true);
+
+                                                    return;
+                                                }
                                                 openCart();
                                             }}
                                             className="flex h-[39px] w-full items-center justify-center rounded-[2px] border border-[#1B3D6D] bg-white font-['Inter',sans-serif] text-[14px] font-semibold text-[#1B3D6D] transition hover:bg-[#1B3D6D]/5"
@@ -145,6 +164,25 @@ export default function GridProductsSection({
                     </nav>
                 )}
             </div>
+            <CartConflictModal
+                open={cartConflictOpen}
+                title="Tu carrito tiene suscripciones"
+                description="No es posible combinar productos y suscripciones en el mismo carrito. Si continúas, se vaciarán las suscripciones y se añadirá este producto."
+                confirmLabel="Vaciar suscripciones y añadir producto"
+                onCancel={() => {
+                    setCartConflictOpen(false);
+                    pendingGridProductRef.current = null;
+                }}
+                onConfirm={() => {
+                    const payload = pendingGridProductRef.current;
+                    if (payload) {
+                        addItem(payload, { replaceOtherKind: true });
+                    }
+                    pendingGridProductRef.current = null;
+                    setCartConflictOpen(false);
+                    openCart();
+                }}
+            />
         </section>
     );
 }

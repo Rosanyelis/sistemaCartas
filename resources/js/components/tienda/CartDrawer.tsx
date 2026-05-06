@@ -43,6 +43,7 @@ type TiendaPageProps = {
 const CartDrawer: React.FC = () => {
     const {
         items,
+        derivedCartMode,
         updateQuantity,
         removeItem,
         clearCart,
@@ -59,10 +60,10 @@ const CartDrawer: React.FC = () => {
 
         return d ? `saved-${d.id}` : 'paypal';
     });
-    const [lastProductOrderId, setLastProductOrderId] = useState<number | null>(
-        null,
-    );
     const [purchaseSuccessOpen, setPurchaseSuccessOpen] = useState(false);
+    const [purchaseSuccessKind, setPurchaseSuccessKind] = useState<
+        'products' | 'subscriptions' | null
+    >(null);
     const prevIsOpen = useRef(false);
 
     const handleProceedToPay = useCallback(() => {
@@ -137,13 +138,11 @@ const CartDrawer: React.FC = () => {
     );
 
     const handlePayPalSuccess = useCallback(
-        (info?: { localOrderId?: number }) => {
+        (_info?: { localOrderId?: number }) => {
             clearProductLines();
-            if (info?.localOrderId != null) {
-                setLastProductOrderId(info.localOrderId);
-            }
             setView('cart');
             closeCart();
+            setPurchaseSuccessKind('products');
             setPurchaseSuccessOpen(true);
         },
         [clearProductLines, closeCart],
@@ -153,12 +152,25 @@ const CartDrawer: React.FC = () => {
         clearHistoriaSubscriptionLines();
         setView('cart');
         closeCart();
+        setPurchaseSuccessKind('subscriptions');
         setPurchaseSuccessOpen(true);
     }, [clearHistoriaSubscriptionLines, closeCart]);
 
     const handleGoToOrdersPanel = useCallback(() => {
         setPurchaseSuccessOpen(false);
+        setPurchaseSuccessKind(null);
         router.visit('/user/orders');
+    }, []);
+
+    const handleGoToSubscriptionsPanel = useCallback(() => {
+        setPurchaseSuccessOpen(false);
+        setPurchaseSuccessKind(null);
+        router.visit('/user/subscriptions');
+    }, []);
+
+    const handleCloseSuccessModal = useCallback(() => {
+        setPurchaseSuccessOpen(false);
+        setPurchaseSuccessKind(null);
     }, []);
 
     return (
@@ -202,8 +214,13 @@ const CartDrawer: React.FC = () => {
                                             Tu carrito está vacío.
                                         </p>
                                         <p className="font-['Inter',sans-serif] text-[13px] text-[#A0A0A0]">
-                                            Añade productos desde el catálogo
-                                            con &quot;Añadir al carrito&quot;.
+                                            Puedes añadir{' '}
+                                            <strong>productos</strong> desde
+                                            el catálogo o una{' '}
+                                            <strong>suscripción</strong> desde
+                                            el detalle de una historia. No se
+                                            pueden mezclar ambos en el mismo
+                                            carrito.
                                         </p>
                                     </div>
                                 ) : (
@@ -626,35 +643,39 @@ const CartDrawer: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {productLines.length > 0 && (
-                                    <div className="flex flex-col gap-2">
-                                        <p className="font-['Inter',sans-serif] text-[12px] text-[#7B7B7B]">
-                                            Pago único de productos: inicia
-                                            sesión en PayPal (sandbox) para
-                                            completar el cobro.
-                                        </p>
-                                        <PayPalCheckoutButtons
-                                            lines={paypalLines}
-                                            onSuccess={handlePayPalSuccess}
-                                        />
-                                    </div>
-                                )}
+                                {derivedCartMode === 'products' &&
+                                    productLines.length > 0 && (
+                                        <div className="flex flex-col gap-2">
+                                            <p className="font-['Inter',sans-serif] text-[12px] text-[#7B7B7B]">
+                                                Pago único de productos: inicia
+                                                sesión en PayPal (sandbox) para
+                                                completar el cobro.
+                                            </p>
+                                            <PayPalCheckoutButtons
+                                                lines={paypalLines}
+                                                onSuccess={
+                                                    handlePayPalSuccess
+                                                }
+                                            />
+                                        </div>
+                                    )}
 
-                                {historiaLines.length > 0 ? (
-                                    <div className="flex flex-col gap-3 border-t border-[#DCDCDC] pt-4">
+                                {derivedCartMode === 'subscriptions' &&
+                                historiaLines.length > 0 ? (
+                                    <div className="flex flex-col gap-3 pt-2">
                                         <h4 className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D]">
-                                            Suscripciones a historias
+                                            Suscripción con PayPal
                                         </h4>
                                         <p className="font-['Inter',sans-serif] text-[11px] leading-relaxed text-[#7B7B7B]">
-                                            Cada historia se aprueba con el
-                                            botón de PayPal (plan recurrente).
-                                            Tras aprobar, PayPal enviará
-                                            webhooks para activar tu acceso.
+                                            Aprueba el plan recurrente en la
+                                            ventana de PayPal. Cuando PayPal
+                                            confirme el alta, activaremos tu
+                                            acceso (webhook).
                                         </p>
                                         {!auth?.user ? (
                                             <p className="font-['Inter',sans-serif] text-[12px] text-amber-800">
-                                                Inicia sesión para suscribirte
-                                                a las historias del carrito.
+                                                Inicia sesión para suscribirte a
+                                                las historias del carrito.
                                             </p>
                                         ) : (
                                             historiaLines.map((h) => (
@@ -666,12 +687,7 @@ const CartDrawer: React.FC = () => {
                                                         {h.name}
                                                     </p>
                                                     <PayPalSubscriptionButtons
-                                                        historiaSlug={
-                                                            h.slug
-                                                        }
-                                                        storeOrderId={
-                                                            lastProductOrderId
-                                                        }
+                                                        historiaSlug={h.slug}
                                                         onSuccess={
                                                             handleSubscriptionPayPalSuccess
                                                         }
@@ -727,7 +743,7 @@ const CartDrawer: React.FC = () => {
                     type="button"
                     className="absolute inset-0 bg-black/40 transition-opacity hover:bg-black/45"
                     aria-label="Cerrar diálogo"
-                    onClick={() => setPurchaseSuccessOpen(false)}
+                    onClick={handleCloseSuccessModal}
                 />
                 <div className="relative z-[1] w-full max-w-[420px] rounded-[2px] border border-[#DCDCDC] bg-white p-6 shadow-[0px_12px_40px_rgba(0,0,0,0.12)] md:p-8">
                     <div className="mb-4 flex justify-center">
@@ -742,27 +758,36 @@ const CartDrawer: React.FC = () => {
                         id="purchase-success-title"
                         className="mb-3 text-center font-['Inter',sans-serif] text-[20px] font-bold text-[#1B3D6D] md:text-[22px]"
                     >
-                        Compra exitosa
+                        {purchaseSuccessKind === 'subscriptions'
+                            ? 'Suscripción registrada'
+                            : 'Compra exitosa'}
                     </h2>
                     <p className="text-center font-['Inter',sans-serif] text-[14px] leading-relaxed text-[#5C5C5C] md:text-[15px]">
-                        Puede ingresar a su panel para observar los detalles
-                        de su transacción.
+                        {purchaseSuccessKind === 'subscriptions'
+                            ? 'PayPal está procesando tu suscripción. En unos instantes debería aparecer como activa en tu panel; si tarda, revisa también tu cuenta PayPal.'
+                            : 'Puedes revisar el detalle del pedido en tu panel de compras.'}
                     </p>
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
                         <Button
                             type="button"
                             variant="outline"
-                            onClick={() => setPurchaseSuccessOpen(false)}
+                            onClick={handleCloseSuccessModal}
                             className="h-[44px] rounded-[2px] border-2 border-[#1B3D6D] bg-white font-['Inter',sans-serif] text-[14px] font-semibold text-[#1B3D6D] shadow-none hover:bg-[#F5F8FC] hover:text-[#1B3D6D] dark:bg-white dark:text-[#1B3D6D] dark:border-[#1B3D6D] dark:hover:bg-[#F5F8FC] sm:min-w-[140px]"
                         >
                             Cerrar
                         </Button>
                         <Button
                             type="button"
-                            onClick={handleGoToOrdersPanel}
+                            onClick={
+                                purchaseSuccessKind === 'subscriptions'
+                                    ? handleGoToSubscriptionsPanel
+                                    : handleGoToOrdersPanel
+                            }
                             className="h-[44px] rounded-[2px] bg-[#1B3D6D] font-['Inter',sans-serif] text-[14px] font-semibold text-white shadow-sm hover:bg-[#254a7a] sm:min-w-[180px]"
                         >
-                            Ir a mi panel
+                            {purchaseSuccessKind === 'subscriptions'
+                                ? 'Ir a suscripciones'
+                                : 'Ir a mis pedidos'}
                         </Button>
                     </div>
                 </div>
