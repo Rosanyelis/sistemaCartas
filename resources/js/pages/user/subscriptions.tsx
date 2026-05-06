@@ -18,7 +18,9 @@ interface Suscripcion {
     cantidad: number;
     tipo: string;
     fecha_adquisicion: string;
+    /** Vacío si no hay fecha en base de datos */
     fecha_finalizacion: string;
+    /** Vacío si no hay fecha en base de datos */
     proximo_cobro: string;
     estado: string;
     estado_color: 'success' | 'warning' | 'danger';
@@ -66,12 +68,25 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
     }, [filteredSuscripciones, currentPage]);
 
     const formatDateDisplay = (dateStr: string) => {
-        const date = new Date(dateStr);
+        if (!dateStr || dateStr.trim() === '') {
+            return '—';
+        }
+        const date = new Date(`${dateStr}T12:00:00Z`);
+        if (Number.isNaN(date.getTime())) {
+            return '—';
+        }
         const months = [
             'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
             'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
         ];
         return `${date.getUTCDate()} ${months[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
+    };
+
+    const formatIsoDateTable = (dateStr: string) => {
+        if (!dateStr || dateStr.trim() === '') {
+            return '—';
+        }
+        return dateStr.split('-').reverse().join('/');
     };
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -254,9 +269,9 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                             </thead>
                             <tbody>
                                 {paginatedSuscripciones.length > 0 ? (
-                                    paginatedSuscripciones.map((sub, idx) => (
+                                    paginatedSuscripciones.map((sub) => (
                                         <tr
-                                            key={idx}
+                                            key={sub.id}
                                             className="transition duration-150 hover:bg-gray-50/40"
                                         >
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-[12px] font-medium text-[#111928]">
@@ -272,22 +287,13 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                                                 {sub.tipo}
                                             </td>
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-[12px] text-[#7B7B7B]">
-                                                {sub.fecha_adquisicion
-                                                    .split('-')
-                                                    .reverse()
-                                                    .join('/')}
+                                                {formatIsoDateTable(sub.fecha_adquisicion)}
                                             </td>
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-[12px] text-[#7B7B7B]">
-                                                {sub.fecha_finalizacion
-                                                    .split('-')
-                                                    .reverse()
-                                                    .join('/')}
+                                                {formatIsoDateTable(sub.fecha_finalizacion)}
                                             </td>
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-[12px] text-[#7B7B7B]">
-                                                {sub.proximo_cobro
-                                                    .split('-')
-                                                    .reverse()
-                                                    .join('/')}
+                                                {formatIsoDateTable(sub.proximo_cobro)}
                                             </td>
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-center">
                                                 <span
@@ -322,7 +328,9 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                                             colSpan={9}
                                             className="py-20 text-center text-[14px] text-[#7B7B7B]"
                                         >
-                                            No se encontraron suscripciones.
+                                            {suscripciones.length === 0
+                                                ? 'No tienes suscripciones aún.'
+                                                : 'No se encontraron suscripciones con los filtros aplicados.'}
                                         </td>
                                     </tr>
                                 )}
@@ -335,7 +343,7 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                         {paginatedSuscripciones.length > 0 ? (
                             paginatedSuscripciones.map((sub, idx) => (
                                 <div
-                                    key={idx}
+                                    key={sub.id}
                                     className={`relative flex flex-col gap-3 py-5 ${idx !== paginatedSuscripciones.length - 1 ? 'border-b border-[#F2F2F2]' : ''}`}
                                 >
                                     {/* Row 1: ID, Status, Actions */}
@@ -422,7 +430,9 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                             ))
                         ) : (
                             <div className="py-20 text-center text-[14px] text-[#7B7B7B]">
-                                No se encontraron suscripciones.
+                                {suscripciones.length === 0
+                                    ? 'No tienes suscripciones aún.'
+                                    : 'No se encontraron suscripciones con los filtros aplicados.'}
                             </div>
                         )}
                     </div>

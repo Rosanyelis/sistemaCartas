@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Models\Suscripcion;
+use App\Support\SuscripcionUsuarioListaSerializer;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -10,96 +12,16 @@ class SuscripcionController extends Controller
 {
     public function index(): Response
     {
-        $suscripciones = [
-            [
-                'id' => '#1045',
-                'historia' => 'Historia Londres',
-                'cantidad' => 1,
-                'tipo' => 'Completa',
-                'fecha_adquisicion' => '2026-03-16',
-                'fecha_finalizacion' => '2027-03-16',
-                'proximo_cobro' => '2027-03-16',
-                'estado' => 'Activa',
-                'estado_color' => 'success',
-            ],
-            [
-                'id' => '#1046',
-                'historia' => 'Historia Londres',
-                'cantidad' => 1,
-                'tipo' => 'Mensual',
-                'fecha_adquisicion' => '2026-03-16',
-                'fecha_finalizacion' => '2027-03-16',
-                'proximo_cobro' => '2027-03-16',
-                'estado' => 'Inactiva',
-                'estado_color' => 'warning',
-            ],
-            [
-                'id' => '#1047',
-                'historia' => 'Historia Londres',
-                'cantidad' => 1,
-                'tipo' => 'Mensual',
-                'fecha_adquisicion' => '2026-03-16',
-                'fecha_finalizacion' => '2027-03-16',
-                'proximo_cobro' => '2027-03-16',
-                'estado' => 'Incompleta',
-                'estado_color' => 'danger',
-            ],
-            [
-                'id' => '#1048',
-                'historia' => 'Historia Londres',
-                'cantidad' => 1,
-                'tipo' => 'Completa',
-                'fecha_adquisicion' => '2026-03-16',
-                'fecha_finalizacion' => '2027-03-16',
-                'proximo_cobro' => '2027-03-16',
-                'estado' => 'Activa',
-                'estado_color' => 'success',
-            ],
-            [
-                'id' => '#1049',
-                'historia' => 'Historia Londres',
-                'cantidad' => 1,
-                'tipo' => 'Mensual',
-                'fecha_adquisicion' => '2026-03-16',
-                'fecha_finalizacion' => '2027-03-16',
-                'proximo_cobro' => '2027-03-16',
-                'estado' => 'Inactiva',
-                'estado_color' => 'warning',
-            ],
-            [
-                'id' => '#1050',
-                'historia' => 'Historia Londres',
-                'cantidad' => 2,
-                'tipo' => 'Completa',
-                'fecha_adquisicion' => '2026-03-10',
-                'fecha_finalizacion' => '2027-03-10',
-                'proximo_cobro' => '2027-03-10',
-                'estado' => 'Activa',
-                'estado_color' => 'success',
-            ],
-            [
-                'id' => '#1051',
-                'historia' => 'Historia Londres',
-                'cantidad' => 1,
-                'tipo' => 'Mensual',
-                'fecha_adquisicion' => '2026-03-05',
-                'fecha_finalizacion' => '2027-03-05',
-                'proximo_cobro' => '2027-03-05',
-                'estado' => 'Incompleta',
-                'estado_color' => 'danger',
-            ],
-            [
-                'id' => '#1052',
-                'historia' => 'Historia Londres',
-                'cantidad' => 1,
-                'tipo' => 'Mensual',
-                'fecha_adquisicion' => '2026-03-01',
-                'fecha_finalizacion' => '2027-03-01',
-                'proximo_cobro' => '2027-03-01',
-                'estado' => 'Activa',
-                'estado_color' => 'success',
-            ],
-        ];
+        $userId = auth()->id();
+        $suscripciones = Suscripcion::query()
+            ->where('user_id', $userId)
+            ->with(['historia' => fn ($q) => $q->select('id', 'nombre')])
+            ->latest('fecha_adquisicion')
+            ->latest('id')
+            ->get()
+            ->map(fn (Suscripcion $s) => SuscripcionUsuarioListaSerializer::fila($s))
+            ->values()
+            ->all();
 
         return Inertia::render('user/subscriptions', [
             'suscripciones' => $suscripciones,
