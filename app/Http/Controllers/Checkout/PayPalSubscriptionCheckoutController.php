@@ -78,13 +78,20 @@ class PayPalSubscriptionCheckoutController extends Controller
             'paypal_plan_id' => $planId,
         ]);
 
+        $brandName = trim((string) config('app.name'));
+        if ($brandName === '') {
+            $brandName = 'Historias por Correo';
+        }
+
+        [$returnUrl, $cancelUrl] = $payPal->subscriptionApplicationRedirectUrls();
+
         try {
             $sub = $payPal->createSubscriptionDraft(
                 $planId,
                 (string) $suscripcion->id,
-                (string) config('app.name'),
-                url('/').'?subscription=return',
-                url('/').'?subscription=cancel',
+                $brandName,
+                $returnUrl,
+                $cancelUrl,
             );
         } catch (Throwable $e) {
             report($e);

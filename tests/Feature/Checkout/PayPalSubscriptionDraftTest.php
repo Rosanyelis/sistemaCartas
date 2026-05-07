@@ -30,6 +30,60 @@ test('invitado no puede crear borrador de suscripción paypal', function (): voi
     Http::assertNothingSent();
 });
 
+test('borrador envía return_url y cancel_url en https cuando APP_URL es http en dominio público', function (): void {
+    Config::set([
+        'app.url' => 'http://historias-por-correo.rossdigital.dev',
+    ]);
+
+    Http::fake([
+        'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
+            'access_token' => 'fake-access-token',
+            'token_type' => 'Bearer',
+        ], 200),
+        'api-m.sandbox.paypal.com/v1/catalogs/products' => Http::response([
+            'id' => 'PROD-TEST-HTTPS',
+        ], 201),
+        'api-m.sandbox.paypal.com/v1/billing/plans' => Http::response([
+            'id' => 'P-PLAN-TEST-HTTPS',
+        ], 201),
+        'api-m.sandbox.paypal.com/v1/billing/plans/*/activate' => Http::response(null, 204),
+        'api-m.sandbox.paypal.com/v1/billing/subscriptions' => Http::response([
+            'id' => 'I-SUB-HTTPS-1',
+            'status' => 'APPROVAL_PENDING',
+        ], 201),
+    ]);
+
+    $user = User::factory()->create([
+        'email_verified_at' => now(),
+    ]);
+
+    $historia = Historia::factory()->create([
+        'estado' => 'activo',
+        'duracion_meses' => 1,
+        'precio_base' => 9.99,
+        'precio_promocional' => null,
+    ]);
+
+    $this->actingAs($user)->postJson(route('checkout.paypal.subscription.draft'), [
+        'historia_slug' => $historia->slug,
+    ])->assertOk();
+
+    Http::assertSent(function ($request): bool {
+        if (! str_contains($request->url(), '/v1/billing/subscriptions') || $request->method() !== 'POST') {
+            return true;
+        }
+
+        /** @var array<string, mixed> $data */
+        $data = $request->data();
+        $ctx = $data['application_context'] ?? [];
+
+        return str_starts_with((string) ($ctx['return_url'] ?? ''), 'https://historias-por-correo.rossdigital.dev')
+            && str_contains((string) ($ctx['return_url'] ?? ''), 'subscription=return')
+            && str_starts_with((string) ($ctx['cancel_url'] ?? ''), 'https://historias-por-correo.rossdigital.dev')
+            && str_contains((string) ($ctx['cancel_url'] ?? ''), 'subscription=cancel');
+    });
+});
+
 test('usuario verificado crea borrador de suscripción paypal', function (): void {
     Http::fake([
         'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([

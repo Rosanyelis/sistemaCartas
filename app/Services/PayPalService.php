@@ -17,6 +17,34 @@ class PayPalService
             : 'https://api-m.sandbox.paypal.com';
     }
 
+    /**
+     * URLs absolutas para `application_context` al crear suscripciones (Smart Buttons).
+     * PayPal devuelve 422 si `return_url` / `cancel_url` usan HTTP en un dominio público,
+     * aunque el sitio se sirva por HTTPS detrás de un proxy y `APP_URL` siga en http://.
+     *
+     * @return array{0: string, 1: string} [return_url, cancel_url]
+     */
+    public function subscriptionApplicationRedirectUrls(): array
+    {
+        $base = rtrim((string) config('app.url'), '/');
+        if ($base === '') {
+            $base = 'http://localhost';
+        }
+
+        $host = parse_url($base, PHP_URL_HOST);
+        $hostLower = is_string($host) ? strtolower($host) : '';
+        $isLoopback = in_array($hostLower, ['localhost', '127.0.0.1', '::1'], true);
+
+        if (! $isLoopback && str_starts_with(strtolower($base), 'http://')) {
+            $base = 'https://'.substr($base, 7);
+        }
+
+        return [
+            $base.'?subscription=return',
+            $base.'?subscription=cancel',
+        ];
+    }
+
     protected function http()
     {
         return Http::timeout((int) config('paypal.timeout', 45))
