@@ -276,28 +276,70 @@ class PayPalService
             ])
             ->throw();
 
-        $planId = $response->json('id');
+        /** @var array<string, mixed> $planBody */
+        $planBody = $response->json();
+        $planId = $planBody['id'] ?? null;
         if (! is_string($planId) || $planId === '') {
             throw new RuntimeException('PayPal no devolvió id de plan.');
         }
 
-        $this->activateBillingPlan($planId);
+        $statusAfterCreate = strtoupper((string) ($planBody['status'] ?? ''));
+        if ($statusAfterCreate !== 'ACTIVE') {
+            $this->activateBillingPlan($planId);
+        }
 
         return $planId;
     }
 
     /**
+     * @return array<string, mixed>
+     *
+     * @throws RequestException
+     */
+    public function getBillingPlan(string $planId): array
+    {
+        $token = $this->getAccessToken();
+        $enc = rawurlencode($planId);
+        $response = $this->http()
+            ->withToken($token)
+            ->acceptJson()
+            ->get($this->baseUrl().'/v1/billing/plans/'.$enc)
+            ->throw();
+
+        /** @var array<string, mixed> */
+        return $response->json();
+    }
+
+    /**
+     * PayPal puede dejar el plan ya ACTIVE al crearlo; un segundo POST a
+     * `/activate` responde 422 UNPROCESSABLE_ENTITY. En ese caso se considera éxito.
+     *
      * @throws RequestException
      */
     public function activateBillingPlan(string $planId): void
     {
         $token = $this->getAccessToken();
         $enc = rawurlencode($planId);
-        $this->http()
-            ->withToken($token)
-            ->asJson()
-            ->post($this->baseUrl().'/v1/billing/plans/'.$enc.'/activate', (object) [])
-            ->throw();
+
+        try {
+            $this->http()
+                ->withToken($token)
+                ->asJson()
+                ->acceptJson()
+                ->post($this->baseUrl().'/v1/billing/plans/'.$enc.'/activate', (object) [])
+                ->throw();
+        } catch (RequestException $e) {
+            if ($e->response?->status() !== 422) {
+                throw $e;
+            }
+
+            $plan = $this->getBillingPlan($planId);
+            if (strtoupper((string) ($plan['status'] ?? '')) === 'ACTIVE') {
+                return;
+            }
+
+            throw $e;
+        }
     }
 
     /**
