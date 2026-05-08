@@ -318,7 +318,7 @@ export default function DetalleHistoria({
 
             return;
         }
-        openCart({ view: 'checkout' });
+        openCart({ view: 'cart' });
     }, [addHistoriaSuscripcion, historia, openCart]);
 
     return (
@@ -682,7 +682,7 @@ export default function DetalleHistoria({
                     }
                     pendingHistoriaSubRef.current = null;
                     setCartConflictOpen(false);
-                    openCart({ view: 'checkout' });
+                    openCart({ view: 'cart' });
                 }}
             />
         </ClienteLayout>

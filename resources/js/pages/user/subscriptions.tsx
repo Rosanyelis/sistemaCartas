@@ -117,27 +117,7 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                         Aquí puedes revisar y gestionar todas las suscripciones
                         adquiridas en la plataforma
                     </p>
-                    <p className="font-['Inter'] text-[11px] font-normal leading-relaxed text-[#5C5C5C] md:text-[12px]">
-                        <strong className="font-semibold text-[#1B3D6D]">
-                            Pendiente
-                        </strong>{' '}
-                        significa que la suscripción sigue en borrador en PayPal
-                        o que aún no hemos recibido el evento de activación
-                        (webhook). No indica un fallo de pago por sí solo: hasta
-                        que PayPal confirme el alta, el cobro recurrente no está
-                        operativo.                         El número de entregas del arco sigue la duración en
-                        meses configurada en la historia (`duracion_meses`). Las
-                        fechas se estiman al iniciar el checkout y, al activarse,
-                        se refinan con PayPal cuando aplica.
-                    </p>
-                    <p className="font-['Inter'] text-[11px] font-normal leading-relaxed text-[#5C5C5C] md:text-[12px]">
-                        Si el estado se queda en Pendiente tras aprobar en
-                        PayPal, revisa que el webhook apunte a este dominio y que{' '}
-                        <code className="rounded bg-[#F0F4FA] px-1 py-0.5 text-[10px]">
-                            PAYPAL_WEBHOOK_ID
-                        </code>{' '}
-                        en el servidor coincida con el del panel de desarrollador.
-                    </p>
+                    
                 </div>
 
                 {/* Card Template */}

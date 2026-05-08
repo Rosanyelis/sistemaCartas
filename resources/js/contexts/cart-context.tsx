@@ -285,6 +285,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const openCart = useCallback((options?: OpenCartOptions) => {
         if (options?.view) {
             setPendingDrawerView(options.view);
+        } else {
+            // Sin vista explícita: no heredar un checkout pendiente (p. ej. icono del carrito).
+            setPendingDrawerView(null);
         }
 
         setDrawerOpen(true);

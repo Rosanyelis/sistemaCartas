@@ -157,6 +157,15 @@ const CartDrawer: React.FC = () => {
 
                 return () => cancelAnimationFrame(id);
             }
+
+            if (v === 'cart') {
+                const id = requestAnimationFrame(() => {
+                    setCheckoutStep(1);
+                    setView('cart');
+                });
+
+                return () => cancelAnimationFrame(id);
+            }
         }
 
         prevIsOpen.current = isOpen;
