@@ -61,7 +61,7 @@ jobs:
             # para produccion usar --no-dev
             # ejemplo: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
             composer install  --prefer-dist --optimize-autoloader --no-interaction
-            #php artisan migrate:fresh --force --seed
+            php artisan migrate:fresh --force --seed
 
             # Frontend
             npm install
@@ -72,6 +72,8 @@ jobs:
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
+
+            php artisan storage:link
 
             # Reinicia procesos long-running (queues + reverb)
             #php artisan queue:restart || true
