@@ -10,7 +10,7 @@ use App\Models\PasarelaEvento;
 use App\Models\Suscripcion;
 use App\Services\PayPalService;
 use App\Support\PayPalErrorMessage;
-use Carbon\Carbon;
+use App\Support\SuscripcionPayPalActivationSync;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -95,27 +95,15 @@ class PayPalWebhookController extends Controller
             return;
         }
 
-        $wasActiva = $suscripcion->estado === 'activa';
-        $nextRaw = data_get($resource, 'billing_info.next_billing_time');
-        $proximo = null;
-        if (is_string($nextRaw) && $nextRaw !== '') {
-            $proximo = Carbon::parse($nextRaw)->toDateString();
-        }
-
-        $suscripcion->update([
-            'estado' => 'activa',
-            'proximo_cobro' => $proximo,
-            'paypal_last_payload' => $resource,
-        ]);
+        $sendMail = SuscripcionPayPalActivationSync::applyFromActivatedResource($suscripcion, $resource);
 
         $this->saveEvent($eventId, 'BILLING.SUBSCRIPTION.ACTIVATED', PasarelaEvento::ESTADO_COMPLETADO, $payload, null, null, $suscripcion->id);
 
-        $user = $suscripcion->user;
-        if ($user !== null && $user->email !== null && $user->email !== '') {
-            if (! $wasActiva) {
-                $suscripcion->loadMissing('historia');
-                Mail::to($user->email)->send(new SubscriptionActivatedMail($suscripcion));
-            }
+        $suscripcion = $suscripcion->fresh();
+        $user = $suscripcion?->user;
+        if ($sendMail && $user !== null && $user->email !== null && $user->email !== '') {
+            $suscripcion->loadMissing('historia');
+            Mail::to($user->email)->send(new SubscriptionActivatedMail($suscripcion));
         }
     }
 

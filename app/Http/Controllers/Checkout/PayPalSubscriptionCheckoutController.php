@@ -11,6 +11,8 @@ use App\Models\Suscripcion;
 use App\Services\HistoriaPayPalPlanService;
 use App\Services\PasarelaEventoRecorder;
 use App\Services\PayPalService;
+use App\Support\HistoriaSuscripcionPrecio;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Throwable;
 
@@ -64,15 +66,29 @@ class PayPalSubscriptionCheckoutController extends Controller
         $planId = $plans->ensureBillingPlanForHistoria($historia);
         $historia->refresh();
 
+        $mesesEntregaTotal = HistoriaSuscripcionPrecio::mesesEntregaTotal($historia);
+        $intervaloFacturacion = HistoriaSuscripcionPrecio::intervaloMeses($historia);
+
+        $fechaAdquisicion = now()->toDateString();
+        $fechaFinalizacion = $mesesEntregaTotal !== null
+            ? Carbon::parse($fechaAdquisicion)
+                ->addMonths($mesesEntregaTotal)
+                ->toDateString()
+            : null;
+        $proximoCobro = Carbon::parse($fechaAdquisicion)
+            ->addMonths($intervaloFacturacion)
+            ->toDateString();
+
         $suscripcion = Suscripcion::query()->create([
             'user_id' => $user->id,
             'historia_id' => $historia->id,
             'store_order_id' => $storeOrder?->id,
             'tipo' => 'PayPal',
             'cantidad' => 1,
-            'fecha_adquisicion' => now()->toDateString(),
-            'fecha_finalizacion' => null,
-            'proximo_cobro' => null,
+            'meses_entrega_total' => $mesesEntregaTotal,
+            'fecha_adquisicion' => $fechaAdquisicion,
+            'fecha_finalizacion' => $fechaFinalizacion,
+            'proximo_cobro' => $proximoCobro,
             'estado' => 'pendiente',
             'paypal_product_id' => $historia->paypal_product_id,
             'paypal_plan_id' => $planId,

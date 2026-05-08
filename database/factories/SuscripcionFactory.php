@@ -24,6 +24,7 @@ class SuscripcionFactory extends Factory
             'historia_id' => Historia::factory(),
             'tipo' => fake()->randomElement(['Mensual', 'Trimestral', 'Anual']),
             'cantidad' => fake()->numberBetween(1, 5),
+            'meses_entrega_total' => null,
             'fecha_adquisicion' => $fechaAdquisicion,
             'fecha_finalizacion' => fake()->optional(0.3)->dateTimeBetween($fechaAdquisicion, '+1 year'),
             'proximo_cobro' => fake()->dateTimeBetween('now', '+3 months'),

@@ -21,7 +21,11 @@ Seguridad cliente de correo: tablas + estilos inline; sin flex/grid críticos ni
 @php
     $year = date('Y');
     $brand = 'Historias por Correo';
-    $logoUrl = isset($headerLogoUrl) && is_string($headerLogoUrl) && $headerLogoUrl !== '' ? $headerLogoUrl : null;
+    $logoAsset = (string) config('mail.brand_logo_asset', 'images/logo-principal.png');
+    $logoUrl =
+        isset($headerLogoUrl) && is_string($headerLogoUrl) && $headerLogoUrl !== ''
+            ? $headerLogoUrl
+            : asset($logoAsset);
     $ctaUrl = $ctaUrl ?? null;
     $ctaText = $ctaText ?? null;
     $ctaLabel = $ctaLabel ?? null;
@@ -35,20 +39,18 @@ Seguridad cliente de correo: tablas + estilos inline; sin flex/grid críticos ni
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ $emailTitle ?? $brand }}</title>
 </head>
-<body style="margin:0;padding:0;background-color:#e8e4dc;font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1a1a1a;">
-<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#e8e4dc;padding:24px 12px;">
+<body style="margin:0;padding:0;background-color:#ffffff;font-family:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;color:#1a1a1a;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#ffffff;padding:24px 12px;">
     <tr>
         <td align="center">
-            <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#e8e4dc;">
+            <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#ffffff;">
                 @yield('preheader')
             </div>
-            <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;width:100%;background-color:#f4f1ea;border-radius:8px;overflow:hidden;border:1px solid #dcd6cc;">
+            <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e8e8e8;">
                 <tr>
-                    <td style="padding:20px 24px 12px 24px;text-align:center;background-color:#ffffff;border-bottom:1px solid #ebe4d8;">
-                        @if ($logoUrl)
-                            <img src="{{ $logoUrl }}" alt="{{ $brand }}" width="120" height="auto" style="display:block;margin:0 auto 8px auto;border:0;" />
-                        @endif
-                        <div style="font-family:Georgia,'Times New Roman',Times,serif;font-size:18px;font-weight:700;letter-spacing:0.06em;color:#1B3D6D;text-transform:uppercase;">
+                    <td style="padding:24px 24px 16px 24px;text-align:center;background-color:#ffffff;border-bottom:1px solid #eeeeee;">
+                        <img src="{{ $logoUrl }}" alt="{{ $brand }}" width="200" style="display:block;max-width:200px;width:100%;height:auto;margin:0 auto 12px auto;border:0;outline:none;text-decoration:none;" />
+                        <div style="font-family:Georgia,'Times New Roman',Times,serif;font-size:16px;font-weight:700;letter-spacing:0.06em;color:#1B3D6D;text-transform:uppercase;">
                             Historias por Correo
                         </div>
                     </td>
@@ -73,13 +75,13 @@ Seguridad cliente de correo: tablas + estilos inline; sin flex/grid críticos ni
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding:12px 24px;background-color:#ebe4d8;text-align:center;font-size:15px;line-height:1.45;color:#3d3d3d;font-weight:600;">
+                    <td style="padding:12px 24px;background-color:#ffffff;border-top:1px solid #f0f0f0;border-bottom:1px solid #f0f0f0;text-align:center;font-size:15px;line-height:1.45;color:#3d3d3d;font-weight:600;">
                         @yield('status_strip')
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding:24px;background-color:#f4f1ea;">
-                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#ffffff;border:1px solid #e8e4dc;border-radius:6px;">
+                    <td style="padding:24px;background-color:#ffffff;">
+                        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#ffffff;border:1px solid #eeeeee;border-radius:6px;">
                             <tr>
                                 <td style="padding:20px 22px;font-size:15px;line-height:1.55;color:#333333;">
                                     @yield('content')
@@ -121,8 +123,9 @@ Seguridad cliente de correo: tablas + estilos inline; sin flex/grid críticos ni
                     </td>
                 </tr>
                 <tr>
-                    <td style="padding:16px 20px;background-color:#1B3D6D;text-align:center;font-size:13px;line-height:1.5;color:#ffffff;">
-                        © Historias por correo | {{ $year }} Derechos reservados
+                    <td style="padding:16px 20px;background-color:#ffffff;border-top:1px solid #eeeeee;text-align:center;font-size:13px;line-height:1.5;color:#555555;">
+                        <span style="color:#1B3D6D;font-weight:600;">Historias por Correo</span><br />
+                        © {{ $year }} Derechos reservados
                     </td>
                 </tr>
             </table>

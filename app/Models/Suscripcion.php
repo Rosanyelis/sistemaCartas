@@ -24,6 +24,7 @@ class Suscripcion extends Model
         'store_order_id',
         'tipo',
         'cantidad',
+        'meses_entrega_total',
         'fecha_adquisicion',
         'fecha_finalizacion',
         'proximo_cobro',
@@ -44,6 +45,7 @@ class Suscripcion extends Model
             'fecha_finalizacion' => 'date',
             'proximo_cobro' => 'date',
             'cantidad' => 'integer',
+            'meses_entrega_total' => 'integer',
             'paypal_last_payload' => 'array',
         ];
     }

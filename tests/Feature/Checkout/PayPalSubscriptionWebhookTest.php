@@ -5,12 +5,14 @@ use App\Models\Historia;
 use App\Models\PasarelaEvento;
 use App\Models\Suscripcion;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Mail;
 
 beforeEach(function (): void {
     Mail::fake();
     Config::set([
+        'app.timezone' => 'UTC',
         'paypal.client_id' => 'test_client_id',
         'paypal.client_secret' => 'test_client_secret',
         'paypal.currency' => 'USD',
@@ -31,6 +33,7 @@ test('webhook activa suscripción y registra pasarela_eventos', function (): voi
         'store_order_id' => null,
         'tipo' => 'PayPal',
         'cantidad' => 1,
+        'meses_entrega_total' => 3,
         'fecha_adquisicion' => now()->toDateString(),
         'fecha_finalizacion' => null,
         'proximo_cobro' => null,
@@ -46,8 +49,9 @@ test('webhook activa suscripción y registra pasarela_eventos', function (): voi
         'resource' => [
             'id' => 'I-SUB-WEBHOOK-1',
             'custom_id' => (string) $suscripcion->id,
+            'start_time' => '2026-05-07T12:00:00Z',
             'billing_info' => [
-                'next_billing_time' => now()->addMonth()->toIso8601String(),
+                'next_billing_time' => '2026-06-07T12:00:00Z',
             ],
         ],
     ];
@@ -58,6 +62,9 @@ test('webhook activa suscripción y registra pasarela_eventos', function (): voi
 
     $suscripcion->refresh();
     expect($suscripcion->estado)->toBe('activa');
+    expect($suscripcion->fecha_adquisicion->format('Y-m-d'))->toBe('2026-05-07');
+    expect($suscripcion->proximo_cobro->format('Y-m-d'))->toBe('2026-06-07');
+    expect($suscripcion->fecha_finalizacion->format('Y-m-d'))->toBe('2026-08-07');
 
     $this->assertDatabaseHas('pasarela_eventos', [
         'paypal_event_id' => 'WH-EVT-ACTIVATE-1',
@@ -72,6 +79,51 @@ test('webhook activa suscripción y registra pasarela_eventos', function (): voi
     expect(PasarelaEvento::query()->where('paypal_event_id', 'WH-EVT-ACTIVATE-1')->count())->toBe(1);
 });
 
+test('webhook activación rellena meses y fecha fin desde la historia si meses_entrega_total es null', function (): void {
+    $user = User::factory()->create();
+    $historia = Historia::factory()->create(['estado' => 'activo', 'duracion_meses' => 4]);
+
+    $suscripcion = Suscripcion::query()->create([
+        'user_id' => $user->id,
+        'historia_id' => $historia->id,
+        'store_order_id' => null,
+        'tipo' => 'PayPal',
+        'cantidad' => 1,
+        'meses_entrega_total' => null,
+        'fecha_adquisicion' => now()->toDateString(),
+        'fecha_finalizacion' => null,
+        'proximo_cobro' => null,
+        'estado' => 'pendiente',
+        'paypal_subscription_id' => 'I-SUB-WEBHOOK-NO-MESES',
+        'paypal_plan_id' => 'P-PLAN-2',
+        'paypal_product_id' => 'PROD-2',
+    ]);
+
+    $payload = [
+        'id' => 'WH-EVT-ACTIVATE-2',
+        'event_type' => 'BILLING.SUBSCRIPTION.ACTIVATED',
+        'resource' => [
+            'id' => 'I-SUB-WEBHOOK-NO-MESES',
+            'custom_id' => (string) $suscripcion->id,
+            'start_time' => '2026-03-01T00:00:00Z',
+            'billing_info' => [
+                'next_billing_time' => '2026-04-01T00:00:00Z',
+            ],
+        ],
+    ];
+
+    $this->postJson(route('webhooks.paypal'), $payload)->assertOk();
+
+    $suscripcion->refresh();
+    expect($suscripcion->estado)->toBe('activa');
+    expect($suscripcion->meses_entrega_total)->toBe(4);
+    expect($suscripcion->fecha_adquisicion->format('Y-m-d'))->toBe('2026-03-01');
+    expect($suscripcion->proximo_cobro->format('Y-m-d'))->toBe('2026-04-01');
+    expect($suscripcion->fecha_finalizacion->format('Y-m-d'))->toBe(
+        Carbon::parse('2026-03-01')->addMonths(4)->toDateString(),
+    );
+});
+
 test('webhook cobro suscripción fallido envía correo al usuario', function (): void {
     $user = User::factory()->create(['email' => 'sub@example.test']);
     $historia = Historia::factory()->create(['estado' => 'activo', 'duracion_meses' => 1]);
@@ -82,6 +134,7 @@ test('webhook cobro suscripción fallido envía correo al usuario', function ():
         'store_order_id' => null,
         'tipo' => 'PayPal',
         'cantidad' => 1,
+        'meses_entrega_total' => null,
         'fecha_adquisicion' => now()->toDateString(),
         'fecha_finalizacion' => null,
         'proximo_cobro' => null,

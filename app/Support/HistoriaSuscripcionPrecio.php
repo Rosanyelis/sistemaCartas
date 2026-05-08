@@ -29,4 +29,18 @@ final class HistoriaSuscripcionPrecio
 
         return max(1, min(120, $meses));
     }
+
+    /**
+     * Total de meses de entregas (arco de la historia): solo `historias.duracion_meses`.
+     * No se deduce del ciclo de facturación PayPal.
+     */
+    public static function mesesEntregaTotal(Historia $historia): ?int
+    {
+        $d = $historia->duracion_meses;
+        if ($d === null || (int) $d <= 0) {
+            return null;
+        }
+
+        return max(1, min(120, (int) $d));
+    }
 }

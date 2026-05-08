@@ -12,6 +12,9 @@ import type { SharedPayPalProps } from '@/components/tienda/PayPalCheckoutButton
  */
 const PAYPAL_SUBSCRIPTION_DRAFT_URL = '/checkout/paypal/subscription/draft';
 
+/** Confirma fechas y estado en servidor tras onApprove (refuerzo si el webhook tarda). */
+const PAYPAL_SUBSCRIPTION_SYNC_URL = '/checkout/paypal/subscription/sync';
+
 type PayPalSubscriptionButtonsProps = {
     historiaSlug: string;
     /** Opcional: vincular la suscripción a una orden de productos de la misma sesión */
@@ -92,7 +95,40 @@ export default function PayPalSubscriptionButtons({
 
                     return data.subscriptionID;
                 },
-                onApprove: async () => {
+                onApprove: async (data) => {
+                    const subscriptionID =
+                        data &&
+                        typeof data === 'object' &&
+                        'subscriptionID' in data &&
+                        typeof (data as { subscriptionID?: unknown }).subscriptionID ===
+                            'string'
+                            ? (data as { subscriptionID: string }).subscriptionID
+                            : undefined;
+
+                    if (!subscriptionID) {
+                        setError(
+                            'PayPal no devolvió el identificador de la suscripción.',
+                        );
+
+                        return;
+                    }
+
+                    const { ok, data: body } = await postJson<{
+                        message?: string;
+                    }>(PAYPAL_SUBSCRIPTION_SYNC_URL, {
+                        subscription_id: subscriptionID,
+                    });
+
+                    if (!ok) {
+                        setError(
+                            typeof body?.message === 'string'
+                                ? body.message
+                                : 'No se pudo confirmar la suscripción en el servidor. Si el pago se completó, espera un momento o revisa Mis suscripciones.',
+                        );
+
+                        return;
+                    }
+
                     onSuccess();
                 },
                 onError: (err) => {

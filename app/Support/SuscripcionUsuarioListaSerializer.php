@@ -3,7 +3,8 @@
 namespace App\Support;
 
 use App\Models\Suscripcion;
-use Illuminate\Support\Carbon;
+use Carbon\Carbon;
+use DateTimeInterface;
 
 /**
  * Serializa suscripciones del usuario autenticado para la página Inertia `user/subscriptions`.
@@ -33,12 +34,14 @@ final class SuscripcionUsuarioListaSerializer
             ? (string) $s->historia->nombre
             : 'Historia no disponible';
 
+        $fechaAdq = $s->fecha_adquisicion ?? $s->created_at;
+
         return [
             'id' => '#'.$s->id,
             'historia' => $historiaNombre,
             'cantidad' => $s->cantidad,
             'tipo' => (string) $s->tipo,
-            'fecha_adquisicion' => self::formatoFecha($s->fecha_adquisicion),
+            'fecha_adquisicion' => self::formatoFecha($fechaAdq),
             'fecha_finalizacion' => self::formatoFecha($s->fecha_finalizacion),
             'proximo_cobro' => self::formatoFecha($s->proximo_cobro),
             'estado' => $presentacion['label'],
@@ -48,8 +51,16 @@ final class SuscripcionUsuarioListaSerializer
 
     private static function formatoFecha(mixed $fecha): string
     {
-        if ($fecha instanceof Carbon) {
-            return $fecha->format('Y-m-d');
+        if ($fecha instanceof DateTimeInterface) {
+            return Carbon::parse($fecha)->format('Y-m-d');
+        }
+
+        if (is_string($fecha) && $fecha !== '') {
+            try {
+                return Carbon::parse($fecha)->format('Y-m-d');
+            } catch (\Throwable) {
+                return '';
+            }
         }
 
         return '';

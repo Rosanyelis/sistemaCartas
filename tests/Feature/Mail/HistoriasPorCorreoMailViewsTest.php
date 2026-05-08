@@ -33,7 +33,9 @@ test('vistas de correo se renderizan sin excepción', function (): void {
     $order->load(['user', 'items']);
 
     $htmlPaid = (new StoreOrderPaidMail($order))->render();
-    expect($htmlPaid)->toContain('Compra confirmada')->toContain('#'.$order->id);
+    expect($htmlPaid)->toContain('Compra confirmada')->toContain('#'.$order->id)
+        ->toContain('logo-principal.png')
+        ->toContain('background-color:#ffffff');
 
     $htmlFail = (new StoreOrderCaptureFailedMail(
         $order,

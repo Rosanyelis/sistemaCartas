@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SuscripcionController as AdminSuscripcionControll
 use App\Http\Controllers\Auth\EmailVerificationOtpController;
 use App\Http\Controllers\Checkout\PayPalCheckoutController;
 use App\Http\Controllers\Checkout\PayPalSubscriptionCheckoutController;
+use App\Http\Controllers\Checkout\PayPalSubscriptionSyncController;
 use App\Http\Controllers\Checkout\PayPalWebhookController;
 use App\Http\Controllers\User\HistoriaCatalogoSerializer;
 use App\Http\Controllers\User\HistoriaController;
@@ -111,6 +112,9 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/checkout/paypal/subscription/draft', [PayPalSubscriptionCheckoutController::class, 'draft'])
         ->name('checkout.paypal.subscription.draft');
+
+    Route::post('/checkout/paypal/subscription/sync', PayPalSubscriptionSyncController::class)
+        ->name('checkout.paypal.subscription.sync');
 
     Route::get('dashboard', function (Request $request) {
         if ($request->user()->isAdmin()) {

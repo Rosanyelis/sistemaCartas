@@ -3,6 +3,8 @@
 use App\Models\Historia;
 use App\Models\Suscripcion;
 use App\Models\User;
+use App\Support\HistoriaSuscripcionPrecio;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
@@ -128,10 +130,28 @@ test('usuario verificado crea borrador de suscripción paypal', function (): voi
         'historia_id' => $historia->id,
         'paypal_subscription_id' => 'I-SUB-DRAFT-1',
         'estado' => 'pendiente',
+        'meses_entrega_total' => 1,
     ]);
 
     $historia->refresh();
     expect($historia->paypal_plan_id)->toBe('P-PLAN-TEST-1');
+
+    $suscripcion = Suscripcion::query()
+        ->where('user_id', $user->id)
+        ->where('historia_id', $historia->id)
+        ->latest('id')
+        ->first();
+    expect($suscripcion)->not->toBeNull();
+    $meses = HistoriaSuscripcionPrecio::mesesEntregaTotal($historia);
+    $intervalo = HistoriaSuscripcionPrecio::intervaloMeses($historia);
+    expect($suscripcion->fecha_adquisicion->format('Y-m-d'))->toBe(now()->toDateString());
+    expect($suscripcion->fecha_finalizacion->format('Y-m-d'))->toBe(
+        Carbon::parse($suscripcion->fecha_adquisicion)->addMonths($meses)->toDateString(),
+    );
+    expect($suscripcion->proximo_cobro->format('Y-m-d'))->toBe(
+        Carbon::parse($suscripcion->fecha_adquisicion)->addMonths($intervalo)->toDateString(),
+    );
+    expect($suscripcion->meses_entrega_total)->toBe($meses);
 });
 
 test('borrador tolera 422 en activate cuando el plan ya está ACTIVE en PayPal', function (): void {

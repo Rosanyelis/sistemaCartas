@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Marca en plantillas HTML (layout mail.layouts.historias-por-correo)
+    |--------------------------------------------------------------------------
+    |
+    | Ruta relativa a `public/` para el logo del encabezado. URL absoluta en
+    | el correo vía asset(). Sobreescribe con MAIL_BRAND_LOGO_ASSET si aplica.
+    |
+    */
+
+    'brand_logo_asset' => env('MAIL_BRAND_LOGO_ASSET', 'images/logo-principal.png'),
+
 ];
