@@ -26,11 +26,21 @@ import {
     setResumeCheckoutIntent,
 } from '@/lib/cart-storage';
 import { login } from '@/routes';
+import profile from '@/routes/user/profile';
 
 const RESUME_CART_PATH = '/?openCart=1&checkout=1';
 
+type AuthUserPayload = {
+    id: number;
+    name: string;
+    email: string;
+    direction?: string | null;
+    zip_code?: string | null;
+    phone?: string | null;
+};
+
 type TiendaPageProps = {
-    auth: { user: unknown };
+    auth: { user: AuthUserPayload | null };
     paymentMethods?: {
         id: number;
         titular: string | null;
@@ -65,9 +75,51 @@ const CartDrawer: React.FC = () => {
         'products' | 'subscriptions' | null
     >(null);
     const prevIsOpen = useRef(false);
+    const [checkoutStep, setCheckoutStep] = useState<1 | 2>(1);
+    const subscriptionAwaitingShippingRef = useRef(false);
+    const [shippingName, setShippingName] = useState('');
+    const [shippingEmail, setShippingEmail] = useState('');
+    const [shippingDirection, setShippingDirection] = useState('');
+    const [shippingZip, setShippingZip] = useState('');
+    const [shippingPhone, setShippingPhone] = useState('');
+
+    const syncShippingFromProfile = useCallback(() => {
+        const u = auth?.user;
+        if (!u) {
+            return;
+        }
+
+        setShippingName(u.name ?? '');
+        setShippingEmail(u.email ?? '');
+        setShippingDirection(
+            typeof u.direction === 'string' ? u.direction : '',
+        );
+        setShippingZip(typeof u.zip_code === 'string' ? u.zip_code : '');
+        setShippingPhone(typeof u.phone === 'string' ? u.phone : '');
+    }, [auth?.user]);
+
+    useEffect(() => {
+        if (isOpen && view === 'checkout' && auth?.user) {
+            syncShippingFromProfile();
+        }
+    }, [isOpen, view, auth?.user, syncShippingFromProfile]);
+
+    useEffect(() => {
+        if (view === 'cart') {
+            setCheckoutStep(1);
+        }
+    }, [view]);
+
+    useEffect(() => {
+        if (!isOpen && subscriptionAwaitingShippingRef.current) {
+            subscriptionAwaitingShippingRef.current = false;
+            clearHistoriaSubscriptionLines();
+        }
+    }, [isOpen, clearHistoriaSubscriptionLines]);
 
     const handleProceedToPay = useCallback(() => {
         if (auth?.user) {
+            setCheckoutStep(1);
             setView('checkout');
 
             return;
@@ -99,6 +151,7 @@ const CartDrawer: React.FC = () => {
 
             if (v === 'checkout') {
                 const id = requestAnimationFrame(() => {
+                    setCheckoutStep(1);
                     setView('checkout');
                 });
 
@@ -148,13 +201,83 @@ const CartDrawer: React.FC = () => {
         [clearProductLines, closeCart],
     );
 
-    const handleSubscriptionPayPalSuccess = useCallback(() => {
+    const finalizeSubscriptionPurchase = useCallback(() => {
+        subscriptionAwaitingShippingRef.current = false;
         clearHistoriaSubscriptionLines();
         setView('cart');
         closeCart();
+        setCheckoutStep(1);
         setPurchaseSuccessKind('subscriptions');
         setPurchaseSuccessOpen(true);
     }, [clearHistoriaSubscriptionLines, closeCart]);
+
+    const handleSubscriptionPayPalApproved = useCallback(() => {
+        subscriptionAwaitingShippingRef.current = true;
+        setCheckoutStep(2);
+    }, []);
+
+    const handleFinalizeSubscriptionShipping = useCallback(() => {
+        if (!auth?.user) {
+            return;
+        }
+
+        router.post(
+            profile.update().url,
+            {
+                name: shippingName,
+                email: shippingEmail,
+                direction: shippingDirection || null,
+                zip_code: shippingZip || null,
+                phone: shippingPhone || null,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    finalizeSubscriptionPurchase();
+                },
+            },
+        );
+    }, [
+        auth?.user,
+        shippingName,
+        shippingEmail,
+        shippingDirection,
+        shippingZip,
+        shippingPhone,
+        finalizeSubscriptionPurchase,
+    ]);
+
+    const handleProductContinueToPayment = useCallback(() => {
+        if (!auth?.user) {
+            setCheckoutStep(2);
+
+            return;
+        }
+
+        router.post(
+            profile.update().url,
+            {
+                name: shippingName,
+                email: shippingEmail,
+                direction: shippingDirection || null,
+                zip_code: shippingZip || null,
+                phone: shippingPhone || null,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    setCheckoutStep(2);
+                },
+            },
+        );
+    }, [
+        auth?.user,
+        shippingName,
+        shippingEmail,
+        shippingDirection,
+        shippingZip,
+        shippingPhone,
+    ]);
 
     const handleGoToOrdersPanel = useCallback(() => {
         setPurchaseSuccessOpen(false);
@@ -172,6 +295,102 @@ const CartDrawer: React.FC = () => {
         setPurchaseSuccessOpen(false);
         setPurchaseSuccessKind(null);
     }, []);
+
+    const renderShippingForm = (opts: {
+        stepLabel: string;
+        title: string;
+        note?: string;
+    }) => (
+        <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-[#1B3D6D] font-bold text-white">
+                    {opts.stepLabel}
+                </div>
+                <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#1B3D6D]">
+                    {opts.title}
+                </h3>
+            </div>
+            {opts.note ? (
+                <p className="font-['Inter',sans-serif] text-[12px] text-[#7B7B7B]">
+                    {opts.note}
+                </p>
+            ) : null}
+            <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                    <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
+                        Nombre completo
+                    </label>
+                    <input
+                        type="text"
+                        value={shippingName}
+                        onChange={(e) => setShippingName(e.target.value)}
+                        placeholder="Ej. Alejandro Magno"
+                        className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
+                    />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                    <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
+                        Correo electrónico
+                    </label>
+                    <input
+                        type="email"
+                        value={shippingEmail}
+                        onChange={(e) => setShippingEmail(e.target.value)}
+                        className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
+                    />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                    <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
+                        Dirección postal
+                    </label>
+                    <input
+                        type="text"
+                        value={shippingDirection}
+                        onChange={(e) =>
+                            setShippingDirection(e.target.value)
+                        }
+                        placeholder="Calle, número, piso..."
+                        className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
+                    />
+                </div>
+                <div className="flex flex-col gap-1.5 sm:flex-row sm:gap-3">
+                    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                        <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
+                            Código postal
+                        </label>
+                        <input
+                            type="text"
+                            value={shippingZip}
+                            onChange={(e) => setShippingZip(e.target.value)}
+                            placeholder="CP"
+                            className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
+                        />
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                        <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
+                            Teléfono / móvil
+                        </label>
+                        <input
+                            type="tel"
+                            value={shippingPhone}
+                            onChange={(e) => setShippingPhone(e.target.value)}
+                            placeholder="Móvil"
+                            className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
+                        />
+                    </div>
+                </div>
+            </div>
+            {auth?.user ? (
+                <button
+                    type="button"
+                    onClick={syncShippingFromProfile}
+                    className="self-start font-['Inter',sans-serif] text-[12px] font-semibold text-[#1B3D6D] underline"
+                >
+                    Restaurar datos de mi perfil
+                </button>
+            ) : null}
+        </div>
+    );
 
     return (
         <>
@@ -499,183 +718,34 @@ const CartDrawer: React.FC = () => {
                             </>
                         ) : (
                             <div className="flex flex-col gap-6 py-4">
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-[#1B3D6D] font-bold text-white">
-                                            1
-                                        </div>
-                                        <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#1B3D6D]">
-                                            Información de Envío
-                                        </h3>
-                                    </div>
-                                    <p className="font-['Inter',sans-serif] text-[12px] text-[#7B7B7B]">
-                                        Demo: los datos de envío son solo
-                                        ilustrativos. El cobro real lo procesa
-                                        PayPal sandbox.
-                                    </p>
-                                    <div className="flex flex-col gap-4">
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
-                                                Nombre completo
-                                            </label>
-                                            <input
-                                                type="text"
-                                                placeholder="Ej. Alejandro Magno"
-                                                className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
-                                            />
-                                        </div>
-                                        <div className="flex flex-col gap-1.5">
-                                            <label className="font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
-                                                Dirección postal
-                                            </label>
-                                            <input
-                                                type="text"
-                                                placeholder="Calle, número, piso..."
-                                                className="rounded-[2px] border border-[#DCDCDC] bg-white p-3 font-['Inter',sans-serif] text-[14px] outline-none focus:border-[#1B3D6D]"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="border-b border-[#DCDCDC]" />
-
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-[#1B3D6D] font-bold text-white">
-                                            2
-                                        </div>
-                                        <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#1B3D6D]">
-                                            Método de Pago
-                                        </h3>
-                                    </div>
-
-                                    <div className="flex flex-col gap-3">
-                                        {paymentMethods.length > 0 ? (
-                                            <>
-                                                <p className="font-['Inter',sans-serif] text-[11px] leading-relaxed text-[#7B7B7B]">
-                                                    Métodos guardados en tu
-                                                    perfil (referencia). El
-                                                    cobro de esta tienda usa
-                                                    PayPal: productos con
-                                                    Orders y suscripciones a
-                                                    historias con PayPal
-                                                    Subscriptions (no se
-                                                    tokeniza aquí el
-                                                    recurrente).
-                                                </p>
-                                                {paymentMethods.map((m) => (
-                                                    <label
-                                                        key={m.id}
-                                                        className={`relative flex cursor-pointer items-center justify-between rounded-[2px] border p-4 transition-all duration-300 ${selectedPayment === `saved-${m.id}` ? 'border-[#1B3D6D] bg-[#E1EFFF]' : 'border-[#DCDCDC] bg-white'}`}
-                                                        onClick={() =>
-                                                            setSelectedPayment(
-                                                                `saved-${m.id}`,
-                                                            )
-                                                        }
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <div
-                                                                className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedPayment === `saved-${m.id}` ? 'border-[#1B3D6D] bg-[#1B3D6D]' : 'border-[#DCDCDC]'}`}
-                                                            >
-                                                                {selectedPayment ===
-                                                                    `saved-${m.id}` && (
-                                                                    <div className="h-2 w-2 rounded-full bg-white" />
-                                                                )}
-                                                            </div>
-                                                            <div className="flex flex-col">
-                                                                <span className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D]">
-                                                                    {m.titular ??
-                                                                        'Método'}
-                                                                </span>
-                                                                <span className="font-['Inter',sans-serif] text-[11px] text-[#7B7B7B]">
-                                                                    {m.tipo_nombre ??
-                                                                        '—'}
-                                                                    {m.is_default
-                                                                        ? ' · Predeterminado'
-                                                                        : ''}
-                                                                </span>
-                                                            </div>
-                                                        </div>
-                                                    </label>
-                                                ))}
-                                                <button
-                                                    type="button"
-                                                    onClick={() =>
-                                                        setSelectedPayment(
-                                                            'paypal',
-                                                        )
-                                                    }
-                                                    className="text-left font-['Inter',sans-serif] text-[12px] font-semibold text-[#1B3D6D] underline"
-                                                >
-                                                    Usar otro método (PayPal)
-                                                </button>
-                                            </>
-                                        ) : null}
-
-                                        <label
-                                            className={`relative flex cursor-pointer items-center justify-between rounded-[2px] border p-4 transition-all duration-300 ${selectedPayment === 'paypal' ? 'border-[#1B3D6D] bg-[#E1EFFF]' : 'border-[#DCDCDC] bg-white'}`}
-                                            onClick={() =>
-                                                setSelectedPayment('paypal')
-                                            }
-                                        >
-                                            <div className="flex items-center gap-3">
-                                                <div
-                                                    className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedPayment === 'paypal' ? 'border-[#1B3D6D] bg-[#1B3D6D]' : 'border-[#DCDCDC]'}`}
-                                                >
-                                                    {selectedPayment ===
-                                                        'paypal' && (
-                                                        <div className="h-2 w-2 rounded-full bg-white" />
-                                                    )}
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#1B3D6D]">
-                                                        PayPal
-                                                    </span>
-                                                    <i className="fa-brands fa-paypal text-[#003087]"></i>
-                                                </div>
-                                            </div>
-                                            <div className="rounded-[1px] bg-[rgba(27,61,109,0.08)] px-[6px] py-[2px]">
-                                                <span className="font-['Inter',sans-serif] text-[10px] font-medium text-[#1B3D6D]">
-                                                    Sandbox activo
-                                                </span>
-                                            </div>
-                                        </label>
-                                    </div>
-                                </div>
-
-                                {derivedCartMode === 'products' &&
-                                    productLines.length > 0 && (
-                                        <div className="flex flex-col gap-2">
-                                            <p className="font-['Inter',sans-serif] text-[12px] text-[#7B7B7B]">
-                                                Pago único de productos: inicia
-                                                sesión en PayPal (sandbox) para
-                                                completar el cobro.
-                                            </p>
-                                            <PayPalCheckoutButtons
-                                                lines={paypalLines}
-                                                onSuccess={
-                                                    handlePayPalSuccess
-                                                }
-                                            />
-                                        </div>
-                                    )}
-
+                                {/*
+                                  Suscripciones: paso 1 = aprobación en PayPal; paso 2 = confirmar envío y guardarlo en el perfil antes de cerrar.
+                                  Productos: paso 1 = datos de envío; paso 2 = método de pago y cobro PayPal (tras guardar envío si hay sesión).
+                                */}
                                 {derivedCartMode === 'subscriptions' &&
+                                checkoutStep === 1 &&
                                 historiaLines.length > 0 ? (
-                                    <div className="flex flex-col gap-3 pt-2">
-                                        <h4 className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D]">
-                                            Suscripción con PayPal
-                                        </h4>
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-[#1B3D6D] font-bold text-white">
+                                                1
+                                            </div>
+                                            <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#1B3D6D]">
+                                                Pago con PayPal (suscripción)
+                                            </h3>
+                                        </div>
                                         <p className="font-['Inter',sans-serif] text-[11px] leading-relaxed text-[#7B7B7B]">
                                             Aprueba el plan recurrente en la
-                                            ventana de PayPal. Cuando PayPal
-                                            confirme el alta, activaremos tu
-                                            acceso (webhook).
+                                            ventana de PayPal. Tras la
+                                            aprobación, el paso 2 solo confirma
+                                            y guarda tu dirección de envío en
+                                            el perfil antes de cerrar el
+                                            carrito.
                                         </p>
                                         {!auth?.user ? (
                                             <p className="font-['Inter',sans-serif] text-[12px] text-amber-800">
-                                                Inicia sesión para suscribirte a
-                                                las historias del carrito.
+                                                Inicia sesión para suscribirte
+                                                a las historias del carrito.
                                             </p>
                                         ) : (
                                             historiaLines.map((h) => (
@@ -689,13 +759,188 @@ const CartDrawer: React.FC = () => {
                                                     <PayPalSubscriptionButtons
                                                         historiaSlug={h.slug}
                                                         onSuccess={
-                                                            handleSubscriptionPayPalSuccess
+                                                            handleSubscriptionPayPalApproved
                                                         }
                                                     />
                                                 </div>
                                             ))
                                         )}
                                     </div>
+                                ) : null}
+
+                                {derivedCartMode === 'subscriptions' &&
+                                checkoutStep === 2 ? (
+                                    <>
+                                        {renderShippingForm({
+                                            stepLabel: '2',
+                                            title: 'Confirmar envío',
+                                            note: 'Tras aprobar PayPal, guarda tu dirección en el perfil y finaliza.',
+                                        })}
+                                        <Button
+                                            type="button"
+                                            className="w-full rounded-[2px] bg-[#1B3D6D] py-[14px] font-['Inter',sans-serif] text-[15px] font-bold text-white hover:bg-[#163158]"
+                                            onClick={
+                                                handleFinalizeSubscriptionShipping
+                                            }
+                                            disabled={!auth?.user}
+                                        >
+                                            Guardar envío y finalizar
+                                        </Button>
+                                    </>
+                                ) : null}
+
+                                {derivedCartMode === 'products' &&
+                                checkoutStep === 1 ? (
+                                    <>
+                                        {renderShippingForm({
+                                            stepLabel: '1',
+                                            title: 'Información de envío',
+                                            note: 'El cobro con PayPal ocurre en el paso 2. Si iniciaste sesión, estos datos se guardan en tu perfil al continuar.',
+                                        })}
+                                        <Button
+                                            type="button"
+                                            className="w-full rounded-[2px] bg-[#1B3D6D] py-[14px] font-['Inter',sans-serif] text-[15px] font-bold text-white hover:bg-[#163158]"
+                                            onClick={
+                                                handleProductContinueToPayment
+                                            }
+                                        >
+                                            Continuar al pago
+                                        </Button>
+                                    </>
+                                ) : null}
+
+                                {derivedCartMode === 'products' &&
+                                checkoutStep === 2 ? (
+                                    <>
+                                        <div className="border-b border-[#DCDCDC]" />
+                                        <div className="flex flex-col gap-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-[#1B3D6D] font-bold text-white">
+                                                    2
+                                                </div>
+                                                <h3 className="font-['Inter',sans-serif] text-[18px] font-bold text-[#1B3D6D]">
+                                                    Método de pago
+                                                </h3>
+                                            </div>
+
+                                            <div className="flex flex-col gap-3">
+                                                {paymentMethods.length > 0 ? (
+                                                    <>
+                                                        <p className="font-['Inter',sans-serif] text-[11px] leading-relaxed text-[#7B7B7B]">
+                                                            Métodos guardados en
+                                                            tu perfil
+                                                            (referencia). El
+                                                            cobro de esta tienda
+                                                            usa PayPal: productos
+                                                            con Orders y
+                                                            suscripciones a
+                                                            historias con PayPal
+                                                            Subscriptions (no se
+                                                            tokeniza aquí el
+                                                            recurrente).
+                                                        </p>
+                                                        {paymentMethods.map(
+                                                            (m) => (
+                                                                <label
+                                                                    key={m.id}
+                                                                    className={`relative flex cursor-pointer items-center justify-between rounded-[2px] border p-4 transition-all duration-300 ${selectedPayment === `saved-${m.id}` ? 'border-[#1B3D6D] bg-[#E1EFFF]' : 'border-[#DCDCDC] bg-white'}`}
+                                                                    onClick={() =>
+                                                                        setSelectedPayment(
+                                                                            `saved-${m.id}`,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div
+                                                                            className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedPayment === `saved-${m.id}` ? 'border-[#1B3D6D] bg-[#1B3D6D]' : 'border-[#DCDCDC]'}`}
+                                                                        >
+                                                                            {selectedPayment ===
+                                                                                `saved-${m.id}` && (
+                                                                                <div className="h-2 w-2 rounded-full bg-white" />
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex flex-col">
+                                                                            <span className="font-['Inter',sans-serif] text-[14px] font-bold text-[#1B3D6D]">
+                                                                                {m.titular ??
+                                                                                    'Método'}
+                                                                            </span>
+                                                                            <span className="font-['Inter',sans-serif] text-[11px] text-[#7B7B7B]">
+                                                                                {m.tipo_nombre ??
+                                                                                    '—'}
+                                                                                {m.is_default
+                                                                                    ? ' · Predeterminado'
+                                                                                    : ''}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </label>
+                                                            ),
+                                                        )}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setSelectedPayment(
+                                                                    'paypal',
+                                                                )
+                                                            }
+                                                            className="text-left font-['Inter',sans-serif] text-[12px] font-semibold text-[#1B3D6D] underline"
+                                                        >
+                                                            Usar otro método
+                                                            (PayPal)
+                                                        </button>
+                                                    </>
+                                                ) : null}
+
+                                                <label
+                                                    className={`relative flex cursor-pointer items-center justify-between rounded-[2px] border p-4 transition-all duration-300 ${selectedPayment === 'paypal' ? 'border-[#1B3D6D] bg-[#E1EFFF]' : 'border-[#DCDCDC] bg-white'}`}
+                                                    onClick={() =>
+                                                        setSelectedPayment(
+                                                            'paypal',
+                                                        )
+                                                    }
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div
+                                                            className={`flex h-5 w-5 items-center justify-center rounded-full border ${selectedPayment === 'paypal' ? 'border-[#1B3D6D] bg-[#1B3D6D]' : 'border-[#DCDCDC]'}`}
+                                                        >
+                                                            {selectedPayment ===
+                                                                'paypal' && (
+                                                                <div className="h-2 w-2 rounded-full bg-white" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#1B3D6D]">
+                                                                PayPal
+                                                            </span>
+                                                            <i className="fa-brands fa-paypal text-[#003087]"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div className="rounded-[1px] bg-[rgba(27,61,109,0.08)] px-[6px] py-[2px]">
+                                                        <span className="font-['Inter',sans-serif] text-[10px] font-medium text-[#1B3D6D]">
+                                                            Sandbox activo
+                                                        </span>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {productLines.length > 0 ? (
+                                            <div className="flex flex-col gap-2">
+                                                <p className="font-['Inter',sans-serif] text-[12px] text-[#7B7B7B]">
+                                                    Pago único de productos:
+                                                    inicia sesión en PayPal
+                                                    (sandbox) para completar el
+                                                    cobro.
+                                                </p>
+                                                <PayPalCheckoutButtons
+                                                    lines={paypalLines}
+                                                    onSuccess={
+                                                        handlePayPalSuccess
+                                                    }
+                                                />
+                                            </div>
+                                        ) : null}
+                                    </>
                                 ) : null}
 
                                 <button

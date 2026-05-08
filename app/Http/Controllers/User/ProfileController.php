@@ -4,7 +4,10 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\User\ProfileUpdateRequest;
+use App\Http\Requests\User\StorePaymentMethodRequest;
 use App\Models\MetodoPagoUsuario;
+use App\Models\TipoMetodoPago;
+use App\Support\UserActivitySummary;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
@@ -32,6 +35,19 @@ class ProfileController extends Controller
             ];
         });
 
+        $allowedNames = config('payments.allowed_profile_method_type_names', ['Paypal']);
+        $paymentTypeOptions = TipoMetodoPago::query()
+            ->whereIn('nombre', $allowedNames)
+            ->orderBy('nombre')
+            ->get()
+            ->map(static fn (TipoMetodoPago $t): array => [
+                'id' => $t->id,
+                'nombre' => $t->nombre,
+                'icono' => $t->icono,
+            ])
+            ->values()
+            ->all();
+
         return Inertia::render('user/profile', [
             'user' => [
                 'id' => $user->id,
@@ -42,11 +58,9 @@ class ProfileController extends Controller
                 'zip_code' => $user->zip_code,
                 'phone' => $user->phone,
             ],
-            'activitySummary' => [
-                'activeSubscriptions' => 0, // Mock, needs subscription logic
-                'acquiredProducts' => 0,    // Mock, needs orders logic
-            ],
+            'activitySummary' => UserActivitySummary::forUser($user),
             'paymentMethods' => $paymentMethods,
+            'paymentTypeOptions' => $paymentTypeOptions,
         ]);
     }
 
@@ -57,12 +71,26 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
-        $user->update([
-            'name' => $request->name,
-            'direction' => $request->direction,
-            'zip_code' => $request->zip_code,
-            'phone' => $request->phone,
+        $newEmail = $request->validated('email');
+        $emailChanged = $newEmail !== $user->email;
+
+        $user->fill([
+            'name' => $request->validated('name'),
+            'email' => $newEmail,
+            'direction' => $request->validated('direction'),
+            'zip_code' => $request->validated('zip_code'),
+            'phone' => $request->validated('phone'),
         ]);
+
+        if ($emailChanged) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        if ($emailChanged) {
+            $user->sendEmailVerificationNotification();
+        }
 
         return back()->with('success', 'Perfil actualizado con éxito');
     }
@@ -91,26 +119,19 @@ class ProfileController extends Controller
     /**
      * Store a new payment method.
      */
-    public function storePaymentMethod(Request $request)
+    public function storePaymentMethod(StorePaymentMethodRequest $request)
     {
-        $request->validate([
-            'tipo_id' => ['required', 'exists:tipos_pago,id'],
-            'titular' => ['required', 'string', 'max:255'],
-            'detalles' => ['required', 'string', 'max:255'],
-            'is_default' => ['boolean'],
-        ]);
-
         $user = $request->user();
 
-        if ($request->is_default) {
+        if ($request->boolean('is_default')) {
             $user->metodosPago()->update(['is_default' => false]);
         }
 
         $user->metodosPago()->create([
-            'tipo_metodo_pago_id' => $request->tipo_id,
-            'titular' => $request->titular,
-            'detalles' => $request->detalles,
-            'is_default' => $request->is_default ?? false,
+            'tipo_metodo_pago_id' => $request->validated('tipo_id'),
+            'titular' => $request->validated('titular'),
+            'detalles' => $request->validated('detalles'),
+            'is_default' => $request->boolean('is_default'),
         ]);
 
         return back()->with('success', 'Método de pago añadido');

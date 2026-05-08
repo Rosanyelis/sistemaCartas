@@ -236,7 +236,8 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
                                     <div className="relative">
                                         <img
                                             src={
-                                                auth.user.avatar ||
+                                                auth.user.avatar_url ??
+                                                auth.user.avatar ??
                                                 '/images/avatar-placeholder.jpg'
                                             }
                                             alt="Profile"

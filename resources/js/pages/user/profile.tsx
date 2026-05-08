@@ -49,36 +49,61 @@ interface ProfileProps {
         details: string;
         isDefault: boolean;
     }[];
+    paymentTypeOptions: {
+        id: number;
+        nombre: string;
+        icono: string;
+    }[];
 }
 
 export default function Profile({
     user,
     activitySummary,
     paymentMethods,
+    paymentTypeOptions,
 }: ProfileProps) {
     const { data, setData, post, processing, errors, reset } = useForm<{
         name: string;
+        email: string;
         direction: string;
         zip_code: string;
         phone: string;
     }>({
         name: user.name,
+        email: user.email,
         direction: user.direction || '',
         zip_code: user.zip_code || '',
         phone: user.phone || '',
     });
 
     const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
-    const [newPaymentType, setNewPaymentType] = useState('Paypal');
+    const paymentMethodForm = useForm({
+        tipo_id: paymentTypeOptions[0]?.id ?? 0,
+        titular: '',
+        detalles: '',
+        is_default: false,
+    });
 
     useEffect(() => {
         setData({
             name: user.name,
+            email: user.email,
             direction: user.direction || '',
             zip_code: user.zip_code || '',
             phone: user.phone || '',
         });
     }, [user]);
+
+    const openAddPaymentModal = () => {
+        paymentMethodForm.setData({
+            tipo_id: paymentTypeOptions[0]?.id ?? 0,
+            titular: '',
+            detalles: '',
+            is_default: false,
+        });
+        paymentMethodForm.clearErrors();
+        setIsAddPaymentModalOpen(true);
+    };
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -236,10 +261,22 @@ export default function Profile({
                                         </label>
                                         <input
                                             type="email"
-                                            value={user.email}
-                                            disabled
-                                            className="h-[48px] rounded-[4px] border border-[#E5E7EB] bg-[#F9FAFB] px-4 font-['Inter'] text-[15px] text-[#111928]"
+                                            value={data.email}
+                                            onChange={(e) =>
+                                                setData('email', e.target.value)
+                                            }
+                                            className="h-[48px] rounded-[4px] border border-[#E5E7EB] px-4 font-['Inter'] text-[15px] text-[#111928] focus:border-[#1B3D6D] focus:outline-none"
                                         />
+                                        {errors.email && (
+                                            <p className="text-sm text-red-500">
+                                                {errors.email}
+                                            </p>
+                                        )}
+                                        <p className="text-[12px] text-[#7B7B7B]">
+                                            Si cambias el correo, deberás
+                                            verificarlo de nuevo (recibirás un
+                                            código OTP).
+                                        </p>
                                     </div>
                                     <div className="flex flex-col gap-1.5">
                                         <label className="font-['Inter'] text-[14px] font-medium text-[#111928]">
@@ -316,7 +353,11 @@ export default function Profile({
                                 <h2 className="font-['Inter'] text-[20px] font-bold text-[#1B3D6D]">
                                     Método de pago
                                 </h2>
-                                <button className="flex w-full items-center justify-center gap-2 rounded-[4px] border border-[#1B3D6D] px-4 py-2 text-[14px] font-bold text-[#1B3D6D] transition-all hover:bg-[#1B3D6D] hover:text-white md:w-auto">
+                                <button
+                                    type="button"
+                                    onClick={openAddPaymentModal}
+                                    className="flex w-full items-center justify-center gap-2 rounded-[4px] border border-[#1B3D6D] px-4 py-2 text-[14px] font-bold text-[#1B3D6D] transition-all hover:bg-[#1B3D6D] hover:text-white md:w-auto"
+                                >
                                     <FontAwesomeIcon
                                         icon={faPlus}
                                         className="size-3"
@@ -395,9 +436,8 @@ export default function Profile({
                                 ))}
 
                                 <button
-                                    onClick={() =>
-                                        setIsAddPaymentModalOpen(true)
-                                    }
+                                    type="button"
+                                    onClick={openAddPaymentModal}
                                     className="mt-4 flex h-[44px] w-full items-center justify-center rounded-[4px] border border-dashed border-[#1B3D6D] font-['Inter'] text-[14px] font-semibold text-[#1B3D6D] transition-all hover:bg-[#1B3D6D]/5"
                                 >
                                     + Añadir nuevo método de pago
@@ -419,50 +459,143 @@ export default function Profile({
                         <h3 className="mb-6 font-['Inter'] text-[24px] font-bold text-[#1B3D6D]">
                             Añadir método de pago
                         </h3>
-                        <div className="flex flex-col gap-4">
-                            <div className="flex flex-col gap-1.5">
-                                <label className="text-[14px] font-medium text-[#111928]">
-                                    Tipo
-                                </label>
-                                <select
-                                    className="h-[48px] rounded-[4px] border border-[#E5E7EB] px-3 focus:outline-none"
-                                    value={newPaymentType}
-                                    onChange={(e) =>
-                                        setNewPaymentType(e.target.value)
-                                    }
-                                >
-                                    <option value="1">Paypal</option>
-                                    <option value="2">
-                                        Tarjeta de Crédito
-                                    </option>
-                                    <option value="3">Mercado Pago</option>
-                                </select>
-                            </div>
-
-                            <p className="text-[13px] text-[#7B7B7B]">
-                                Selecciona el tipo de método de pago que deseas
-                                vincular a tu cuenta.
+                        {paymentTypeOptions.length === 0 ? (
+                            <p className="text-[14px] text-[#7B7B7B]">
+                                No hay tipos de método disponibles. Contacta con
+                                soporte.
                             </p>
+                        ) : (
+                            <div className="flex flex-col gap-4">
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[14px] font-medium text-[#111928]">
+                                        Tipo
+                                    </label>
+                                    <select
+                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] px-3 focus:outline-none"
+                                        value={paymentMethodForm.data.tipo_id}
+                                        onChange={(e) =>
+                                            paymentMethodForm.setData(
+                                                'tipo_id',
+                                                Number(e.target.value),
+                                            )
+                                        }
+                                    >
+                                        {paymentTypeOptions.map((t) => (
+                                            <option key={t.id} value={t.id}>
+                                                {t.nombre}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {paymentMethodForm.errors.tipo_id && (
+                                        <p className="text-sm text-red-500">
+                                            {paymentMethodForm.errors.tipo_id}
+                                        </p>
+                                    )}
+                                </div>
 
-                            <div className="mt-4 flex gap-3">
-                                <button
-                                    className="h-[48px] flex-1 rounded-[4px] bg-[#1B3D6D] font-bold text-white hover:bg-[#1B3D6D]/90"
-                                    onClick={() =>
-                                        setIsAddPaymentModalOpen(false)
-                                    }
-                                >
-                                    Aceptar
-                                </button>
-                                <button
-                                    className="h-[48px] flex-1 rounded-[4px] border border-gray-300 hover:bg-gray-50"
-                                    onClick={() =>
-                                        setIsAddPaymentModalOpen(false)
-                                    }
-                                >
-                                    Cerrar
-                                </button>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[14px] font-medium text-[#111928]">
+                                        Titular / alias
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={paymentMethodForm.data.titular}
+                                        onChange={(e) =>
+                                            paymentMethodForm.setData(
+                                                'titular',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] px-3 focus:outline-none"
+                                        placeholder="Nombre visible"
+                                    />
+                                    {paymentMethodForm.errors.titular && (
+                                        <p className="text-sm text-red-500">
+                                            {paymentMethodForm.errors.titular}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[14px] font-medium text-[#111928]">
+                                        Detalles (correo PayPal, nota, etc.)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={paymentMethodForm.data.detalles}
+                                        onChange={(e) =>
+                                            paymentMethodForm.setData(
+                                                'detalles',
+                                                e.target.value,
+                                            )
+                                        }
+                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] px-3 focus:outline-none"
+                                        placeholder="ej. cuenta@ejemplo.com"
+                                    />
+                                    {paymentMethodForm.errors.detalles && (
+                                        <p className="text-sm text-red-500">
+                                            {paymentMethodForm.errors.detalles}
+                                        </p>
+                                    )}
+                                </div>
+
+                                <label className="flex items-center gap-2 text-[14px] text-[#111928]">
+                                    <input
+                                        type="checkbox"
+                                        checked={
+                                            paymentMethodForm.data.is_default
+                                        }
+                                        onChange={(e) =>
+                                            paymentMethodForm.setData(
+                                                'is_default',
+                                                e.target.checked,
+                                            )
+                                        }
+                                        className="size-4 rounded border-[#E5E7EB]"
+                                    />
+                                    Marcar como predeterminado
+                                </label>
+
+                                <p className="text-[13px] text-[#7B7B7B]">
+                                    Solo se admiten métodos compatibles con el
+                                    flujo actual de la tienda (PayPal).
+                                </p>
+
+                                <div className="mt-4 flex gap-3">
+                                    <button
+                                        type="button"
+                                        className="h-[48px] flex-1 rounded-[4px] bg-[#1B3D6D] font-bold text-white hover:bg-[#1B3D6D]/90 disabled:opacity-50"
+                                        disabled={paymentMethodForm.processing}
+                                        onClick={() =>
+                                            paymentMethodForm.post(
+                                                profile.paymentMethods.store()
+                                                    .url,
+                                                {
+                                                    preserveScroll: true,
+                                                    onSuccess: () => {
+                                                        setIsAddPaymentModalOpen(
+                                                            false,
+                                                        );
+                                                        paymentMethodForm.reset();
+                                                    },
+                                                },
+                                            )
+                                        }
+                                    >
+                                        Guardar
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="h-[48px] flex-1 rounded-[4px] border border-gray-300 hover:bg-gray-50"
+                                        onClick={() =>
+                                            setIsAddPaymentModalOpen(false)
+                                        }
+                                    >
+                                        Cerrar
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             )}
