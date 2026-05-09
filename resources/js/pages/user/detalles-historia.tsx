@@ -1,5 +1,6 @@
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { PageProps } from '@inertiajs/core';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ShieldCheck, Package, CalendarX, Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -30,9 +31,9 @@ export interface HistoriaPublicaDetalle {
     galeria: { id: number; path: string; tipo: string; es_principal: boolean }[];
 }
 
-interface DetalleHistoriaPageProps {
+type DetalleHistoriaPageProps = PageProps & {
     historia: HistoriaPublicaDetalle;
-}
+};
 
 const STORY_COVER_FALLBACK = '/images/story_cover.png';
 
@@ -414,9 +415,7 @@ export default function DetalleHistoria({
                                 className="flex h-[47px] w-full items-center justify-center rounded-[2px] border border-[#1B3D6D] bg-[#1B3D6D] px-5 py-[14px] text-white transition hover:bg-[#1B3D6D]/90"
                             >
                                 <span className="font-['Inter',sans-serif] text-base font-semibold">
-                                    Suscribirme a esta historia (
-                                    {historia.subscription_charge_unit_price} USD /
-                                    ciclo, IVA incl.)
+                                    Suscribirme a esta historia
                                 </span>
                             </button>
                             <p className="font-['Inter',sans-serif] text-[11px] leading-relaxed text-[#7B7B7B]">
