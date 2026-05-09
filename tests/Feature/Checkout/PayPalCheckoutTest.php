@@ -132,12 +132,29 @@ test('crear orden paypal rechaza cantidad mayor al stock', function (): void {
 });
 
 test('invitado puede capturar orden paypal', function (): void {
-    StoreOrder::query()->create([
+    $producto = Producto::factory()->create([
+        'slug' => 'captura-producto-x',
+        'nombre' => 'Producto captura X',
+        'stock' => 20,
+        'precio_base' => 12.45,
+        'estado' => 'activo',
+    ]);
+
+    $order = StoreOrder::query()->create([
         'user_id' => null,
         'paypal_order_id' => 'PAYPAL-ORDER-X',
         'status' => StoreOrder::STATUS_PENDING_PAYMENT,
         'currency' => 'USD',
         'total' => 24.90,
+    ]);
+
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => $producto->slug,
+        'product_name' => $producto->nombre,
+        'quantity' => 2,
+        'unit_price' => 12.45,
+        'line_total' => 24.90,
     ]);
 
     Http::fake([
@@ -175,6 +192,9 @@ test('invitado puede capturar orden paypal', function (): void {
         'status' => StoreOrder::STATUS_PAID,
         'paypal_capture_id' => 'CAPTURE-1',
     ]);
+
+    $producto->refresh();
+    expect($producto->stock)->toBe(18);
 });
 
 test('captura sin orden local devuelve 404', function (): void {
@@ -207,6 +227,13 @@ test('paypal deshabilitado devuelve 503 al crear orden', function (): void {
 
 test('captura paypal rechazada con usuario registrado envía correo de aviso', function (): void {
     Mail::fake();
+
+    Producto::factory()->create([
+        'slug' => 'item-x',
+        'nombre' => 'Producto X',
+        'stock' => 50,
+        'estado' => 'activo',
+    ]);
 
     $user = User::factory()->create(['email' => 'payer@example.test']);
     $order = StoreOrder::query()->create([
@@ -252,4 +279,181 @@ test('captura paypal rechazada con usuario registrado envía correo de aviso', f
         return $mail->paypalErrorCode === 'INSTRUMENT_DECLINED'
             && str_contains($mail->motivoUsuario, 'rechazó');
     });
+
+    expect(Producto::query()->where('slug', 'item-x')->value('stock'))->toBe(50);
+});
+
+test('captura exitosa descuenta stock agregado cuando hay varias líneas del mismo slug', function (): void {
+    $producto = Producto::factory()->create([
+        'slug' => 'multi-line-paypal',
+        'stock' => 15,
+        'estado' => 'activo',
+    ]);
+
+    $order = StoreOrder::query()->create([
+        'user_id' => null,
+        'paypal_order_id' => 'PAYPAL-MULTI-SLUG',
+        'status' => StoreOrder::STATUS_PENDING_PAYMENT,
+        'currency' => 'USD',
+        'total' => 30.00,
+    ]);
+
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => $producto->slug,
+        'product_name' => $producto->nombre,
+        'quantity' => 2,
+        'unit_price' => 10.00,
+        'line_total' => 20.00,
+    ]);
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => $producto->slug,
+        'product_name' => $producto->nombre,
+        'quantity' => 3,
+        'unit_price' => 10.00,
+        'line_total' => 30.00,
+    ]);
+
+    Http::fake([
+        'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
+            'access_token' => 'fake-access-token',
+            'token_type' => 'Bearer',
+        ], 200),
+        'api-m.sandbox.paypal.com/v2/checkout/orders/PAYPAL-MULTI-SLUG/capture' => Http::response([
+            'status' => 'COMPLETED',
+            'purchase_units' => [
+                [
+                    'payments' => [
+                        'captures' => [
+                            [
+                                'id' => 'CAPTURE-MULTI',
+                                'status' => 'COMPLETED',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ], 201),
+    ]);
+
+    $this->postJson(route('checkout.paypal.capture'), [
+        'order_id' => 'PAYPAL-MULTI-SLUG',
+    ])->assertOk();
+
+    $producto->refresh();
+    expect($producto->stock)->toBe(10);
+});
+
+test('captura con stock insuficiente no llama a PayPal y deja la orden pendiente', function (): void {
+    Http::fake([
+        'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
+            'access_token' => 'fake-access-token',
+            'token_type' => 'Bearer',
+        ], 200),
+    ]);
+
+    $producto = Producto::factory()->create([
+        'slug' => 'stock-bajo-capture',
+        'nombre' => 'Producto stock bajo',
+        'stock' => 1,
+        'estado' => 'activo',
+    ]);
+
+    $order = StoreOrder::query()->create([
+        'user_id' => null,
+        'paypal_order_id' => 'PAYPAL-STOCK-BAJO',
+        'status' => StoreOrder::STATUS_PENDING_PAYMENT,
+        'currency' => 'USD',
+        'total' => 10.00,
+    ]);
+
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => $producto->slug,
+        'product_name' => $producto->nombre,
+        'quantity' => 4,
+        'unit_price' => 10.00,
+        'line_total' => 40.00,
+    ]);
+
+    $response = $this->postJson(route('checkout.paypal.capture'), [
+        'order_id' => 'PAYPAL-STOCK-BAJO',
+    ]);
+
+    $response->assertStatus(422)
+        ->assertJsonPath('message', 'Stock insuficiente para completar el pago («'.$producto->nombre.'»).');
+
+    Http::assertNotSent(fn ($req): bool => str_contains($req->url(), '/capture'));
+
+    $this->assertDatabaseHas('store_orders', [
+        'paypal_order_id' => 'PAYPAL-STOCK-BAJO',
+        'status' => StoreOrder::STATUS_PENDING_PAYMENT,
+    ]);
+
+    $producto->refresh();
+    expect($producto->stock)->toBe(1);
+});
+
+test('segunda captura idempotente no vuelve a descontar stock', function (): void {
+    $producto = Producto::factory()->create([
+        'slug' => 'idempotente-paypal',
+        'stock' => 10,
+        'estado' => 'activo',
+    ]);
+
+    $order = StoreOrder::query()->create([
+        'user_id' => null,
+        'paypal_order_id' => 'PAYPAL-IDEMP',
+        'status' => StoreOrder::STATUS_PENDING_PAYMENT,
+        'currency' => 'USD',
+        'total' => 10.00,
+    ]);
+
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => $producto->slug,
+        'product_name' => $producto->nombre,
+        'quantity' => 2,
+        'unit_price' => 5.00,
+        'line_total' => 10.00,
+    ]);
+
+    Http::fake([
+        'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
+            'access_token' => 'fake-access-token',
+            'token_type' => 'Bearer',
+        ], 200),
+        'api-m.sandbox.paypal.com/v2/checkout/orders/PAYPAL-IDEMP/capture' => Http::response([
+            'status' => 'COMPLETED',
+            'purchase_units' => [
+                [
+                    'payments' => [
+                        'captures' => [
+                            [
+                                'id' => 'CAPTURE-IDEMP',
+                                'status' => 'COMPLETED',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ], 201),
+    ]);
+
+    $this->postJson(route('checkout.paypal.capture'), [
+        'order_id' => 'PAYPAL-IDEMP',
+    ])->assertOk();
+
+    $producto->refresh();
+    expect($producto->stock)->toBe(8);
+
+    Http::fake();
+
+    $this->postJson(route('checkout.paypal.capture'), [
+        'order_id' => 'PAYPAL-IDEMP',
+    ])->assertOk()->assertJsonPath('status', 'completed');
+
+    $producto->refresh();
+    expect($producto->stock)->toBe(8);
 });

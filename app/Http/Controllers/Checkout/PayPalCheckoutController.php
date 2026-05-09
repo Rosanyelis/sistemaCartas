@@ -10,12 +10,14 @@ use App\Mail\Checkout\StoreOrderPaidMail;
 use App\Models\PasarelaEvento;
 use App\Models\Producto;
 use App\Models\StoreOrder;
+use App\Models\StoreOrderItem;
 use App\Services\PasarelaEventoRecorder;
 use App\Services\PayPalService;
 use App\Support\PayPalErrorMessage;
 use App\Support\TiendaIva;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
@@ -170,6 +172,32 @@ class PayPalCheckoutController extends Controller
                     ], 409);
                 }
 
+                $storeOrder->loadMissing('items');
+
+                /** @var \Illuminate\Database\Eloquent\Collection<int, StoreOrderItem> $items */
+                $items = $storeOrder->items;
+                if ($items->isEmpty()) {
+                    return response()->json([
+                        'message' => 'La orden no tiene líneas de producto.',
+                    ], 409);
+                }
+
+                $qtyBySlug = [];
+                foreach ($items as $line) {
+                    $slug = (string) $line->product_slug;
+                    $qtyBySlug[$slug] = ($qtyBySlug[$slug] ?? 0) + (int) $line->quantity;
+                }
+
+                ksort($qtyBySlug, SORT_STRING);
+
+                $stockCheck = $this->lockActiveProductsAndVerifyStock($qtyBySlug);
+                if ($stockCheck instanceof JsonResponse) {
+                    return $stockCheck;
+                }
+
+                /** @var \Illuminate\Support\Collection<string, Producto> $lockedProducts */
+                $lockedProducts = $stockCheck;
+
                 try {
                     $payload = $payPal->captureOrder($orderId);
                 } catch (RequestException $e) {
@@ -241,6 +269,12 @@ class PayPalCheckoutController extends Controller
 
                 $meta = PayPalService::extractCaptureMeta($payload);
 
+                foreach ($qtyBySlug as $slug => $qty) {
+                    /** @var Producto $producto */
+                    $producto = $lockedProducts->get($slug);
+                    $producto->decrement('stock', $qty);
+                }
+
                 $storeOrder->update([
                     'status' => StoreOrder::STATUS_PAID,
                     'paypal_capture_id' => $meta['capture_id'],
@@ -286,6 +320,48 @@ class PayPalCheckoutController extends Controller
                 'detail' => app()->hasDebugModeEnabled() ? $e->getMessage() : null,
             ], 500);
         }
+    }
+
+    /**
+     * Bloquea filas de producto activas por slug (orden estable por `id`) y comprueba stock
+     * agregado por slug **antes** de capturar en PayPal: evita cobrar sin inventario suficiente.
+     *
+     * Si el stock no alcanza o falta el producto activo → 422 y no se llama a PayPal.
+     *
+     * @param  array<string, int>  $qtyBySlug
+     * @return JsonResponse|Collection<string, Producto>
+     */
+    private function lockActiveProductsAndVerifyStock(array $qtyBySlug): JsonResponse|Collection
+    {
+        $slugs = array_keys($qtyBySlug);
+        sort($slugs, SORT_STRING);
+
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Producto> $rows */
+        $rows = Producto::query()
+            ->whereIn('slug', $slugs)
+            ->where('estado', 'activo')
+            ->orderBy('id')
+            ->lockForUpdate()
+            ->get();
+
+        $bySlug = $rows->keyBy(fn (Producto $p): string => $p->slug);
+
+        foreach ($qtyBySlug as $slug => $needed) {
+            $producto = $bySlug->get($slug);
+            if ($producto === null) {
+                return response()->json([
+                    'message' => 'Un producto de la orden ya no está disponible («'.$slug.'»).',
+                ], 422);
+            }
+
+            if ($producto->stock < $needed) {
+                return response()->json([
+                    'message' => 'Stock insuficiente para completar el pago («'.$producto->nombre.'»).',
+                ], 422);
+            }
+        }
+
+        return $bySlug;
     }
 
     /**
