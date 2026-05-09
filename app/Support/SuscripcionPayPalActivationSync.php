@@ -43,7 +43,7 @@ final class SuscripcionPayPalActivationSync
 
         if ($proximo === null && $suscripcion->historia !== null) {
             $proximo = Carbon::parse($fechaAdq)
-                ->addMonths(HistoriaSuscripcionPrecio::intervaloMeses($suscripcion->historia))
+                ->addMonthsNoOverflow(HistoriaSuscripcionPrecio::intervaloFacturacionMeses($suscripcion->historia))
                 ->toDateString();
         }
 
@@ -58,7 +58,7 @@ final class SuscripcionPayPalActivationSync
         $fechaFin = null;
         if ($mesesArco > 0) {
             $fechaFin = Carbon::parse($fechaAdq)
-                ->addMonths($mesesArco)
+                ->addMonthsNoOverflow($mesesArco)
                 ->toDateString();
         }
 
@@ -75,5 +75,28 @@ final class SuscripcionPayPalActivationSync
         $suscripcion->update($payload);
 
         return ! $wasActiva;
+    }
+
+    /**
+     * Actualiza `proximo_cobro` desde la respuesta GET /v1/billing/subscriptions/{id}
+     * (p. ej. tras webhook PAYMENT.SALE.COMPLETED).
+     */
+    public static function applyNextBillingFromSubscriptionResource(Suscripcion $suscripcion, array $resource): void
+    {
+        $nextRaw = data_get($resource, 'billing_info.next_billing_time');
+        if (! is_string($nextRaw) || $nextRaw === '') {
+            return;
+        }
+
+        try {
+            $proximo = Carbon::parse($nextRaw)->timezone(config('app.timezone'))->toDateString();
+        } catch (Throwable) {
+            return;
+        }
+
+        $suscripcion->update([
+            'proximo_cobro' => $proximo,
+            'paypal_last_payload' => $resource,
+        ]);
     }
 }

@@ -67,16 +67,16 @@ class PayPalSubscriptionCheckoutController extends Controller
         $historia->refresh();
 
         $mesesEntregaTotal = HistoriaSuscripcionPrecio::mesesEntregaTotal($historia);
-        $intervaloFacturacion = HistoriaSuscripcionPrecio::intervaloMeses($historia);
+        $intervaloFacturacion = HistoriaSuscripcionPrecio::intervaloFacturacionMeses($historia);
 
         $fechaAdquisicion = now()->toDateString();
         $fechaFinalizacion = $mesesEntregaTotal !== null
             ? Carbon::parse($fechaAdquisicion)
-                ->addMonths($mesesEntregaTotal)
+                ->addMonthsNoOverflow($mesesEntregaTotal)
                 ->toDateString()
             : null;
         $proximoCobro = Carbon::parse($fechaAdquisicion)
-            ->addMonths($intervaloFacturacion)
+            ->addMonthsNoOverflow($intervaloFacturacion)
             ->toDateString();
 
         $suscripcion = Suscripcion::query()->create([

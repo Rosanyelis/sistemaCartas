@@ -57,7 +57,7 @@ class PayPalWebhookController extends Controller
                 'BILLING.SUBSCRIPTION.CANCELLED' => $this->handleSubscriptionCancelled($payload, $eventId),
                 'BILLING.SUBSCRIPTION.SUSPENDED' => $this->handleSubscriptionSuspended($payload, $eventId),
                 'BILLING.SUBSCRIPTION.PAYMENT.FAILED' => $this->handleSubscriptionPaymentFailed($payload, $eventId),
-                'PAYMENT.SALE.COMPLETED' => $this->handlePaymentSaleCompleted($payload, $eventId),
+                'PAYMENT.SALE.COMPLETED' => $this->handlePaymentSaleCompleted($payload, $eventId, $payPal),
                 default => $this->recordUnhandledEvent($payload, $eventId, $eventType),
             };
         } catch (\Throwable $e) {
@@ -221,7 +221,7 @@ class PayPalWebhookController extends Controller
     /**
      * @param  array<string, mixed>  $payload
      */
-    private function handlePaymentSaleCompleted(array $payload, ?string $eventId): void
+    private function handlePaymentSaleCompleted(array $payload, ?string $eventId, PayPalService $payPal): void
     {
         $resource = $payload['resource'] ?? [];
         if (! is_array($resource)) {
@@ -246,7 +246,15 @@ class PayPalWebhookController extends Controller
 
         $this->saveEvent($eventId, 'PAYMENT.SALE.COMPLETED', PasarelaEvento::ESTADO_COMPLETADO, $payload, null, null, $suscripcion->id);
 
-        $user = $suscripcion->user;
+        try {
+            $remote = $payPal->getSubscription($billingId);
+            SuscripcionPayPalActivationSync::applyNextBillingFromSubscriptionResource($suscripcion, $remote);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        $suscripcion = $suscripcion->fresh();
+        $user = $suscripcion?->user;
         if ($user !== null && $user->email !== null && $user->email !== '') {
             $suscripcion->loadMissing('historia');
             Mail::to($user->email)->send(new SubscriptionRenewedMail($suscripcion, $resource));

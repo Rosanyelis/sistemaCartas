@@ -1,12 +1,14 @@
 <?php
 
 use App\Mail\Checkout\PaymentFailedMail;
+use App\Mail\Checkout\SubscriptionRenewedMail;
 use App\Models\Historia;
 use App\Models\PasarelaEvento;
 use App\Models\Suscripcion;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 beforeEach(function (): void {
@@ -172,4 +174,54 @@ test('webhook cobro suscripción fallido envía correo al usuario', function ():
             && $mail->paypalReasonCode === 'INSUFFICIENT_FUNDS'
             && $mail->importeFormateado === 'USD 12,50';
     });
+});
+
+test('webhook pago completado sincroniza proximo_cobro con PayPal', function (): void {
+    Http::fake([
+        'api-m.sandbox.paypal.com/v1/oauth2/token' => Http::response([
+            'access_token' => 'fake-access-token',
+            'token_type' => 'Bearer',
+        ], 200),
+        'api-m.sandbox.paypal.com/v1/billing/subscriptions/I-SUB-SALE-RENEW' => Http::response([
+            'id' => 'I-SUB-SALE-RENEW',
+            'billing_info' => [
+                'next_billing_time' => '2026-07-09T10:00:00Z',
+            ],
+        ], 200),
+    ]);
+
+    $user = User::factory()->create(['email' => 'renew@example.test']);
+    $historia = Historia::factory()->create(['estado' => 'activo', 'duracion_meses' => 3]);
+
+    $suscripcion = Suscripcion::query()->create([
+        'user_id' => $user->id,
+        'historia_id' => $historia->id,
+        'store_order_id' => null,
+        'tipo' => 'PayPal',
+        'cantidad' => 1,
+        'meses_entrega_total' => 3,
+        'fecha_adquisicion' => '2026-05-09',
+        'fecha_finalizacion' => '2026-08-09',
+        'proximo_cobro' => '2026-06-09',
+        'estado' => 'activa',
+        'paypal_subscription_id' => 'I-SUB-SALE-RENEW',
+        'paypal_plan_id' => 'P-PLAN-R',
+        'paypal_product_id' => 'PROD-R',
+    ]);
+
+    $payload = [
+        'id' => 'WH-EVT-SALE-RENEW-1',
+        'event_type' => 'PAYMENT.SALE.COMPLETED',
+        'resource' => [
+            'billing_agreement_id' => 'I-SUB-SALE-RENEW',
+            'id' => 'SALE-XYZ',
+        ],
+    ];
+
+    $this->postJson(route('webhooks.paypal'), $payload)->assertOk()->assertJson(['status' => 'ok']);
+
+    $suscripcion->refresh();
+    expect($suscripcion->proximo_cobro->format('Y-m-d'))->toBe('2026-07-09');
+
+    Mail::assertQueued(SubscriptionRenewedMail::class);
 });

@@ -31,11 +31,13 @@ final class HistoriaSuscripcionPrecio
         return round((float) $historia->precio_base, 2);
     }
 
-    public static function intervaloMeses(Historia $historia): int
+    /**
+     * Meses entre cobros recurrentes en PayPal (plan REGULAR).
+     * Independiente de la duración total del arco (`duracion_meses`).
+     */
+    public static function intervaloFacturacionMeses(Historia $historia): int
     {
-        $meses = (int) ($historia->duracion_meses ?? 1);
-
-        return max(1, min(120, $meses));
+        return 1;
     }
 
     /**
