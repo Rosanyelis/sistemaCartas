@@ -459,14 +459,15 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                         type="text"
                                         value={data.impuesto}
                                         onChange={(ev) => setData('impuesto', ev.target.value)}
-                                        placeholder="18"
+                                        placeholder="16"
                                         className={inputClass(Boolean(errors.impuesto))}
                                     />
                                     {errors.impuesto ? (
                                         <span className="text-red-500 text-[11px]">{errors.impuesto}</span>
                                     ) : (
                                         <span className="text-[11.5px] text-[#A0A0A0]">
-                                            Impuesto que se va a cobrar por las transacciones
+                                            El cobro en tienda usa el IVA definido en TIENDA_IVA_PERCENTAGE
+                                            (16&nbsp;% por defecto).
                                         </span>
                                     )}
                                 </div>

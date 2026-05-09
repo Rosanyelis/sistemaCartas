@@ -15,7 +15,7 @@ final class HistoriaPayPalPlanService
      */
     public function ensureBillingPlanForHistoria(Historia $historia): string
     {
-        $amount = HistoriaSuscripcionPrecio::montoPorCiclo($historia);
+        $amount = HistoriaSuscripcionPrecio::montoPorCicloCargoPayPal($historia);
         $interval = HistoriaSuscripcionPrecio::intervaloMeses($historia);
         $currency = strtoupper((string) config('paypal.currency'));
 
@@ -34,7 +34,7 @@ final class HistoriaPayPalPlanService
             /** @var Historia $locked */
             $locked = Historia::query()->whereKey($historia->id)->lockForUpdate()->firstOrFail();
 
-            $amountLocked = HistoriaSuscripcionPrecio::montoPorCiclo($locked);
+            $amountLocked = HistoriaSuscripcionPrecio::montoPorCicloCargoPayPal($locked);
             $intervalLocked = HistoriaSuscripcionPrecio::intervaloMeses($locked);
 
             if (

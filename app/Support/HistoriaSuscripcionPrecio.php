@@ -9,6 +9,14 @@ use App\Models\Historia;
  */
 final class HistoriaSuscripcionPrecio
 {
+    /**
+     * Importe recurrente cobrado en PayPal (neto catálogo + IVA configurado).
+     */
+    public static function montoPorCicloCargoPayPal(Historia $historia): float
+    {
+        return TiendaIva::grossFromNet(self::montoPorCiclo($historia));
+    }
+
     public static function montoPorCiclo(Historia $historia): float
     {
         if ($historia->precio_suscripcion !== null && (float) $historia->precio_suscripcion > 0) {

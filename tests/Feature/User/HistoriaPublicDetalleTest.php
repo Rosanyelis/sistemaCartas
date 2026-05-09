@@ -27,6 +27,22 @@ test('la ficha pública de historia resuelve por slug y expone detalle como arra
             ->where('historia.detalle.1.title', 'Regalo sorpresa'));
 });
 
+test('la ficha pública expone precio de suscripción neto y cobro con iva', function (): void {
+    Historia::factory()->create([
+        'slug' => 'historia-precio-suscripcion-iva',
+        'estado' => 'activo',
+        'precio_base' => 100,
+        'precio_promocional' => null,
+        'precio_suscripcion' => null,
+    ]);
+
+    $this->get(route('historias.show', 'historia-precio-suscripcion-iva'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('historia.subscription_unit_price', '100')
+            ->where('historia.subscription_charge_unit_price', '116'));
+});
+
 test('historia pausada no es visible en la ficha pública', function (): void {
     Historia::factory()->create([
         'slug' => 'historia-pausada',

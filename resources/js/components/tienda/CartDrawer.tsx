@@ -41,6 +41,9 @@ type AuthUserPayload = {
 
 type TiendaPageProps = {
     auth: { user: AuthUserPayload | null };
+    tienda?: {
+        iva_percentage: number;
+    };
     paymentMethods?: {
         id: number;
         titular: string | null;
@@ -63,7 +66,8 @@ const CartDrawer: React.FC = () => {
         closeCart,
         consumePendingDrawerView,
     } = useCart();
-    const { auth, paymentMethods = [] } = usePage().props as TiendaPageProps;
+    const { auth, paymentMethods = [], tienda } =
+        usePage().props as TiendaPageProps;
     const [view, setView] = React.useState<'cart' | 'checkout'>('cart');
     const [selectedPayment, setSelectedPayment] = useState<string>(() => {
         const d = paymentMethods.find((m) => m.is_default);
@@ -177,8 +181,13 @@ const CartDrawer: React.FC = () => {
         (acc, item) => acc + item.price * item.quantity,
         0,
     );
-    const iva = subtotal * 0.21;
-    const total = subtotal;
+    const ivaPct =
+        typeof tienda?.iva_percentage === 'number' && tienda.iva_percentage >= 0
+            ? tienda.iva_percentage
+            : 16;
+    const ivaRaw = subtotal * (ivaPct / 100);
+    const iva = Math.round(ivaRaw * 100) / 100;
+    const total = Math.round((subtotal + iva) * 100) / 100;
 
     const productLines = useMemo(
         () => items.filter((i) => i.kind === 'product'),
@@ -629,7 +638,7 @@ const CartDrawer: React.FC = () => {
 
                                             <div className="flex items-center justify-between">
                                                 <span className="font-['Inter',sans-serif] text-[15px] font-bold text-[#475569]">
-                                                    IVA (21%)
+                                                    IVA ({ivaPct}%)
                                                 </span>
                                                 <span className="font-['Inter',sans-serif] text-[15px] font-medium text-[#475569]">
                                                     $

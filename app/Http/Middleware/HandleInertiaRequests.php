@@ -49,6 +49,9 @@ class HandleInertiaRequests extends Middleware
                 'currency' => config('paypal.currency'),
                 'enabled' => (bool) config('paypal.enabled'),
             ],
+            'tienda' => [
+                'iva_percentage' => (float) config('tienda.iva_percentage', 16),
+            ],
             'paymentMethods' => static function () use ($request): array {
                 $user = $request->user();
                 if ($user === null) {

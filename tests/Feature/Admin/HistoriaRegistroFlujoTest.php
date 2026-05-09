@@ -32,7 +32,7 @@ test('registrar historia persiste HTML, detalle y variantes en base de datos', f
         'categoria' => 'Aventura',
         'autor' => 'Autor QA',
         'precio_base' => '19.99',
-        'impuesto' => '18',
+        'impuesto' => '16',
         'codigo' => $codigo,
         'estado' => 'activo',
         'destacada' => 'si',

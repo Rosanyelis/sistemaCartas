@@ -55,6 +55,7 @@ test('invitado puede crear orden paypal con ítems válidos de productos activos
         'paypal_order_id' => 'PAYPAL-ORDER-DEMO-1',
         'status' => StoreOrder::STATUS_PENDING_PAYMENT,
         'currency' => 'USD',
+        'total' => 28.88,
     ]);
 
     $this->assertDatabaseHas('store_order_items', [

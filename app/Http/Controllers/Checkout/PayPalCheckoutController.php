@@ -13,6 +13,7 @@ use App\Models\StoreOrder;
 use App\Services\PasarelaEventoRecorder;
 use App\Services\PayPalService;
 use App\Support\PayPalErrorMessage;
+use App\Support\TiendaIva;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
@@ -31,7 +32,7 @@ class PayPalCheckoutController extends Controller
 
         $items = $request->validated('items');
         $resolved = [];
-        $total = 0.0;
+        $subtotal = 0.0;
 
         foreach ($items as $line) {
             $producto = Producto::query()
@@ -53,7 +54,7 @@ class PayPalCheckoutController extends Controller
 
             $unitPrice = (float) $producto->precio;
             $lineTotal = round($unitPrice * $qty, 2);
-            $total += $lineTotal;
+            $subtotal += $lineTotal;
             $resolved[] = [
                 'product' => [
                     'slug' => $producto->slug,
@@ -65,7 +66,8 @@ class PayPalCheckoutController extends Controller
             ];
         }
 
-        $total = round($total, 2);
+        $subtotal = round($subtotal, 2);
+        $total = TiendaIva::grossFromNet($subtotal);
         $amount = number_format($total, 2, '.', '');
 
         try {

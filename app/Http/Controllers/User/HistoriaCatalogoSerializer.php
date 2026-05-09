@@ -50,6 +50,7 @@ final class HistoriaCatalogoSerializer
             'precio_suscripcion' => $historia->precio_suscripcion !== null ? (string) $historia->precio_suscripcion : null,
             'duracion_meses' => $historia->duracion_meses,
             'subscription_unit_price' => (string) HistoriaSuscripcionPrecio::montoPorCiclo($historia),
+            'subscription_charge_unit_price' => (string) HistoriaSuscripcionPrecio::montoPorCicloCargoPayPal($historia),
             'variantes' => $historia->variantes->map(fn ($v) => [
                 'tipo' => $v->tipo->value,
                 'valor' => $v->valor,

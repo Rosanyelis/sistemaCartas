@@ -21,8 +21,10 @@ export interface HistoriaPublicaDetalle {
     precio_promocional: string | null;
     precio_suscripcion: string | null;
     duracion_meses: number | null;
-    /** Precio por ciclo de suscripción (PayPal), coherente con backend */
+    /** Precio por ciclo de suscripción sin IVA (base catálogo) */
     subscription_unit_price: string;
+    /** Cobro recurrente PayPal por ciclo (IVA incluido) */
+    subscription_charge_unit_price: string;
     /** Opciones públicas (papel, color, etc.) */
     variantes: { tipo: string; valor: string }[];
     galeria: { id: number; path: string; tipo: string; es_principal: boolean }[];
@@ -413,7 +415,8 @@ export default function DetalleHistoria({
                             >
                                 <span className="font-['Inter',sans-serif] text-base font-semibold">
                                     Suscribirme a esta historia (
-                                    {historia.subscription_unit_price} USD / ciclo)
+                                    {historia.subscription_charge_unit_price} USD /
+                                    ciclo, IVA incl.)
                                 </span>
                             </button>
                             <p className="font-['Inter',sans-serif] text-[11px] leading-relaxed text-[#7B7B7B]">

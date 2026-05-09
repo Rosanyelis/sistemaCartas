@@ -681,7 +681,12 @@ export function CreateProductModal({
                                                     errors.impuesto ? 'border-red-500' : 'border-[#E5E7EB]'
                                                 }`}
                                             />
-                                            {errors.impuesto ? <span className="text-[11px] text-red-500">{errors.impuesto}</span> : null}
+                                            {errors.impuesto ? <span className="text-[11px] text-red-500">{errors.impuesto}</span> : (
+                                                <span className="text-[11px] text-[#9CA3AF]">
+                                                    El cobro en tienda usa el IVA de TIENDA_IVA_PERCENTAGE (16&nbsp;%
+                                                    por defecto).
+                                                </span>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
