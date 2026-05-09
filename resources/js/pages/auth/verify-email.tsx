@@ -76,6 +76,21 @@ export default function VerifyEmail({
         }
     };
 
+    const handleOtpPaste = (e: React.ClipboardEvent) => {
+        e.preventDefault();
+        const text = e.clipboardData.getData('text');
+        const digits = text.replace(/\D/g, '').slice(0, 6).split('');
+        const next: string[] = [...otp];
+        for (let i = 0; i < 6; i++) {
+            next[i] = digits[i] ?? '';
+        }
+        setOtp(next);
+        const focusIdx = Math.min(Math.max(digits.length - 1, 0), 5);
+        requestAnimationFrame(() => {
+            otpRefs.current[focusIdx]?.focus();
+        });
+    };
+
     const handleVerifyOtp = (e: React.FormEvent) => {
         e.preventDefault();
         post('/email/verification-otp', {
@@ -137,7 +152,10 @@ export default function VerifyEmail({
                     onSubmit={handleVerifyOtp}
                     className="flex w-full flex-col gap-6"
                 >
-                    <div className="flex justify-center gap-2 md:gap-3">
+                    <div
+                        className="flex justify-center gap-2 md:gap-3"
+                        onPaste={handleOtpPaste}
+                    >
                         {otp.map((digit, idx) => (
                             <Input
                                 key={idx}

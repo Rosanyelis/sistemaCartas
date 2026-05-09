@@ -37,6 +37,7 @@ test('cliente ve sus suscripciones desde la base de datos', function (): void {
             ->component('user/subscriptions')
             ->has('suscripciones', 1)
             ->where('suscripciones.0.id', '#'.$sub->id)
+            ->where('suscripciones.0.suscripcion_id', $sub->id)
             ->where('suscripciones.0.historia', 'Historia única panel')
             ->where('suscripciones.0.estado', 'Activa'));
 });

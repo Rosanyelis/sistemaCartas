@@ -8,12 +8,13 @@ import {
     faEllipsisVertical,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Head } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import UserLayout from '@/layouts/user-layout';
 
 interface Suscripcion {
     id: string;
+    suscripcion_id: number;
     historia: string;
     cantidad: number;
     tipo: string;
@@ -31,15 +32,24 @@ interface SubscriptionsProps {
 }
 
 export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
+    const pageErrors = usePage().props.errors as
+        | { subscription?: string }
+        | undefined;
     const [searchTerm, setSearchTerm] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
-    const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+    const [activeMenuSuscripcionId, setActiveMenuSuscripcionId] = useState<
+        number | null
+    >(null);
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
     const [selectedSub, setSelectedSub] = useState<Suscripcion | null>(null);
+    const [cancelProcessing, setCancelProcessing] = useState(false);
     const itemsPerPage = 5;
+
+    const cancelSubscriptionPostUrl = (suscripcionId: number): string =>
+        `/user/subscriptions/${suscripcionId}/cancel`;
 
     // Filter logic
     const filteredSuscripciones = useMemo(() => {
@@ -104,6 +114,30 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
         setSelectedSub(null);
     };
 
+    const confirmCancelSubscription = () => {
+        if (!selectedSub) {
+            return;
+        }
+
+        setCancelProcessing(true);
+        router.post(
+            cancelSubscriptionPostUrl(selectedSub.suscripcion_id),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    closeCancelModal();
+                },
+                onFinish: () => {
+                    setCancelProcessing(false);
+                },
+            },
+        );
+    };
+
+    const canDarDeBaja = (sub: Suscripcion): boolean =>
+        sub.estado === 'Activa';
+
     return (
         <UserLayout title="Suscripciones">
             <Head title="Mis Suscripciones" />
@@ -117,7 +151,14 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                         Aquí puedes revisar y gestionar todas las suscripciones
                         adquiridas en la plataforma
                     </p>
-                    
+                    {pageErrors?.subscription ? (
+                        <div
+                            className="rounded-[4px] border border-red-200 bg-red-50 px-3 py-2 font-['Inter'] text-[13px] text-red-700"
+                            role="alert"
+                        >
+                            {pageErrors.subscription}
+                        </div>
+                    ) : null}
                 </div>
 
                 {/* Card Template */}
@@ -272,7 +313,7 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                                 {paginatedSuscripciones.length > 0 ? (
                                     paginatedSuscripciones.map((sub) => (
                                         <tr
-                                            key={sub.id}
+                                            key={sub.suscripcion_id}
                                             className="transition duration-150 hover:bg-gray-50/40"
                                         >
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-[12px] font-medium text-[#111928]">
@@ -313,10 +354,12 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                                             </td>
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-center">
                                                 <button
+                                                    type="button"
+                                                    disabled={!canDarDeBaja(sub)}
                                                     onClick={() =>
                                                         openCancelModal(sub)
                                                     }
-                                                    className="rounded-[4px] border border-[#1B3D6D] px-4 py-1.5 text-[10px] font-medium text-[#1B3D6D] transition-colors duration-200 hover:bg-[#1B3D6D] hover:text-white"
+                                                    className="rounded-[4px] border border-[#1B3D6D] px-4 py-1.5 text-[10px] font-medium text-[#1B3D6D] transition-colors duration-200 hover:bg-[#1B3D6D] hover:text-white disabled:cursor-not-allowed disabled:border-[#CBD5E1] disabled:text-[#94A3B8] disabled:hover:bg-transparent"
                                                 >
                                                     Dar de baja
                                                 </button>
@@ -344,7 +387,7 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                         {paginatedSuscripciones.length > 0 ? (
                             paginatedSuscripciones.map((sub, idx) => (
                                 <div
-                                    key={sub.id}
+                                    key={sub.suscripcion_id}
                                     className={`relative flex flex-col gap-3 py-5 ${idx !== paginatedSuscripciones.length - 1 ? 'border-b border-[#F2F2F2]' : ''}`}
                                 >
                                     {/* Row 1: ID, Status, Actions */}
@@ -365,23 +408,43 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                                                 {sub.estado}
                                             </span>
                                             <div className="relative">
-                                                <button 
-                                                    onClick={() => setActiveMenuId(activeMenuId === sub.id ? null : sub.id)}
-                                                    className="flex size-8 items-center justify-center text-[#111928] opacity-60 hover:opacity-100"
+                                                <button
+                                                    type="button"
+                                                    disabled={!canDarDeBaja(sub)}
+                                                    onClick={() =>
+                                                        setActiveMenuSuscripcionId(
+                                                            activeMenuSuscripcionId ===
+                                                                sub.suscripcion_id
+                                                                ? null
+                                                                : sub.suscripcion_id,
+                                                        )
+                                                    }
+                                                    className="flex size-8 items-center justify-center text-[#111928] opacity-60 hover:opacity-100 disabled:opacity-30"
                                                 >
                                                     <FontAwesomeIcon icon={faEllipsisVertical} className="size-4" />
                                                 </button>
-                                                {activeMenuId === sub.id && (
+                                                {activeMenuSuscripcionId ===
+                                                    sub.suscripcion_id &&
+                                                    canDarDeBaja(sub) && (
                                                     <>
-                                                        <div 
-                                                            className="fixed inset-0 z-10" 
-                                                            onClick={() => setActiveMenuId(null)} 
+                                                        <div
+                                                            className="fixed inset-0 z-10"
+                                                            onClick={() =>
+                                                                setActiveMenuSuscripcionId(
+                                                                    null,
+                                                                )
+                                                            }
                                                         />
                                                         <div className="absolute right-0 top-full z-20 mt-1 w-[120px] rounded-[6px] bg-white p-1.5 shadow-[0px_4px_15px_rgba(0,0,0,0.15)] animate-in fade-in slide-in-from-top-1 duration-150">
                                                             <button
+                                                                type="button"
                                                                 onClick={() => {
-                                                                    openCancelModal(sub);
-                                                                    setActiveMenuId(null);
+                                                                    openCancelModal(
+                                                                        sub,
+                                                                    );
+                                                                    setActiveMenuSuscripcionId(
+                                                                        null,
+                                                                    );
                                                                 }}
                                                                 className="w-full rounded-[4px] px-3 py-2 text-left text-[12px] font-medium text-[#1B3D6D] hover:bg-gray-50 active:bg-gray-100"
                                                             >
@@ -548,12 +611,18 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
 
                             <div className="flex w-full gap-4">
                                 <button
-                                    onClick={closeCancelModal}
-                                    className="h-[50px] flex-1 rounded-[4px] bg-[#1B3D6D] font-['Inter'] text-[16px] font-bold text-white transition hover:opacity-90 active:scale-[0.98]"
+                                    type="button"
+                                    disabled={cancelProcessing}
+                                    onClick={confirmCancelSubscription}
+                                    className="h-[50px] flex-1 rounded-[4px] bg-[#1B3D6D] font-['Inter'] text-[16px] font-bold text-white transition hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
                                 >
-                                    Continuar
+                                    {cancelProcessing
+                                        ? 'Procesando…'
+                                        : 'Continuar'}
                                 </button>
                                 <button
+                                    type="button"
+                                    disabled={cancelProcessing}
                                     onClick={closeCancelModal}
                                     className="h-[50px] flex-1 rounded-[4px] border border-[#1B3D6D] font-['Inter'] text-[16px] font-bold text-[#1B3D6D] transition hover:bg-gray-50 active:scale-[0.98]"
                                 >

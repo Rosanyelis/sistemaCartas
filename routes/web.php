@@ -127,6 +127,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('user')->name('user.')->group(function () {
         Route::get('orders', [OrdenController::class, 'index'])->name('orders');
         Route::get('subscriptions', [SuscripcionController::class, 'index'])->name('subscriptions');
+        Route::post('subscriptions/{suscripcion}/cancel', [SuscripcionController::class, 'cancel'])->name('subscriptions.cancel');
         Route::get('profile', [ProfileController::class, 'index'])->name('profile');
         Route::post('profile', [ProfileController::class, 'update'])->name('profile.update');
         Route::post('profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');

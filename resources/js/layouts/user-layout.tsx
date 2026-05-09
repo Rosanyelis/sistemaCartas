@@ -10,6 +10,7 @@ import {
     faBoxOpen,
     faUserGroup,
     faFileLines,
+    faStore,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { appFontLinks } from '@/components/AppFontLinks';
@@ -73,6 +74,12 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
               },
           ]
         : [
+              {
+                  name: 'Ir a tienda',
+                  icon: faStore,
+                  href: '/',
+                  active: url === '/' || url === '',
+              },
               {
                   name: 'Ordenes',
                   icon: faCartShopping,

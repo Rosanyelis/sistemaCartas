@@ -11,6 +11,7 @@ import {
     faUser,
     faWallet,
     faCreditCard,
+    faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, useForm, router } from '@inertiajs/react';
@@ -77,6 +78,12 @@ export default function Profile({
     });
 
     const [isAddPaymentModalOpen, setIsAddPaymentModalOpen] = useState(false);
+    const [paymentMethodMenuId, setPaymentMethodMenuId] = useState<
+        number | null
+    >(null);
+    const [paymentMethodDeleteId, setPaymentMethodDeleteId] = useState<
+        number | null
+    >(null);
     const paymentMethodForm = useForm({
         tipo_id: paymentTypeOptions[0]?.id ?? 0,
         titular: '',
@@ -124,12 +131,24 @@ export default function Profile({
         }
     };
 
-    const deletePaymentMethod = (id: number) => {
-        if (
-            confirm('¿Estás seguro de que deseas eliminar este método de pago?')
-        ) {
-            router.delete(profile.paymentMethods.destroy({ metodo: id }).url);
+    const requestDeletePaymentMethod = (id: number) => {
+        setPaymentMethodMenuId(null);
+        setPaymentMethodDeleteId(id);
+    };
+
+    const confirmDeletePaymentMethod = () => {
+        if (paymentMethodDeleteId === null) {
+            return;
         }
+
+        router.delete(
+            profile.paymentMethods.destroy({
+                metodo: paymentMethodDeleteId,
+            }).url,
+            {
+                onFinish: () => setPaymentMethodDeleteId(null),
+            },
+        );
     };
 
     const setDefaultPaymentMethod = (id: number) => {
@@ -387,20 +406,61 @@ export default function Profile({
                                                     {method.type}
                                                 </span>
                                             </div>
-                                            <button
-                                                onClick={() =>
-                                                    deletePaymentMethod(
-                                                        method.id,
-                                                    )
-                                                }
-                                                className="text-[#7B7B7B] transition-colors hover:text-red-500"
-                                                title="Eliminar método de pago"
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={faEllipsisVertical}
-                                                    className="size-4"
-                                                />
-                                            </button>
+                                            <div className="relative">
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setPaymentMethodMenuId(
+                                                            paymentMethodMenuId ===
+                                                                method.id
+                                                                ? null
+                                                                : method.id,
+                                                        )
+                                                    }
+                                                    className="text-[#7B7B7B] transition-colors hover:text-[#1B3D6D]"
+                                                    title="Opciones del método de pago"
+                                                    aria-haspopup="menu"
+                                                    aria-expanded={
+                                                        paymentMethodMenuId ===
+                                                        method.id
+                                                    }
+                                                >
+                                                    <FontAwesomeIcon
+                                                        icon={
+                                                            faEllipsisVertical
+                                                        }
+                                                        className="size-4"
+                                                    />
+                                                </button>
+                                                {paymentMethodMenuId ===
+                                                    method.id && (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            className="fixed inset-0 z-10 cursor-default"
+                                                            aria-label="Cerrar menú"
+                                                            onClick={() =>
+                                                                setPaymentMethodMenuId(
+                                                                    null,
+                                                                )
+                                                            }
+                                                        />
+                                                        <div className="absolute top-full right-0 z-20 mt-1 min-w-[160px] rounded-[6px] border border-[#E5E7EB] bg-white py-1 shadow-[0px_4px_15px_rgba(0,0,0,0.12)]">
+                                                            <button
+                                                                type="button"
+                                                                className="w-full px-3 py-2 text-left text-[13px] font-medium text-red-600 hover:bg-red-50"
+                                                                onClick={() =>
+                                                                    requestDeletePaymentMethod(
+                                                                        method.id,
+                                                                    )
+                                                                }
+                                                            >
+                                                                Eliminar método
+                                                            </button>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div className="mb-4 flex flex-col">
@@ -596,6 +656,55 @@ export default function Profile({
                                 </div>
                             </div>
                         )}
+                    </div>
+                </div>
+            )}
+
+            {paymentMethodDeleteId !== null && (
+                <div className="fixed inset-0 z-[100] flex animate-in items-center justify-center bg-black/40 px-4 duration-300 fade-in">
+                    <button
+                        type="button"
+                        className="absolute inset-0 cursor-default"
+                        aria-label="Cerrar"
+                        onClick={() => setPaymentMethodDeleteId(null)}
+                    />
+                    <div className="relative z-[1] w-full max-w-[490px] animate-in rounded-[16px] bg-white p-[30px] text-center shadow-[0px_0px_20px_rgba(36,16,167,0.15)] duration-300 zoom-in">
+                        <div className="flex flex-col items-center gap-[28px]">
+                            <div className="flex flex-col items-center gap-3">
+                                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#F2F2F2]">
+                                    <FontAwesomeIcon
+                                        icon={faTriangleExclamation}
+                                        className="h-[40px] w-[40px] text-[#1B3D6D]"
+                                    />
+                                </div>
+                                <h3 className="font-['Inter'] text-[22px] leading-tight font-semibold text-[#111928]">
+                                    ¿Eliminar método de pago?
+                                </h3>
+                                <div className="h-[3px] w-[90px] rounded-[2px] bg-[#1B3D6D]" />
+                                <p className="font-['Inter'] text-[15px] leading-relaxed text-[#7B7B7B]">
+                                    Esta acción no se puede deshacer. Podrás
+                                    volver a añadir un método más tarde.
+                                </p>
+                            </div>
+                            <div className="flex w-full gap-[18px]">
+                                <button
+                                    type="button"
+                                    onClick={confirmDeletePaymentMethod}
+                                    className="flex h-[47px] flex-1 items-center justify-center rounded-[2px] bg-[#1B3D6D] px-5 text-[16px] font-semibold text-white transition-all hover:bg-[#1B3D6D]/90"
+                                >
+                                    Eliminar
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        setPaymentMethodDeleteId(null)
+                                    }
+                                    className="flex h-[47px] flex-1 items-center justify-center rounded-[2px] border border-[#1B3D6D] bg-white px-5 text-[16px] font-semibold text-[#1B3D6D] transition-all hover:bg-gray-50"
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

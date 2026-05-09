@@ -406,6 +406,25 @@ class PayPalService
     }
 
     /**
+     * Cancela una suscripción de facturación en PayPal (deja de cobrar).
+     *
+     * @throws RequestException
+     */
+    public function cancelBillingSubscription(string $subscriptionId, string $reason = 'Customer requested cancellation'): void
+    {
+        $token = $this->getAccessToken();
+        $enc = rawurlencode($subscriptionId);
+        $this->http()
+            ->withToken($token)
+            ->asJson()
+            ->acceptJson()
+            ->post($this->baseUrl().'/v1/billing/subscriptions/'.$enc.'/cancel', [
+                'reason' => $reason,
+            ])
+            ->throw();
+    }
+
+    /**
      * @param  array<string, mixed>  $webhookEvent
      */
     public function verifyWebhookSignature(

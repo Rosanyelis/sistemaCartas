@@ -38,6 +38,7 @@ final class SuscripcionUsuarioListaSerializer
 
         return [
             'id' => '#'.$s->id,
+            'suscripcion_id' => $s->id,
             'historia' => $historiaNombre,
             'cantidad' => $s->cantidad,
             'tipo' => (string) $s->tipo,
