@@ -471,7 +471,7 @@ export default function Profile({
                                         Tipo
                                     </label>
                                     <select
-                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] px-3 focus:outline-none"
+                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] bg-white px-3 text-[#111928] focus:outline-none focus:ring-2 focus:ring-[#1B3D6D]/20"
                                         value={paymentMethodForm.data.tipo_id}
                                         onChange={(e) =>
                                             paymentMethodForm.setData(
@@ -506,7 +506,7 @@ export default function Profile({
                                                 e.target.value,
                                             )
                                         }
-                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] px-3 focus:outline-none"
+                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] bg-white px-3 text-[#111928] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1B3D6D]/20"
                                         placeholder="Nombre visible"
                                     />
                                     {paymentMethodForm.errors.titular && (
@@ -529,7 +529,7 @@ export default function Profile({
                                                 e.target.value,
                                             )
                                         }
-                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] px-3 focus:outline-none"
+                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] bg-white px-3 text-[#111928] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1B3D6D]/20"
                                         placeholder="ej. cuenta@ejemplo.com"
                                     />
                                     {paymentMethodForm.errors.detalles && (
@@ -586,7 +586,7 @@ export default function Profile({
                                     </button>
                                     <button
                                         type="button"
-                                        className="h-[48px] flex-1 rounded-[4px] border border-gray-300 hover:bg-gray-50"
+                                        className="h-[48px] flex-1 rounded-[4px] border border-gray-300 bg-white font-medium text-[#1B3D6D] hover:bg-gray-50"
                                         onClick={() =>
                                             setIsAddPaymentModalOpen(false)
                                         }
