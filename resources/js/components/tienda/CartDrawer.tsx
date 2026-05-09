@@ -59,7 +59,6 @@ const CartDrawer: React.FC = () => {
         derivedCartMode,
         updateQuantity,
         removeItem,
-        clearCart,
         clearProductLines,
         clearHistoriaSubscriptionLines,
         isDrawerOpen: isOpen,
@@ -106,21 +105,27 @@ const CartDrawer: React.FC = () => {
     }, [auth?.user]);
 
     useEffect(() => {
-        if (isOpen && view === 'checkout' && auth?.user) {
-            syncShippingFromProfile();
+        if (!isOpen || view !== 'checkout' || !auth?.user) {
+            return;
         }
+
+        const id = requestAnimationFrame(() => {
+            syncShippingFromProfile();
+        });
+
+        return () => cancelAnimationFrame(id);
     }, [isOpen, view, auth?.user, syncShippingFromProfile]);
 
-    useEffect(() => {
-        if (view === 'cart') {
-            setCheckoutStep(1);
-        }
-    }, [view]);
+    const goToCartView = useCallback(() => {
+        setCheckoutStep(1);
+        setView('cart');
+    }, []);
 
     const handleProceedToPay = useCallback(() => {
         if (auth?.user) {
             setCheckoutStep(1);
             setView('checkout');
+            syncShippingFromProfile();
 
             return;
         }
@@ -131,19 +136,19 @@ const CartDrawer: React.FC = () => {
             query: { redirect: RESUME_CART_PATH },
         });
         router.visit(url, { preserveScroll: false, preserveState: false });
-    }, [auth?.user, items]);
+    }, [auth?.user, items, syncShippingFromProfile]);
 
     useEffect(() => {
         if (!isOpen) {
             const id = requestAnimationFrame(() => {
-                setView('cart');
+                goToCartView();
             });
 
             return () => cancelAnimationFrame(id);
         }
 
         return undefined;
-    }, [isOpen]);
+    }, [isOpen, goToCartView]);
 
     useEffect(() => {
         if (isOpen && !prevIsOpen.current) {
@@ -153,6 +158,7 @@ const CartDrawer: React.FC = () => {
                 const id = requestAnimationFrame(() => {
                     setCheckoutStep(1);
                     setView('checkout');
+                    syncShippingFromProfile();
                 });
 
                 return () => cancelAnimationFrame(id);
@@ -160,8 +166,7 @@ const CartDrawer: React.FC = () => {
 
             if (v === 'cart') {
                 const id = requestAnimationFrame(() => {
-                    setCheckoutStep(1);
-                    setView('cart');
+                    goToCartView();
                 });
 
                 return () => cancelAnimationFrame(id);
@@ -171,7 +176,12 @@ const CartDrawer: React.FC = () => {
         prevIsOpen.current = isOpen;
 
         return undefined;
-    }, [isOpen, consumePendingDrawerView]);
+    }, [
+        isOpen,
+        consumePendingDrawerView,
+        goToCartView,
+        syncShippingFromProfile,
+    ]);
 
     const subtotal = items.reduce(
         (acc, item) => acc + item.price * item.quantity,
@@ -204,25 +214,21 @@ const CartDrawer: React.FC = () => {
         [productLines],
     );
 
-    const handlePayPalSuccess = useCallback(
-        (_info?: { localOrderId?: number }) => {
-            clearProductLines();
-            setView('cart');
-            closeCart();
-            setPurchaseSuccessKind('products');
-            setPurchaseSuccessOpen(true);
-        },
-        [clearProductLines, closeCart],
-    );
+    const handlePayPalSuccess = useCallback(() => {
+        clearProductLines();
+        goToCartView();
+        closeCart();
+        setPurchaseSuccessKind('products');
+        setPurchaseSuccessOpen(true);
+    }, [clearProductLines, closeCart, goToCartView]);
 
     const finalizeSubscriptionPurchase = useCallback(() => {
         clearHistoriaSubscriptionLines();
-        setView('cart');
+        goToCartView();
         closeCart();
-        setCheckoutStep(1);
         setPurchaseSuccessKind('subscriptions');
         setPurchaseSuccessOpen(true);
-    }, [clearHistoriaSubscriptionLines, closeCart]);
+    }, [clearHistoriaSubscriptionLines, closeCart, goToCartView]);
 
     const handleContinueToPayment = useCallback(() => {
         if (!auth?.user) {
@@ -971,7 +977,7 @@ const CartDrawer: React.FC = () => {
 
                                     <button
                                         type="button"
-                                        onClick={() => setView('cart')}
+                                        onClick={goToCartView}
                                         className="text-center font-['Inter',sans-serif] text-[13px] font-semibold text-[#1B3D6D] underline opacity-70 hover:opacity-100"
                                     >
                                         Volver al carrito
