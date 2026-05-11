@@ -58,6 +58,17 @@ class HandleInertiaRequests extends Middleware
                     return [];
                 }
 
+                if (! $request->routeIs([
+                    'home',
+                    'historias',
+                    'historias.show',
+                    'productos',
+                    'productos.show',
+                    'productos.ejemplo',
+                ])) {
+                    return [];
+                }
+
                 return $user->metodosPago()
                     ->with('tipo')
                     ->orderByDesc('is_default')

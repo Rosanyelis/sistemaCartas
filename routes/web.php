@@ -13,55 +13,18 @@ use App\Http\Controllers\Checkout\PayPalCheckoutController;
 use App\Http\Controllers\Checkout\PayPalSubscriptionCheckoutController;
 use App\Http\Controllers\Checkout\PayPalSubscriptionSyncController;
 use App\Http\Controllers\Checkout\PayPalWebhookController;
-use App\Http\Controllers\User\HistoriaCatalogoSerializer;
+use App\Http\Controllers\Storefront\HomeController;
 use App\Http\Controllers\User\HistoriaController;
 use App\Http\Controllers\User\OrdenController;
 use App\Http\Controllers\User\ProductoController;
-use App\Http\Controllers\User\ProductoTiendaSerializer;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\SuscripcionController;
-use App\Models\Historia;
-use App\Models\Producto;
 use App\Support\ValidPublicStoreRedirect;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
-Route::get('/', function () {
-    $products = Producto::query()
-        ->where('estado', 'activo')
-        ->with([
-            'productoCategoria',
-            'productoSubcategoria',
-            'galeria' => fn ($q) => $q->orderBy('id'),
-        ])
-        ->latest()
-        ->limit(3)
-        ->get()
-        ->map(fn (Producto $p) => ProductoTiendaSerializer::tarjetaCatalogo($p))
-        ->values()
-        ->all();
-
-    $maxDestacadas = max(1, (int) config('historias.tienda_destacadas_max', 10));
-
-    $stories = Historia::query()
-        ->where('estado', 'activo')
-        ->where('destacada', 'si')
-        ->latest('fecha_publicacion')
-        ->latest('id')
-        ->limit($maxDestacadas)
-        ->get()
-        ->map(fn (Historia $h) => HistoriaCatalogoSerializer::tarjeta($h))
-        ->values()
-        ->all();
-
-    return Inertia::render('user/welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-        'products' => $products,
-        'stories' => $stories,
-    ]);
-})->name('home');
+Route::get('/', HomeController::class)->name('home');
 
 Route::get('/historias', [HistoriaController::class, 'index'])->name('historias');
 Route::get('/historias/{slug}', [HistoriaController::class, 'show'])->name('historias.show');

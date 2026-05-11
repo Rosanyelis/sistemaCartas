@@ -1,20 +1,9 @@
-import {
-    faBars,
-    faCartShopping,
-    faPowerOff,
-    faUser,
-    faUsers,
-    faTriangleExclamation,
-    faHouse,
-    faBook,
-    faBoxOpen,
-    faUserGroup,
-    faFileLines,
-    faStore,
-} from '@fortawesome/free-solid-svg-icons';
+import { faBars, faPowerOff, faTriangleExclamation, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { appFontLinks } from '@/components/AppFontLinks';
 import { FlashToasts } from '@/components/FlashToasts';
+import { getAdminPanelNav, getClientePanelNav } from '@/config/panel-nav';
+import type { User } from '@/types/auth';
 import { Head, Link, usePage, router } from '@inertiajs/react';
 import { ReactNode, useState } from 'react';
 import { logout } from '@/routes';
@@ -25,8 +14,8 @@ interface UserLayoutProps {
 }
 
 export default function UserLayout({ children, title }: UserLayoutProps) {
-    const { auth } = usePage().props as any;
-    const { url } = usePage();
+    const { url, props } = usePage<{ auth: { user: User } }>();
+    const { auth } = props;
     const [isSidebarOpen, setIsSidebarOpen] = useState(
         typeof window !== 'undefined' ? window.innerWidth >= 768 : true,
     );
@@ -34,71 +23,7 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
 
     const isAdmin = auth.user.role === 'admin';
 
-    const menuItems = isAdmin
-        ? [
-              {
-                  name: 'Panel',
-                  icon: faHouse,
-                  href: '/admin/dashboard',
-                  active: url === '/admin/dashboard',
-              },
-              {
-                  name: 'Ordenes',
-                  icon: faCartShopping,
-                  href: '/admin/ordenes',
-                  active: url.startsWith('/admin/ordenes') || url.startsWith('/admin/orders'),
-              },
-              {
-                  name: 'Suscripciones',
-                  icon: faUsers,
-                  href: '/admin/suscripciones',
-                  active: url.startsWith('/admin/suscripciones') || url.startsWith('/admin/subscriptions'),
-              },
-              {
-                  name: 'Clientes',
-                  icon: faUserGroup,
-                  href: '/admin/clientes',
-                  active: url.startsWith('/admin/clientes') || url.startsWith('/admin/clients'),
-              },
-              {
-                  name: 'Historias',
-                  icon: faBook,
-                  href: '/admin/historias',
-                  active: url.startsWith('/admin/historias') || url.startsWith('/admin/stories'),
-              },
-              {
-                  name: 'Productos',
-                  icon: faBoxOpen,
-                  href: '/admin/productos',
-                  active: url.startsWith('/admin/productos') || url.startsWith('/admin/products'),
-              },
-          ]
-        : [
-              {
-                  name: 'Ir a tienda',
-                  icon: faStore,
-                  href: '/',
-                  active: url === '/' || url === '',
-              },
-              {
-                  name: 'Ordenes',
-                  icon: faCartShopping,
-                  href: '/user/orders',
-                  active: url.startsWith('/user/orders'),
-              },
-              {
-                  name: 'Suscripciones',
-                  icon: faUsers,
-                  href: '/user/subscriptions',
-                  active: url.startsWith('/user/subscriptions'),
-              },
-              {
-                  name: 'Perfil',
-                  icon: faUser,
-                  href: '/user/profile',
-                  active: url.startsWith('/user/profile'),
-              },
-          ];
+    const menuItems = isAdmin ? getAdminPanelNav(url) : getClientePanelNav(url);
 
     return (
         <div className="flex min-h-screen bg-[#F5F6F7] font-['Inter',sans-serif]">

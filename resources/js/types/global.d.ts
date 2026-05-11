@@ -17,6 +17,14 @@ declare module '@inertiajs/core' {
                 error?: string | null;
                 warning?: string | null;
             };
+            /** Métodos de pago resumidos; solo se rellena en rutas de la tienda (carrito) si hay sesión */
+            paymentMethods?: Array<{
+                id: number;
+                titular: string | null;
+                detalles: string | null;
+                is_default: boolean;
+                tipo_nombre: string | null;
+            }>;
             [key: string]: unknown;
         };
     }

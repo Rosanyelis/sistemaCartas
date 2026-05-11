@@ -10,6 +10,7 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -39,7 +40,7 @@ class SuscripcionController extends Controller
      */
     public function cancel(Request $request, Suscripcion $suscripcion, PayPalService $payPal): RedirectResponse
     {
-        abort_unless($suscripcion->user_id === $request->user()?->id, 403);
+        Gate::authorize('cancel', $suscripcion);
 
         if ($suscripcion->estado !== 'activa') {
             return back()->withErrors([

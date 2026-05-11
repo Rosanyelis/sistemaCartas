@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Controllers\User;
+namespace App\Support;
 
 use App\Models\Historia;
-use App\Support\HistoriaSuscripcionPrecio;
 
 /**
  * Serialización mínima de una historia para tarjetas en la tienda (Inertia).
