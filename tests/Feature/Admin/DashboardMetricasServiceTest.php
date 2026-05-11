@@ -30,7 +30,7 @@ test('to array ejecuta consultas de metricas sin excepcion', function (): void {
     $data = $service->toArray();
 
     expect($data)->toHaveKeys([
-        'usuarios_registrados',
+        'clientes_registrados',
         'suscripciones_del_mes',
         'ordenes_del_dia',
         'historias_activas',
@@ -38,6 +38,15 @@ test('to array ejecuta consultas de metricas sin excepcion', function (): void {
         'ventas_del_mes',
         'suscripciones_por_historia',
     ]);
+});
+
+test('clientes registrados cuenta solo usuarios con rol cliente', function (): void {
+    User::factory()->count(3)->create(['role' => 'cliente']);
+    User::factory()->create(['role' => 'admin']);
+
+    $service = app(DashboardMetricasService::class);
+
+    expect($service->clientesRegistrados())->toBe(3);
 });
 
 test('ventas chart devuelve siete puntos para semana y doce para mes', function (): void {

@@ -17,6 +17,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, useForm, router } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import UserLayout from '@/layouts/user-layout';
+import { getUserInitials } from '@/lib/user-initials';
 import profile from '@/routes/user/profile';
 
 interface PaymentMethod {
@@ -182,14 +183,20 @@ export default function Profile({
                     <div className="flex w-full flex-col gap-6 lg:w-[280px]">
                         <div className="flex flex-col items-center rounded-[12px] bg-white p-8 shadow-[0px_0px_15px_rgba(36,16,167,0.08)]">
                             <div className="relative mb-6">
-                                <img
-                                    src={
-                                        user.avatar ||
-                                        '/images/avatar-placeholder.jpg'
-                                    }
-                                    alt="Avatar"
-                                    className="size-[120px] rounded-[16px] object-cover"
-                                />
+                                {user.avatar?.trim() ? (
+                                    <img
+                                        src={user.avatar}
+                                        alt=""
+                                        className="size-[120px] rounded-[16px] object-cover"
+                                    />
+                                ) : (
+                                    <div
+                                        className="flex size-[120px] items-center justify-center rounded-[16px] bg-[#E8EDF3] font-['Inter'] text-[40px] font-bold tracking-tight text-[#1B3D6D]"
+                                        aria-hidden
+                                    >
+                                        {getUserInitials(user.name)}
+                                    </div>
+                                )}
                                 <label
                                     htmlFor="avatar-upload"
                                     className="absolute -top-2 -right-2 flex size-8 cursor-pointer items-center justify-center rounded-full border-4 border-white bg-white text-[#1B3D6D] shadow-md transition-transform hover:scale-110"

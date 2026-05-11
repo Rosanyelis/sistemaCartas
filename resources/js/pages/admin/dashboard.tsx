@@ -33,7 +33,7 @@ import { dashboard as adminDashboard } from '@/routes/admin';
 
 interface PageProps extends BasePageProps {
     metricas?: {
-        usuarios_registrados: number;
+        clientes_registrados: number;
         suscripciones_del_mes: number;
         ordenes_del_dia: number;
         historias_activas: number;
@@ -132,15 +132,15 @@ export default function Dashboard() {
                                     className="text-[#A0A0A0]"
                                 />
                                 <span className="text-sm font-semibold text-[#111827]">
-                                    Registrados
+                                    Clientes
                                 </span>
                             </div>
                             <div className="mb-0 text-xs font-medium text-[#A0A0A0]">
-                                Totales
+                                Rol cliente
                             </div>
                             <div className="flex items-end gap-2">
                                 <span className="text-4xl font-bold text-[#111827]">
-                                    {metricas?.usuarios_registrados ?? 0}
+                                    {metricas?.clientes_registrados ?? 0}
                                 </span>
                             </div>
                         </div>

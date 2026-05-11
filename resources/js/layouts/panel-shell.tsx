@@ -7,6 +7,7 @@ import type { User } from '@/types/auth';
 import { Head, Link, router } from '@inertiajs/react';
 import { ReactNode, useState } from 'react';
 import { logout } from '@/routes';
+import { getUserInitials } from '@/lib/user-initials';
 
 export type PanelShellProps = {
     children: ReactNode;
@@ -30,6 +31,12 @@ export default function PanelShell({
         typeof window !== 'undefined' ? window.innerWidth >= 768 : true,
     );
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+    const clienteAvatarSrc = (
+        user.avatar_url ??
+        user.avatar ??
+        ''
+    ).trim();
 
     return (
         <div className="flex min-h-screen bg-[#F5F6F7] font-['Inter',sans-serif]">
@@ -164,15 +171,20 @@ export default function PanelShell({
                                         </p>
                                     </div>
                                     <div className="relative">
-                                        <img
-                                            src={
-                                                user.avatar_url ??
-                                                user.avatar ??
-                                                '/images/avatar-placeholder.jpg'
-                                            }
-                                            alt="Profile"
-                                            className="size-[32px] rounded-full border-2 border-white object-cover shadow-sm"
-                                        />
+                                        {clienteAvatarSrc ? (
+                                            <img
+                                                src={clienteAvatarSrc}
+                                                alt=""
+                                                className="size-[32px] rounded-full border-2 border-white object-cover shadow-sm"
+                                            />
+                                        ) : (
+                                            <div
+                                                className="flex size-[32px] items-center justify-center rounded-full border-2 border-white bg-[#E2E8F0] text-[11px] font-bold tracking-tight text-[#1B3D6D] shadow-sm"
+                                                aria-hidden
+                                            >
+                                                {getUserInitials(user.name)}
+                                            </div>
+                                        )}
                                         <div className="absolute -top-0.5 -right-0.5 size-3 rounded-full border-2 border-white bg-[#22AD5C]" />
                                     </div>
                                 </>

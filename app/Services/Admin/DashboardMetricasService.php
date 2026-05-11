@@ -13,9 +13,9 @@ use Illuminate\Database\Eloquent\Builder;
 
 class DashboardMetricasService
 {
-    public function usuariosRegistrados(): int
+    public function clientesRegistrados(): int
     {
-        return User::query()->count();
+        return User::query()->where('role', 'cliente')->count();
     }
 
     public function suscripcionesDelMes(): int
@@ -58,7 +58,7 @@ class DashboardMetricasService
     public function toArray(): array
     {
         return [
-            'usuarios_registrados' => $this->usuariosRegistrados(),
+            'clientes_registrados' => $this->clientesRegistrados(),
             'suscripciones_del_mes' => $this->suscripcionesDelMes(),
             'ordenes_del_dia' => $this->ordenesDelDia(),
             'historias_activas' => $this->historiasActivas(),

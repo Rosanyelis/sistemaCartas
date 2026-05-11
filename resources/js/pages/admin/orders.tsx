@@ -100,12 +100,18 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
     };
 
     const statusLabel = (status: string) => {
+        const key = status.toLowerCase();
+        /** Alineado con `StoreOrder` y `ClientePedidoLinea::estadoMeta` (PHP). */
         const map: Record<string, { label: string; color: 'success' | 'danger' | 'warning' }> = {
-            completed: { label: 'Completado', color: 'success' },
-            failed: { label: 'Rechazado', color: 'danger' },
-            pending: { label: 'Pendiente', color: 'warning' },
+            paid: { label: 'Pagado', color: 'success' },
+            completed: { label: 'Pagado', color: 'success' },
+            pending_payment: { label: 'Pendiente de pago', color: 'warning' },
+            pending: { label: 'Pendiente de pago', color: 'warning' },
+            capture_failed: { label: 'Pago no completado', color: 'danger' },
+            failed: { label: 'Pago no completado', color: 'danger' },
         };
-        return map[status] || { label: status, color: 'warning' };
+
+        return map[key] ?? { label: status || 'Sin estado', color: 'warning' };
     };
 
     const { data: orders, current_page, last_page, from, to, total } = ordenes;

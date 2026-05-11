@@ -3,6 +3,7 @@
 namespace App\Exports\Admin;
 
 use App\Models\StoreOrder;
+use App\Support\Store\ClientePedidoLinea;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -77,11 +78,6 @@ class OrdenesExport implements FromQuery, WithHeadings, WithMapping
 
     private function formatStatus(string $status): string
     {
-        return match ($status) {
-            'completed', 'paid' => 'Completado',
-            'pending', 'pending_payment' => 'Pendiente',
-            'failed', 'capture_failed' => 'Rechazado',
-            default => ucfirst($status),
-        };
+        return ClientePedidoLinea::estadoMeta($status)['label'];
     }
 }
