@@ -14,6 +14,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, router } from '@inertiajs/react';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
+import { historias as adminHistoriasList } from '@/routes/admin';
+import {
+    destroy as historiasDestroy,
+    duplicate as historiasDuplicate,
+    exportMethod as historiasExport,
+    toggleStatus as historiasToggleStatus,
+} from '@/routes/admin/historias';
 import type { HistoriaDetalleInclusionRow } from '@/components/admin/create-story/types';
 import { CreateStoryModal } from '@/components/admin/CreateStoryModal';
 import UserLayout from '@/layouts/user-layout';
@@ -116,8 +123,8 @@ export default function Stories({ historias, categorias, filters }: Props) {
     const applyFilters = useCallback(
         (params: Record<string, string>) => {
             router.get(
-                '/admin/historias',
-                { ...filters, ...params, page: '1' },
+                adminHistoriasList.url({ query: { ...filters, ...params, page: '1' } }),
+                {},
                 { preserveState: true, preserveScroll: true },
             );
         },
@@ -149,18 +156,18 @@ export default function Stories({ historias, categorias, filters }: Props) {
 
     const goToPage = (page: number) => {
         router.get(
-            '/admin/historias',
-            { ...filters, page: String(page) },
+            adminHistoriasList.url({ query: { ...filters, page: String(page) } }),
+            {},
             { preserveState: true, preserveScroll: true },
         );
     };
 
     const handleDuplicate = (id: number) => {
-        router.post(`/admin/historias/${id}/duplicate`, {}, { preserveScroll: true });
+        router.post(historiasDuplicate.url(id), {}, { preserveScroll: true });
     };
 
     const handleToggleStatus = (id: number) => {
-        router.patch(`/admin/historias/${id}/toggle-status`, {}, { preserveScroll: true });
+        router.patch(historiasToggleStatus.url(id), {}, { preserveScroll: true });
     };
 
     const handleDeleteClick = (id: number) => {
@@ -180,7 +187,7 @@ export default function Stories({ historias, categorias, filters }: Props) {
 
     const handleDeleteConfirm = () => {
         if (deleteStoryId !== null) {
-            router.delete(`/admin/historias/${deleteStoryId}`, {
+            router.delete(historiasDestroy.url(deleteStoryId), {
                 preserveScroll: true,
                 onSuccess: () => setDeleteStoryId(null)
             });
@@ -326,8 +333,11 @@ return '';
                         <div className="flex flex-col md:flex-row w-full md:w-auto items-center gap-3">
                             <button 
                                 onClick={() => {
-                                    const params = new URLSearchParams(filters as any).toString();
-                                    window.location.href = `/admin/historias/export?${params}`;
+                                    window.location.href = historiasExport.url({
+                                        query: Object.fromEntries(
+                                            new URLSearchParams(filters as Record<string, string>),
+                                        ),
+                                    });
                                 }}
                                 className="flex w-full md:w-auto justify-center items-center gap-2 rounded-[4px] md:rounded-md border border-[#1B3D6D] bg-white px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#F8F9FA] transition-colors"
                             >

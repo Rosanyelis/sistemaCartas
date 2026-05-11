@@ -13,6 +13,8 @@ import {
     faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
+import { clientes as adminClientesIndex } from '@/routes/admin';
+import { exportMethod as clientesExport } from '@/routes/admin/clientes';
 
 interface Client {
     id: number;
@@ -48,8 +50,8 @@ export default function Clients({ clientes, filters }: Props) {
     const applyFilters = useCallback(
         (params: Record<string, string>) => {
             router.get(
-                '/admin/clientes',
-                { ...filters, ...params, page: '1' },
+                adminClientesIndex.url({ query: { ...filters, ...params, page: '1' } }),
+                {},
                 { preserveState: true, preserveScroll: true },
             );
         },
@@ -64,8 +66,8 @@ export default function Clients({ clientes, filters }: Props) {
 
     const goToPage = (page: number) => {
         router.get(
-            '/admin/clientes',
-            { ...filters, page: String(page) },
+            adminClientesIndex.url({ query: { ...filters, page: String(page) } }),
+            {},
             { preserveState: true, preserveScroll: true },
         );
     };
@@ -114,8 +116,11 @@ export default function Clients({ clientes, filters }: Props) {
                     <div className="flex flex-col md:flex-row items-center gap-3 relative w-full lg:w-auto">
                         <button 
                             onClick={() => {
-                                const params = new URLSearchParams(filters as any).toString();
-                                window.location.href = `/admin/clientes/export?${params}`;
+                                window.location.href = clientesExport.url({
+                                    query: Object.fromEntries(
+                                        new URLSearchParams(filters as Record<string, string>),
+                                    ),
+                                });
                             }}
                             className="flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-[4px] md:rounded-md border border-[#1B3D6D] bg-white px-5 md:px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#F8F9FA] transition-colors"
                         >

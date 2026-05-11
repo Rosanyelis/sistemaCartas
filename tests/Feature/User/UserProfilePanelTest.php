@@ -51,7 +51,9 @@ test('la pagina de perfil expone resumen de actividad y opciones de tipo de pago
             ->where('activitySummary.activeSubscriptions', 2)
             ->where('activitySummary.acquiredProducts', 3)
             ->has('paymentTypeOptions', 1)
-            ->where('paymentTypeOptions.0.nombre', 'Paypal'));
+            ->where('paymentTypeOptions.0.nombre', 'Paypal')
+            ->where('paypal.enabled', false)
+            ->where('paypal.clientId', ''));
 });
 
 test('actualizar el email del perfil invalida la verificacion y envia otp', function (): void {

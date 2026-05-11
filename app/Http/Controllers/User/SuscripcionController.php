@@ -3,14 +3,13 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\User\CancelUserSuscripcionRequest;
 use App\Models\Suscripcion;
 use App\Services\PayPalService;
 use App\Support\SuscripcionUsuarioListaSerializer;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -38,10 +37,8 @@ class SuscripcionController extends Controller
     /**
      * Cancela una suscripción activa del usuario (PayPal en remoto si aplica).
      */
-    public function cancel(Request $request, Suscripcion $suscripcion, PayPalService $payPal): RedirectResponse
+    public function cancel(CancelUserSuscripcionRequest $request, Suscripcion $suscripcion, PayPalService $payPal): RedirectResponse
     {
-        Gate::authorize('cancel', $suscripcion);
-
         if ($suscripcion->estado !== 'activa') {
             return back()->withErrors([
                 'subscription' => 'Esta suscripción no se puede dar de baja en su estado actual.',

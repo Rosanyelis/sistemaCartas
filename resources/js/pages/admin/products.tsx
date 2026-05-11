@@ -6,6 +6,13 @@ import { faSearch, faFilter, faChevronDown, faChevronLeft, faChevronRight, faFil
 import { CreateProductModal } from '@/components/admin/CreateProductModal';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { StockAdjuster } from '@/components/admin/StockAdjuster';
+import { productos as adminProductosList } from '@/routes/admin';
+import {
+    destroy as productosDestroy,
+    duplicate as productosDuplicate,
+    exportMethod as productosExport,
+    toggleStatus as productosToggleStatus,
+} from '@/routes/admin/productos';
 
 interface Product {
     id: number;
@@ -73,8 +80,8 @@ export default function Products({ productos, categorias, filters }: Props) {
     const applyFilters = useCallback(
         (params: Record<string, string>) => {
             router.get(
-                '/admin/productos',
-                { ...filters, ...params, page: '1' },
+                adminProductosList.url({ query: { ...filters, ...params, page: '1' } }),
+                {},
                 { preserveState: true, preserveScroll: true },
             );
         },
@@ -95,18 +102,18 @@ export default function Products({ productos, categorias, filters }: Props) {
 
     const goToPage = (page: number) => {
         router.get(
-            '/admin/productos',
-            { ...filters, page: String(page) },
+            adminProductosList.url({ query: { ...filters, page: String(page) } }),
+            {},
             { preserveState: true, preserveScroll: true },
         );
     };
 
     const handleDuplicate = (id: number) => {
-        router.post(`/admin/productos/${id}/duplicate`, {}, { preserveScroll: true, preserveState: false });
+        router.post(productosDuplicate.url(id), {}, { preserveScroll: true, preserveState: false });
     };
 
     const handleToggleStatus = (id: number) => {
-        router.patch(`/admin/productos/${id}/toggle-status`, {}, { preserveScroll: true, preserveState: false });
+        router.patch(productosToggleStatus.url(id), {}, { preserveScroll: true, preserveState: false });
     };
 
     const handleDeleteClick = (id: number) => {
@@ -115,7 +122,7 @@ export default function Products({ productos, categorias, filters }: Props) {
 
     const handleDeleteConfirm = () => {
         if (deleteProductId !== null) {
-            router.delete(`/admin/productos/${deleteProductId}`, {
+            router.delete(productosDestroy.url(deleteProductId), {
                 preserveScroll: true,
                 preserveState: false,
                 onSuccess: () => setDeleteProductId(null),
@@ -246,8 +253,11 @@ export default function Products({ productos, categorias, filters }: Props) {
                         <div className="flex flex-col md:flex-row w-full md:w-auto items-center gap-3 ml-0 lg:ml-8">
                             <button 
                                 onClick={() => {
-                                    const params = new URLSearchParams(filters as any).toString();
-                                    window.location.href = `/admin/productos/export?${params}`;
+                                    window.location.href = productosExport.url({
+                                        query: Object.fromEntries(
+                                            new URLSearchParams(filters as Record<string, string>),
+                                        ),
+                                    });
                                 }}
                                 className="flex w-full md:w-auto justify-center items-center gap-2 rounded-[4px] md:rounded-md border border-[#1B3D6D] bg-white px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#F8F9FA] transition-colors"
                             >

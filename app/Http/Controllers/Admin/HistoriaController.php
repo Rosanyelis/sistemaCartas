@@ -12,6 +12,7 @@ use App\Services\Admin\ExportService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -22,6 +23,8 @@ class HistoriaController extends Controller
 {
     public function index(Request $request): Response
     {
+        Gate::authorize('viewAny', Historia::class);
+
         $query = Historia::query();
 
         if ($request->filled('search')) {
@@ -57,6 +60,8 @@ class HistoriaController extends Controller
 
     public function store(StoreHistoriaRequest $request): RedirectResponse
     {
+        Gate::authorize('create', Historia::class);
+
         try {
             return DB::transaction(function () use ($request) {
                 $data = $request->validated();
@@ -121,6 +126,8 @@ class HistoriaController extends Controller
 
     public function update(UpdateHistoriaRequest $request, Historia $historia): RedirectResponse
     {
+        Gate::authorize('update', $historia);
+
         try {
             return DB::transaction(function () use ($request, $historia) {
                 $data = $request->validated();
@@ -220,6 +227,8 @@ class HistoriaController extends Controller
 
     public function destroy(Historia $historia): RedirectResponse
     {
+        Gate::authorize('delete', $historia);
+
         try {
             $historia->delete();
 
@@ -233,6 +242,8 @@ class HistoriaController extends Controller
 
     public function duplicate(Historia $historia): RedirectResponse
     {
+        Gate::authorize('duplicate', $historia);
+
         try {
             return DB::transaction(function () use ($historia) {
                 $historia->load([
@@ -343,6 +354,8 @@ class HistoriaController extends Controller
 
     public function toggleStatus(Historia $historia): RedirectResponse
     {
+        Gate::authorize('toggleStatus', $historia);
+
         $historia->update([
             'estado' => $historia->estado === 'activo' ? 'pausado' : 'activo',
         ]);
@@ -352,6 +365,8 @@ class HistoriaController extends Controller
 
     public function export(Request $request, ExportService $exportService): BinaryFileResponse
     {
+        Gate::authorize('viewAny', Historia::class);
+
         $filters = $request->only(['search', 'categoria', 'start_date', 'end_date']);
         $fileName = 'historias_'.now()->format('Y_m_d_His').'.xlsx';
 

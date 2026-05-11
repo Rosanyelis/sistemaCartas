@@ -25,6 +25,7 @@ import {
     faEye
 } from '@fortawesome/free-solid-svg-icons';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
+import { historias as adminHistoriasList } from '@/routes/admin';
 
 interface HistoriaCapitulo {
     id: number;
@@ -45,7 +46,7 @@ export default function ViewStory({ historia }: Props) {
     const [deleteCapituloId, setDeleteCapituloId] = useState<number | null>(null);
 
     const handleBack = () => {
-        router.get('/admin/historias');
+        router.get(adminHistoriasList.url());
     };
 
     const handleToggleStatus = (id: number) => {

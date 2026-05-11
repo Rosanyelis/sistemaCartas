@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -25,6 +26,8 @@ class ProductoController extends Controller
 {
     public function index(Request $request): Response
     {
+        Gate::authorize('viewAny', Producto::class);
+
         $query = Producto::query()->with(['productoCategoria', 'productoSubcategoria']);
 
         if ($request->filled('search')) {
@@ -67,6 +70,8 @@ class ProductoController extends Controller
 
     public function formulario(Producto $producto): JsonResponse
     {
+        Gate::authorize('view', $producto);
+
         $producto->load(['galeria' => fn ($q) => $q->orderBy('id')]);
 
         return response()->json([
@@ -98,6 +103,8 @@ class ProductoController extends Controller
 
     public function store(StoreProductoRequest $request): RedirectResponse
     {
+        Gate::authorize('create', Producto::class);
+
         try {
             return DB::transaction(function () use ($request) {
                 $data = $request->validated();
@@ -144,6 +151,8 @@ class ProductoController extends Controller
 
     public function update(UpdateProductoRequest $request, Producto $producto): RedirectResponse
     {
+        Gate::authorize('update', $producto);
+
         try {
             return DB::transaction(function () use ($request, $producto) {
                 $data = $request->validated();
@@ -223,6 +232,8 @@ class ProductoController extends Controller
 
     public function destroy(Producto $producto): RedirectResponse
     {
+        Gate::authorize('delete', $producto);
+
         try {
             $producto->delete();
 
@@ -322,6 +333,8 @@ class ProductoController extends Controller
 
     public function toggleStatus(Producto $producto): RedirectResponse
     {
+        Gate::authorize('toggleStatus', $producto);
+
         try {
             $producto->update([
                 'estado' => $producto->estado === 'activo' ? 'pausado' : 'activo',
@@ -337,6 +350,8 @@ class ProductoController extends Controller
 
     public function ajustarStock(AjustarStockRequest $request, Producto $producto): RedirectResponse
     {
+        Gate::authorize('update', $producto);
+
         try {
             $producto->update(['stock' => $request->validated('stock')]);
 
@@ -350,6 +365,8 @@ class ProductoController extends Controller
 
     public function export(Request $request, ExportService $exportService): BinaryFileResponse
     {
+        Gate::authorize('viewAny', Producto::class);
+
         $filters = $request->only(['search', 'categoria_id']);
         $fileName = 'productos_'.now()->format('Y_m_d_His').'.xlsx';
 

@@ -12,6 +12,10 @@ declare module '@inertiajs/core' {
                 currency: string;
                 enabled: boolean;
             };
+            /** IVA de tienda (config); compartido en todas las visitas */
+            tienda?: {
+                iva_percentage: number;
+            };
             flash?: {
                 success?: string | null;
                 error?: string | null;

@@ -142,7 +142,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('taxonomia/producto-subcategorias', [AdminProductoSubcategoriaController::class, 'store'])->name('taxonomia.producto-subcategorias.store');
         Route::delete('taxonomia/producto-subcategorias/{producto_subcategoria}', [AdminProductoSubcategoriaController::class, 'destroy'])->name('taxonomia.producto-subcategorias.destroy');
 
-        // Legacy route aliases (backward compatibility with existing sidebar links)
+        // Alias GET en inglés: redirigen a las rutas canónicas en español (enlaces antiguos, marcadores, integraciones)
         Route::get('orders', fn (Request $request) => redirect()->route('admin.ordenes', $request->query()))->name('orders');
         Route::get('subscriptions', fn (Request $request) => redirect()->route('admin.suscripciones', $request->query()))->name('subscriptions');
         Route::get('clients', fn (Request $request) => redirect()->route('admin.clientes', $request->query()))->name('clients');

@@ -9,6 +9,20 @@ import {
     faUserGroup,
     faUsers,
 } from '@fortawesome/free-solid-svg-icons';
+import {
+    clientes,
+    clients as adminClientsLegacy,
+    dashboard as adminDashboard,
+    historias as adminHistorias,
+    ordenes,
+    orders as adminOrdersLegacy,
+    productos as adminProductos,
+    products as adminProductsLegacy,
+    stories as adminStoriesLegacy,
+    subscriptions as adminSubscriptionsLegacy,
+    suscripciones as adminSuscripciones,
+} from '@/routes/admin';
+import { orders, profile, subscriptions } from '@/routes/user';
 
 export type PanelNavItem = {
     name: string;
@@ -18,55 +32,62 @@ export type PanelNavItem = {
 };
 
 /**
- * Navegación lateral del panel administrativo (mismas URLs que las rutas nombradas en español).
+ * Navegación lateral del panel administrativo (URLs desde Wayfinder).
  */
 export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
+    const d = adminDashboard.definition.url;
+    const o = ordenes.definition.url;
+    const s = adminSuscripciones.definition.url;
+    const c = clientes.definition.url;
+    const h = adminHistorias.definition.url;
+    const p = adminProductos.definition.url;
+
     return [
         {
             name: 'Panel',
             icon: faHouse,
-            href: '/admin/dashboard',
-            active: currentUrl === '/admin/dashboard',
+            href: adminDashboard.url(),
+            active: currentUrl === d,
         },
         {
             name: 'Ordenes',
             icon: faCartShopping,
-            href: '/admin/ordenes',
+            href: ordenes.url(),
             active:
-                currentUrl.startsWith('/admin/ordenes') ||
-                currentUrl.startsWith('/admin/orders'),
+                currentUrl.startsWith(o) ||
+                currentUrl.startsWith(adminOrdersLegacy.definition.url),
         },
         {
             name: 'Suscripciones',
             icon: faUsers,
-            href: '/admin/suscripciones',
+            href: adminSuscripciones.url(),
             active:
-                currentUrl.startsWith('/admin/suscripciones') ||
-                currentUrl.startsWith('/admin/subscriptions'),
+                currentUrl.startsWith(s) ||
+                currentUrl.startsWith(adminSubscriptionsLegacy.definition.url),
         },
         {
             name: 'Clientes',
             icon: faUserGroup,
-            href: '/admin/clientes',
+            href: clientes.url(),
             active:
-                currentUrl.startsWith('/admin/clientes') ||
-                currentUrl.startsWith('/admin/clients'),
+                currentUrl.startsWith(c) ||
+                currentUrl.startsWith(adminClientsLegacy.definition.url),
         },
         {
             name: 'Historias',
             icon: faBook,
-            href: '/admin/historias',
+            href: adminHistorias.url(),
             active:
-                currentUrl.startsWith('/admin/historias') ||
-                currentUrl.startsWith('/admin/stories'),
+                currentUrl.startsWith(h) ||
+                currentUrl.startsWith(adminStoriesLegacy.definition.url),
         },
         {
             name: 'Productos',
             icon: faBoxOpen,
-            href: '/admin/productos',
+            href: adminProductos.url(),
             active:
-                currentUrl.startsWith('/admin/productos') ||
-                currentUrl.startsWith('/admin/products'),
+                currentUrl.startsWith(p) ||
+                currentUrl.startsWith(adminProductsLegacy.definition.url),
         },
     ];
 }
@@ -75,6 +96,10 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
  * Navegación lateral del área de cliente autenticado.
  */
 export function getClientePanelNav(currentUrl: string): PanelNavItem[] {
+    const ou = orders.definition.url;
+    const su = subscriptions.definition.url;
+    const pr = profile.definition.url;
+
     return [
         {
             name: 'Ir a tienda',
@@ -85,20 +110,20 @@ export function getClientePanelNav(currentUrl: string): PanelNavItem[] {
         {
             name: 'Ordenes',
             icon: faCartShopping,
-            href: '/user/orders',
-            active: currentUrl.startsWith('/user/orders'),
+            href: orders.url(),
+            active: currentUrl.startsWith(ou),
         },
         {
             name: 'Suscripciones',
             icon: faUsers,
-            href: '/user/subscriptions',
-            active: currentUrl.startsWith('/user/subscriptions'),
+            href: subscriptions.url(),
+            active: currentUrl.startsWith(su),
         },
         {
             name: 'Perfil',
             icon: faUser,
-            href: '/user/profile',
-            active: currentUrl.startsWith('/user/profile'),
+            href: profile.url(),
+            active: currentUrl.startsWith(pr),
         },
     ];
 }

@@ -11,6 +11,8 @@ import {
     faChevronLeft,
     faChevronRight,
 } from '@fortawesome/free-solid-svg-icons';
+import { suscripciones as adminSuscripcionesIndex } from '@/routes/admin';
+import { exportMethod as suscripcionesExport } from '@/routes/admin/suscripciones';
 
 interface SubscriptionUser {
     id: number;
@@ -75,8 +77,8 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
     const applyFilters = useCallback(
         (params: Record<string, string>) => {
             router.get(
-                '/admin/suscripciones',
-                { ...filters, ...params, page: '1' },
+                adminSuscripcionesIndex.url({ query: { ...filters, ...params, page: '1' } }),
+                {},
                 { preserveState: true, preserveScroll: true },
             );
         },
@@ -102,8 +104,8 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
 
     const goToPage = (page: number) => {
         router.get(
-            '/admin/suscripciones',
-            { ...filters, page: String(page) },
+            adminSuscripcionesIndex.url({ query: { ...filters, page: String(page) } }),
+            {},
             { preserveState: true, preserveScroll: true },
         );
     };
@@ -209,8 +211,11 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
 
                         <button 
                             onClick={() => {
-                                const params = new URLSearchParams(filters as any).toString();
-                                window.location.href = `/admin/suscripciones/export?${params}`;
+                                window.location.href = suscripcionesExport.url({
+                                    query: Object.fromEntries(
+                                        new URLSearchParams(filters as Record<string, string>),
+                                    ),
+                                });
                             }}
                             className="flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-[4px] md:rounded-md border border-[#1B3D6D] bg-white px-5 md:px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#F8F9FA] transition-colors"
                         >

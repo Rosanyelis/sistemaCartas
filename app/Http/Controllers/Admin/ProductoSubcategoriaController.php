@@ -7,11 +7,14 @@ use App\Http\Requests\Admin\StoreProductoSubcategoriaRequest;
 use App\Models\ProductoSubcategoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ProductoSubcategoriaController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        Gate::authorize('viewAny', ProductoSubcategoria::class);
+
         $validated = $request->validate([
             'producto_categoria_id' => ['required', 'integer', 'exists:producto_categorias,id'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:200'],
@@ -31,6 +34,8 @@ class ProductoSubcategoriaController extends Controller
 
     public function store(StoreProductoSubcategoriaRequest $request): JsonResponse
     {
+        Gate::authorize('create', ProductoSubcategoria::class);
+
         $sub = ProductoSubcategoria::query()->create($request->validated());
 
         return response()->json([
@@ -42,6 +47,8 @@ class ProductoSubcategoriaController extends Controller
 
     public function destroy(ProductoSubcategoria $productoSubcategoria): JsonResponse
     {
+        Gate::authorize('delete', $productoSubcategoria);
+
         if ($productoSubcategoria->productos()->exists()) {
             return response()->json([
                 'message' => 'No se puede eliminar la subcategoría porque tiene productos asociados.',

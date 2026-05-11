@@ -26,6 +26,7 @@ import {
 } from '@/lib/cart-storage';
 import { login } from '@/routes';
 import profile from '@/routes/user/profile';
+import { orders, subscriptions } from '@/routes/user';
 import { cartLineKey } from '@/types/cart-line';
 
 const RESUME_CART_PATH = '/?openCart=1&checkout=1';
@@ -270,13 +271,13 @@ const CartDrawer: React.FC = () => {
     const handleGoToOrdersPanel = useCallback(() => {
         setPurchaseSuccessOpen(false);
         setPurchaseSuccessKind(null);
-        router.visit('/user/orders');
+        router.visit(orders.url());
     }, []);
 
     const handleGoToSubscriptionsPanel = useCallback(() => {
         setPurchaseSuccessOpen(false);
         setPurchaseSuccessKind(null);
-        router.visit('/user/subscriptions');
+        router.visit(subscriptions.url());
     }, []);
 
     const handleCloseSuccessModal = useCallback(() => {

@@ -29,6 +29,7 @@ import {
 } from 'recharts';
 
 import { PageProps as BasePageProps } from '@inertiajs/core';
+import { dashboard as adminDashboard } from '@/routes/admin';
 
 interface PageProps extends BasePageProps {
     metricas?: {
@@ -85,7 +86,11 @@ export default function Dashboard() {
     };
 
     const handlePeriodChange = (period: string) => {
-        router.get('/admin/dashboard', { periodo: period }, { preserveState: true, preserveScroll: true });
+        router.get(
+            adminDashboard.url({ query: { periodo: period } }),
+            {},
+            { preserveState: true, preserveScroll: true },
+        );
     };
 
     return (

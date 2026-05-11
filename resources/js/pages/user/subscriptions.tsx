@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import UserLayout from '@/layouts/user-layout';
+import SuscripcionController from '@/actions/App/Http/Controllers/User/SuscripcionController';
 
 interface Suscripcion {
     id: string;
@@ -47,9 +48,6 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
     const [selectedSub, setSelectedSub] = useState<Suscripcion | null>(null);
     const [cancelProcessing, setCancelProcessing] = useState(false);
     const itemsPerPage = 5;
-
-    const cancelSubscriptionPostUrl = (suscripcionId: number): string =>
-        `/user/subscriptions/${suscripcionId}/cancel`;
 
     // Filter logic
     const filteredSuscripciones = useMemo(() => {
@@ -121,7 +119,7 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
 
         setCancelProcessing(true);
         router.post(
-            cancelSubscriptionPostUrl(selectedSub.suscripcion_id),
+            SuscripcionController.cancel.url(selectedSub.suscripcion_id),
             {},
             {
                 preserveScroll: true,

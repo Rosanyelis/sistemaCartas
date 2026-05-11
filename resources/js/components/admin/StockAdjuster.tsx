@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { router } from '@inertiajs/react';
+import { stock as productoStock } from '@/routes/admin/productos';
 
 interface StockAdjusterProps {
     isOpen: boolean;
@@ -40,7 +41,7 @@ export function StockAdjuster({
 
     const handleSave = () => {
         setIsProcessing(true);
-        router.patch(`/admin/productos/${productoId}/stock`, {
+        router.patch(productoStock.url(productoId), {
             stock: stock,
         }, {
             preserveState: false,

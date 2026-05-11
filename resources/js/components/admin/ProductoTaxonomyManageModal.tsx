@@ -2,6 +2,16 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faChevronLeft, faChevronRight, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { laravelJsonFetch } from '@/lib/laravel-json-fetch';
+import {
+    destroy as taxonomiaCategoriaDestroy,
+    index as taxonomiaCategoriaIndex,
+    store as taxonomiaCategoriaStore,
+} from '@/routes/admin/taxonomia/producto-categorias';
+import {
+    destroy as taxonomiaSubcategoriaDestroy,
+    index as taxonomiaSubcategoriaIndex,
+    store as taxonomiaSubcategoriaStore,
+} from '@/routes/admin/taxonomia/producto-subcategorias';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 
 export type TaxonomyKind = 'categoria' | 'subcategoria';
@@ -69,7 +79,7 @@ export function ProductoTaxonomyManageModal({
         try {
             if (isCategoria) {
                 const res = await laravelJsonFetch<Paginated<Row>>(
-                    `/admin/taxonomia/producto-categorias?page=${page}&per_page=${PER_PAGE}`,
+                    taxonomiaCategoriaIndex.url({ query: { page, per_page: PER_PAGE } }),
                 );
                 setRows(res.data);
                 setLastPage(res.last_page);
@@ -86,7 +96,13 @@ export function ProductoTaxonomyManageModal({
                     return;
                 }
                 const res = await laravelJsonFetch<Paginated<Row>>(
-                    `/admin/taxonomia/producto-subcategorias?producto_categoria_id=${subCategoriaIdNum}&page=${page}&per_page=${PER_PAGE}`,
+                    taxonomiaSubcategoriaIndex.url({
+                        query: {
+                            producto_categoria_id: subCategoriaIdNum,
+                            page,
+                            per_page: PER_PAGE,
+                        },
+                    }),
                 );
                 setRows(res.data);
                 setLastPage(res.last_page);
@@ -144,7 +160,7 @@ export function ProductoTaxonomyManageModal({
         setError(null);
         try {
             if (isCategoria) {
-                await laravelJsonFetch('/admin/taxonomia/producto-categorias', {
+                await laravelJsonFetch(taxonomiaCategoriaStore.url(), {
                     method: 'POST',
                     body: JSON.stringify({ nombre: trimmed }),
                 });
@@ -154,7 +170,7 @@ export function ProductoTaxonomyManageModal({
                     setSaving(false);
                     return;
                 }
-                await laravelJsonFetch('/admin/taxonomia/producto-subcategorias', {
+                await laravelJsonFetch(taxonomiaSubcategoriaStore.url(), {
                     method: 'POST',
                     body: JSON.stringify({
                         nombre: trimmed,
@@ -180,8 +196,8 @@ export function ProductoTaxonomyManageModal({
         setError(null);
         try {
             const path = isCategoria
-                ? `/admin/taxonomia/producto-categorias/${deleteTarget.id}`
-                : `/admin/taxonomia/producto-subcategorias/${deleteTarget.id}`;
+                ? taxonomiaCategoriaDestroy.url(deleteTarget.id)
+                : taxonomiaSubcategoriaDestroy.url(deleteTarget.id);
             await laravelJsonFetch(path, { method: 'DELETE' });
             setDeleteTarget(null);
             onSaved?.();

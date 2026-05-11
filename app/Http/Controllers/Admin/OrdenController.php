@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\StoreOrder;
 use App\Services\Admin\ExportService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -15,6 +16,8 @@ class OrdenController extends Controller
 {
     public function index(Request $request): Response
     {
+        Gate::authorize('viewAny', StoreOrder::class);
+
         $query = StoreOrder::query()
             ->with(['user', 'items']);
 
@@ -47,6 +50,8 @@ class OrdenController extends Controller
 
     public function export(Request $request, ExportService $exportService): BinaryFileResponse
     {
+        Gate::authorize('viewAny', StoreOrder::class);
+
         $filters = $request->only(['search', 'start_date', 'end_date']);
         $fileName = 'ordenes_'.now()->format('Y_m_d_His').'.xlsx';
 

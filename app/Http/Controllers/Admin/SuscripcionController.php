@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Suscripcion;
 use App\Services\Admin\ExportService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -15,6 +16,8 @@ class SuscripcionController extends Controller
 {
     public function index(Request $request): Response
     {
+        Gate::authorize('viewAny', Suscripcion::class);
+
         $query = Suscripcion::query()
             ->with(['user', 'historia']);
 
@@ -50,6 +53,8 @@ class SuscripcionController extends Controller
 
     public function export(Request $request, ExportService $exportService): BinaryFileResponse
     {
+        Gate::authorize('viewAny', Suscripcion::class);
+
         $filters = $request->only(['search', 'start_date', 'end_date']);
         $fileName = 'suscripciones_'.now()->format('Y_m_d_His').'.xlsx';
 

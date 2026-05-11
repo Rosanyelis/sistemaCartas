@@ -11,6 +11,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, router } from '@inertiajs/react';
 import { useState, useCallback } from 'react';
 import UserLayout from '@/layouts/user-layout';
+import { ordenes as adminOrdenesIndex } from '@/routes/admin';
+import { exportMethod as ordenesExport } from '@/routes/admin/ordenes';
 
 interface StoreOrderItem {
     id: number;
@@ -70,8 +72,8 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
     const applyFilters = useCallback(
         (params: Record<string, string>) => {
             router.get(
-                '/admin/ordenes',
-                { ...filters, ...params, page: '1' },
+                adminOrdenesIndex.url({ query: { ...filters, ...params, page: '1' } }),
+                {},
                 { preserveState: true, preserveScroll: true },
             );
         },
@@ -91,8 +93,8 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
 
     const goToPage = (page: number) => {
         router.get(
-            '/admin/ordenes',
-            { ...filters, page: String(page) },
+            adminOrdenesIndex.url({ query: { ...filters, page: String(page) } }),
+            {},
             { preserveState: true, preserveScroll: true },
         );
     };
@@ -167,8 +169,11 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
 
                         <button 
                             onClick={() => {
-                                const params = new URLSearchParams(filters as any).toString();
-                                window.location.href = `/admin/ordenes/export?${params}`;
+                                window.location.href = ordenesExport.url({
+                                    query: Object.fromEntries(
+                                        new URLSearchParams(filters as Record<string, string>),
+                                    ),
+                                });
                             }}
                             className="flex h-10 items-center justify-center gap-2 rounded-md border border-[#DFE4EA] bg-white px-5 text-[14px] font-semibold text-[#1B3D6D] transition hover:bg-gray-50 md:w-auto shadow-sm"
                         >

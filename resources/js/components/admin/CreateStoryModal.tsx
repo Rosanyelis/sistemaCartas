@@ -10,6 +10,7 @@ import { HistoriaMultimediaPanel } from './create-story/HistoriaMultimediaPanel'
 import { HistoriaVariantesEditor } from './create-story/HistoriaVariantesEditor';
 import { LimitedWordRichEditor } from './create-story/LimitedWordRichEditor';
 import type { GallerySlot, HistoriaParaFormulario, HistoriaVarianteForm } from './create-story/types';
+import { store as historiasStore, update as historiasUpdate } from '@/routes/admin/historias';
 
 interface CreateStoryModalProps {
     isOpen: boolean;
@@ -232,7 +233,7 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
             return;
         }
 
-        post('/admin/historias', {
+        post(historiasStore.url(), {
             preserveScroll: true,
             onSuccess: () => {
                 setRichEditors(null);

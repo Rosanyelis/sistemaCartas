@@ -10,6 +10,21 @@ use Inertia\Middleware;
 class HandleInertiaRequests extends Middleware
 {
     /**
+     * Rutas de la tienda pública donde el carrito / PayPal / IVA se exponen al front.
+     */
+    private static function isPublicStorefrontRoute(Request $request): bool
+    {
+        return $request->routeIs([
+            'home',
+            'historias',
+            'historias.show',
+            'productos',
+            'productos.show',
+            'productos.ejemplo',
+        ]);
+    }
+
+    /**
      * The root template that's loaded on the first page visit.
      *
      * @see https://inertiajs.com/server-side-setup#root-template
@@ -44,11 +59,21 @@ class HandleInertiaRequests extends Middleware
                 'user' => InertiaSharedUser::from($request->user()),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'paypal' => [
-                'clientId' => config('paypal.client_id'),
-                'currency' => config('paypal.currency'),
-                'enabled' => (bool) config('paypal.enabled'),
-            ],
+            'paypal' => static function () use ($request): array {
+                if (! self::isPublicStorefrontRoute($request)) {
+                    return [
+                        'clientId' => '',
+                        'currency' => (string) config('paypal.currency', 'USD'),
+                        'enabled' => false,
+                    ];
+                }
+
+                return [
+                    'clientId' => config('paypal.client_id'),
+                    'currency' => config('paypal.currency'),
+                    'enabled' => (bool) config('paypal.enabled'),
+                ];
+            },
             'tienda' => [
                 'iva_percentage' => (float) config('tienda.iva_percentage', 16),
             ],
@@ -58,14 +83,7 @@ class HandleInertiaRequests extends Middleware
                     return [];
                 }
 
-                if (! $request->routeIs([
-                    'home',
-                    'historias',
-                    'historias.show',
-                    'productos',
-                    'productos.show',
-                    'productos.ejemplo',
-                ])) {
+                if (! self::isPublicStorefrontRoute($request)) {
                     return [];
                 }
 

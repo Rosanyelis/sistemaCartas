@@ -2,7 +2,19 @@
 
 namespace App\Providers;
 
+use App\Models\Historia;
+use App\Models\Producto;
+use App\Models\ProductoCategoria;
+use App\Models\ProductoSubcategoria;
+use App\Models\StoreOrder;
+use App\Models\Suscripcion;
 use App\Models\User;
+use App\Policies\HistoriaPolicy;
+use App\Policies\ProductoCategoriaPolicy;
+use App\Policies\ProductoPolicy;
+use App\Policies\ProductoSubcategoriaPolicy;
+use App\Policies\StoreOrderPolicy;
+use App\Policies\SuscripcionPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +42,13 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('admin', function (User $user) {
             return $user->isAdmin();
         });
+
+        Gate::policy(Historia::class, HistoriaPolicy::class);
+        Gate::policy(Producto::class, ProductoPolicy::class);
+        Gate::policy(StoreOrder::class, StoreOrderPolicy::class);
+        Gate::policy(ProductoCategoria::class, ProductoCategoriaPolicy::class);
+        Gate::policy(ProductoSubcategoria::class, ProductoSubcategoriaPolicy::class);
+        Gate::policy(Suscripcion::class, SuscripcionPolicy::class);
     }
 
     /**

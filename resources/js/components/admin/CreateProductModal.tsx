@@ -11,6 +11,12 @@ import { LimitedWordRichEditor } from '@/components/admin/create-story/LimitedWo
 import type { GallerySlot, HistoriaDetalleInclusionRow } from '@/components/admin/create-story/types';
 import { ProductoTaxonomyManageModal } from '@/components/admin/ProductoTaxonomyManageModal';
 import { HISTORIA_DETALLE_INCLUSION_ICONS } from '@/constants/historia-detalle-inclusion-icons';
+import {
+    formulario as productoFormulario,
+    store as productosStore,
+    update as productosUpdate,
+} from '@/routes/admin/productos';
+import { index as productoSubcategoriasIndex } from '@/routes/admin/taxonomia/producto-subcategorias';
 
 export type CategoriaOption = {
     id: number;
@@ -150,9 +156,9 @@ export function CreateProductModal({
         let cancelled = false;
         setSubcategoriasLoading(true);
         fetch(
-            `/admin/taxonomia/producto-subcategorias?producto_categoria_id=${encodeURIComponent(
-                String(catId),
-            )}&per_page=200`,
+            productoSubcategoriasIndex.url({
+                query: { producto_categoria_id: catId, per_page: 200 },
+            }),
             { credentials: 'same-origin', headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } },
         )
             .then(async (r) => {
@@ -230,7 +236,7 @@ export function CreateProductModal({
         const fetchCycle = openCycleRef.current;
         setLoadError(null);
         setLoadingProduct(true);
-        void fetch(`/admin/productos/${editingProductId}/formulario`, {
+        void fetch(productoFormulario.url(editingProductId), {
             credentials: 'same-origin',
             headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
         })
@@ -445,12 +451,12 @@ export function CreateProductModal({
         };
 
         if (isEditMode && editingProductId) {
-            post(`/admin/productos/${editingProductId}`, visitOptions);
+            post(productosUpdate.url(editingProductId), visitOptions);
 
             return;
         }
 
-        post('/admin/productos', {
+        post(productosStore.url(), {
             ...visitOptions,
             forceFormData: true,
         });
@@ -825,9 +831,12 @@ export function CreateProductModal({
                 categoriaPadreId={categoriaIdNum}
                 onSaved={() => {
                     void fetch(
-                        `/admin/taxonomia/producto-subcategorias?producto_categoria_id=${encodeURIComponent(
-                            String(data.producto_categoria_id),
-                        )}&per_page=200`,
+                        productoSubcategoriasIndex.url({
+                            query: {
+                                producto_categoria_id: String(data.producto_categoria_id),
+                                per_page: 200,
+                            },
+                        }),
                         { credentials: 'same-origin', headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } },
                     )
                         .then((r) => r.json())

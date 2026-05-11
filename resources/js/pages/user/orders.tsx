@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import UserLayout from '@/layouts/user-layout';
+import { orders } from '@/routes/user';
 import type {
     PedidoLineaCliente,
     PedidoLineaEstadoColor,
@@ -93,7 +94,7 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
             }
             params.page = '1';
 
-            router.get('/user/orders', params, {
+            router.get(orders.url({ query: params }), {}, {
                 preserveState: true,
                 preserveScroll: true,
             });
@@ -137,7 +138,7 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
             page?: number;
         } = {},
     ) => {
-        router.get('/user/orders', buildQuery(overrides), {
+        router.get(orders.url({ query: buildQuery(overrides) }), {}, {
             preserveState: true,
             preserveScroll: true,
         });
@@ -156,7 +157,7 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
     };
 
     const goToPage = (page: number) => {
-        router.get('/user/orders', buildQuery({ page }), {
+        router.get(orders.url({ query: buildQuery({ page }) }), {}, {
             preserveState: true,
             preserveScroll: true,
         });
@@ -171,7 +172,7 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
         setStartDate('');
         setEndDate('');
         setIsDateMenuOpen(false);
-        router.get('/user/orders', buildQuery({ startDate: '', endDate: '' }), {
+        router.get(orders.url({ query: buildQuery({ startDate: '', endDate: '' }) }), {}, {
             preserveState: true,
             preserveScroll: true,
         });

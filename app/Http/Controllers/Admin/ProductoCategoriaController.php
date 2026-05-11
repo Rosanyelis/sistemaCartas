@@ -7,11 +7,14 @@ use App\Http\Requests\Admin\StoreProductoCategoriaRequest;
 use App\Models\ProductoCategoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class ProductoCategoriaController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        Gate::authorize('viewAny', ProductoCategoria::class);
+
         $perPage = max(1, min(50, $request->integer('per_page', 10)));
 
         $paginator = ProductoCategoria::query()
@@ -25,6 +28,8 @@ class ProductoCategoriaController extends Controller
 
     public function store(StoreProductoCategoriaRequest $request): JsonResponse
     {
+        Gate::authorize('create', ProductoCategoria::class);
+
         $categoria = ProductoCategoria::query()->create($request->validated());
 
         return response()->json([
@@ -35,6 +40,8 @@ class ProductoCategoriaController extends Controller
 
     public function destroy(ProductoCategoria $productoCategoria): JsonResponse
     {
+        Gate::authorize('delete', $productoCategoria);
+
         if ($productoCategoria->productos()->exists()) {
             return response()->json([
                 'message' => 'No se puede eliminar la categoría porque tiene productos asociados.',
