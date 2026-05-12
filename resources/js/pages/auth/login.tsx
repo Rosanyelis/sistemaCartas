@@ -1,7 +1,7 @@
 import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ForgotPasswordModal from '@/components/auth/forgot-password-modal';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-import { login, register, home } from '@/routes';
+import { register, home } from '@/routes';
 import { store } from '@/routes/login';
 
 type Props = {
@@ -31,6 +31,13 @@ export default function Login({
     openForgotPassword = false,
 }: Props) {
     const [showForgotModal, setShowForgotModal] = useState(false);
+    /** Fuerza remontar el modal en cada apertura para evitar estado residual. */
+    const [forgotModalKey, setForgotModalKey] = useState(0);
+
+    const openForgotModal = useCallback(() => {
+        setForgotModalKey((k) => k + 1);
+        setShowForgotModal(true);
+    }, []);
 
     const form = useForm({
         email: '',
@@ -44,9 +51,9 @@ export default function Login({
 
     useEffect(() => {
         if (openForgotPassword) {
-            setShowForgotModal(true);
+            openForgotModal();
         }
-    }, [openForgotPassword]);
+    }, [openForgotPassword, openForgotModal]);
 
     useEffect(() => {
         if (!openForgotPassword || typeof window === 'undefined') {
@@ -136,22 +143,14 @@ export default function Login({
                 </div>
 
                 {canResetPassword ? (
-                    <Link
-                        href={login.url({
-                            query: {
-                                recuperar: '1',
-                                ...(redirectTo
-                                    ? { redirect: redirectTo }
-                                    : {}),
-                            },
-                        })}
-                        preserveScroll
-                        preserveState
-                        className="block w-full text-left text-[14px] leading-[24px] font-medium text-[#49637F] underline underline-offset-2 transition hover:opacity-80 md:text-[16px]"
+                    <button
+                        type="button"
+                        onClick={openForgotModal}
+                        className="block w-full cursor-pointer border-0 bg-transparent p-0 text-left text-[14px] leading-[24px] font-medium text-[#49637F] underline underline-offset-2 transition hover:opacity-80 md:text-[16px]"
                         tabIndex={5}
                     >
                         ¿Olvidaste tu contraseña?
-                    </Link>
+                    </button>
                 ) : null}
 
                 <Button
@@ -200,6 +199,7 @@ export default function Login({
             </Link>
 
             <ForgotPasswordModal
+                key={forgotModalKey}
                 open={showForgotModal}
                 onClose={() => setShowForgotModal(false)}
             />
