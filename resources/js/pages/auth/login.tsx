@@ -1,7 +1,7 @@
 import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Form, Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ForgotPasswordModal from '@/components/auth/forgot-password-modal';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -18,6 +18,8 @@ type Props = {
     canRegister: boolean;
     /** Ruta pública de retorno (validada en el servidor) tras autenticarse. */
     redirect?: string | null;
+    /** Viene de GET /forgot-password (redirige a login?recuperar=1). */
+    openForgotPassword?: boolean;
 };
 
 export default function Login({
@@ -25,8 +27,28 @@ export default function Login({
     canResetPassword,
     canRegister,
     redirect: redirectTo,
+    openForgotPassword = false,
 }: Props) {
     const [showForgotModal, setShowForgotModal] = useState(false);
+
+    useEffect(() => {
+        if (openForgotPassword) {
+            setShowForgotModal(true);
+        }
+    }, [openForgotPassword]);
+
+    useEffect(() => {
+        if (!openForgotPassword || typeof window === 'undefined') {
+            return;
+        }
+        const url = new URL(window.location.href);
+        if (!url.searchParams.has('recuperar')) {
+            return;
+        }
+        url.searchParams.delete('recuperar');
+        const next = url.pathname + url.search + url.hash;
+        window.history.replaceState({}, '', next);
+    }, [openForgotPassword]);
 
     return (
         <AuthLayout
