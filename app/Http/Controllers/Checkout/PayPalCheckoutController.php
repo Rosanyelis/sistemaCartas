@@ -195,7 +195,7 @@ class PayPalCheckoutController extends Controller
                     return $stockCheck;
                 }
 
-                /** @var \Illuminate\Support\Collection<string, Producto> $lockedProducts */
+                /** @var Collection<string, Producto> $lockedProducts */
                 $lockedProducts = $stockCheck;
 
                 try {
