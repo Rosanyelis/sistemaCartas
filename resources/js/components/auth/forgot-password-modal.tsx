@@ -9,11 +9,11 @@ import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import {
-    sendOtp,
-    verifyOtp,
-    resetPassword,
-} from '@/actions/App/Http/Controllers/Auth/PasswordResetOtpController';
+
+/** Rutas web (`routes/web.php`); no dependen de Wayfinder para que el build en CI/deploy funcione sin `wayfinder:generate`. */
+const PASSWORD_OTP_SEND_URL = '/password/send-otp';
+const PASSWORD_OTP_VERIFY_URL = '/password/verify-otp';
+const PASSWORD_OTP_RESET_URL = '/password/reset-with-otp';
 
 type ForgotPasswordModalProps = {
     open: boolean;
@@ -119,7 +119,7 @@ export default function ForgotPasswordModal({
             setProcessing(true);
             setErrors({});
             try {
-                await axios.post(sendOtp.url(), { email });
+                await axios.post(PASSWORD_OTP_SEND_URL, { email });
                 setTimer(60);
                 setStep('otp');
             } catch (err: any) {
@@ -144,7 +144,7 @@ export default function ForgotPasswordModal({
             setProcessing(true);
             setErrors({});
             try {
-                const response = await axios.post(verifyOtp.url(), {
+                const response = await axios.post(PASSWORD_OTP_VERIFY_URL, {
                     email,
                     otp: otp.join(''),
                 });
@@ -188,7 +188,7 @@ export default function ForgotPasswordModal({
             setProcessing(true);
             setErrors({});
             try {
-                await axios.post(resetPassword.url(), {
+                await axios.post(PASSWORD_OTP_RESET_URL, {
                     email,
                     reset_token: resetToken,
                     password,
@@ -215,7 +215,7 @@ export default function ForgotPasswordModal({
         setProcessing(true);
         setErrors({});
         try {
-            await axios.post(sendOtp.url(), { email });
+            await axios.post(PASSWORD_OTP_SEND_URL, { email });
             setTimer(60);
             setOtp(['', '', '', '', '', '']);
         } catch {
