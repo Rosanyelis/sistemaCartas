@@ -16,6 +16,7 @@ test('login expone props de recuperación de contraseña', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('auth/login')
+            ->where('canResetPassword', true)
             ->where('openForgotPassword', false),
         );
 

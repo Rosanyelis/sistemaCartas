@@ -251,7 +251,7 @@ export default function ForgotPasswordModal({
             />
 
             {/* Modal Card */}
-            <div className="relative z-10 mx-4 w-full max-w-[520px] rounded-[15px] bg-[#5A7A9B] px-6 py-10 shadow-2xl md:px-12 md:py-12">
+            <div className="relative z-10 mx-4 w-full max-w-[520px] rounded-[15px] bg-[#49637F] px-6 py-10 shadow-2xl md:px-12 md:py-12">
                 {/* Close button */}
                 {step !== 'success' && (
                     <button

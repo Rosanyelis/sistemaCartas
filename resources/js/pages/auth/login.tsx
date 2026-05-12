@@ -9,11 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
-import { register, home } from '@/routes';
+import { login, register, home } from '@/routes';
 import { store } from '@/routes/login';
 
 type Props = {
     status?: string;
+    /** Mostrar enlace de recuperación (OTP por modal). */
+    canResetPassword?: boolean;
     canRegister: boolean;
     /** Ruta pública de retorno (validada en el servidor) tras autenticarse. */
     redirect?: string | null;
@@ -23,6 +25,7 @@ type Props = {
 
 export default function Login({
     status,
+    canResetPassword = true,
     canRegister,
     redirect: redirectTo,
     openForgotPassword = false,
@@ -132,18 +135,24 @@ export default function Login({
                     <InputError message={form.errors.password} />
                 </div>
 
-                <button
-                    type="button"
-                    onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowForgotModal(true);
-                    }}
-                    className="block w-full text-left text-[14px] leading-[24px] font-medium text-[#49637F] transition hover:opacity-80 md:text-[16px]"
-                    tabIndex={5}
-                >
-                    ¿Olvidaste tu contraseña?
-                </button>
+                {canResetPassword ? (
+                    <Link
+                        href={login.url({
+                            query: {
+                                recuperar: '1',
+                                ...(redirectTo
+                                    ? { redirect: redirectTo }
+                                    : {}),
+                            },
+                        })}
+                        preserveScroll
+                        preserveState
+                        className="block w-full text-left text-[14px] leading-[24px] font-medium text-[#49637F] underline underline-offset-2 transition hover:opacity-80 md:text-[16px]"
+                        tabIndex={5}
+                    >
+                        ¿Olvidaste tu contraseña?
+                    </Link>
+                ) : null}
 
                 <Button
                     type="submit"
