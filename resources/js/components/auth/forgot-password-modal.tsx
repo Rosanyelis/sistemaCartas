@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import axios from 'axios';
 import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
@@ -147,7 +148,23 @@ export default function ForgotPasswordModal({
                     email,
                     otp: otp.join(''),
                 });
-                setResetToken(response.data.reset_token);
+                const nextToken =
+                    response.data &&
+                    typeof response.data === 'object' &&
+                    'reset_token' in response.data
+                        ? (response.data as { reset_token?: string })
+                              .reset_token
+                        : undefined;
+
+                if (!nextToken) {
+                    setErrors({
+                        otp: 'No se pudo validar el código. Inténtalo de nuevo.',
+                    });
+
+                    return;
+                }
+
+                setResetToken(nextToken);
                 setStep('new-password');
             } catch (err: any) {
                 if (err.response?.status === 422) {
@@ -208,12 +225,25 @@ export default function ForgotPasswordModal({
         }
     }, [email]);
 
+    useEffect(() => {
+        if (!open || typeof document === 'undefined') {
+            return;
+        }
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [open]);
+
     if (!open) {
         return null;
     }
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    const modal = (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center isolate">
             {/* Overlay */}
             <div
                 className="absolute inset-0 bg-black/60"
@@ -519,4 +549,10 @@ export default function ForgotPasswordModal({
             </div>
         </div>
     );
+
+    if (typeof document !== 'undefined') {
+        return createPortal(modal, document.body);
+    }
+
+    return modal;
 }

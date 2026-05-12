@@ -118,7 +118,11 @@ export default function Login({
                         {canResetPassword && (
                             <button
                                 type="button"
-                                onClick={() => setShowForgotModal(true)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    setShowForgotModal(true);
+                                }}
                                 className="block w-full text-left text-[14px] leading-[24px] font-medium text-[#49637F] transition hover:opacity-80 md:text-[16px]"
                                 tabIndex={5}
                             >
