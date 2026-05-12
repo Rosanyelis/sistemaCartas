@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\ProductoController as AdminProductoController;
 use App\Http\Controllers\Admin\ProductoSubcategoriaController as AdminProductoSubcategoriaController;
 use App\Http\Controllers\Admin\SuscripcionController as AdminSuscripcionController;
 use App\Http\Controllers\Auth\EmailVerificationOtpController;
+use App\Http\Controllers\Auth\PasswordResetOtpController;
 use App\Http\Controllers\Checkout\PayPalCheckoutController;
 use App\Http\Controllers\Checkout\PayPalSubscriptionCheckoutController;
 use App\Http\Controllers\Checkout\PayPalSubscriptionSyncController;
@@ -40,6 +41,14 @@ Route::post('/checkout/paypal/capture', [PayPalCheckoutController::class, 'captu
 
 Route::post('/webhooks/paypal', PayPalWebhookController::class)
     ->name('webhooks.paypal');
+
+// Password reset via OTP (guest)
+Route::post('/password/send-otp', [PasswordResetOtpController::class, 'sendOtp'])
+    ->name('password.otp.send');
+Route::post('/password/verify-otp', [PasswordResetOtpController::class, 'verifyOtp'])
+    ->name('password.otp.verify');
+Route::post('/password/reset-with-otp', [PasswordResetOtpController::class, 'resetPassword'])
+    ->name('password.otp.reset');
 
 Route::middleware('auth')->group(function () {
     // Override Fortify's default verify-email prompt to prevent auto-redirecting when we want to show success

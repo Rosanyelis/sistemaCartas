@@ -1,6 +1,8 @@
 import { faEnvelope, faLock } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Form, Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
+import ForgotPasswordModal from '@/components/auth/forgot-password-modal';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
@@ -9,7 +11,6 @@ import { Spinner } from '@/components/ui/spinner';
 import AuthLayout from '@/layouts/auth-layout';
 import { register, home } from '@/routes';
 import { store } from '@/routes/login';
-import { request } from '@/routes/password';
 
 type Props = {
     status?: string;
@@ -25,6 +26,8 @@ export default function Login({
     canRegister,
     redirect: redirectTo,
 }: Props) {
+    const [showForgotModal, setShowForgotModal] = useState(false);
+
     return (
         <AuthLayout
             title="Bienvenido de nuevo"
@@ -91,13 +94,14 @@ export default function Login({
                         </div>
 
                         {canResetPassword && (
-                            <Link
-                                href={request()}
+                            <button
+                                type="button"
+                                onClick={() => setShowForgotModal(true)}
                                 className="block w-full text-left text-[14px] leading-[24px] font-medium text-[#49637F] transition hover:opacity-80 md:text-[16px]"
                                 tabIndex={5}
                             >
                                 ¿Olvidaste tu contraseña?
-                            </Link>
+                            </button>
                         )}
 
                         <Button
@@ -110,7 +114,7 @@ export default function Login({
                             Iniciar sesión
                         </Button>
 
-                        <div className="my-2 border-b border-[#DEDDDD]" />
+
 
                         {canRegister && (
                             <div className="text-center text-[14px] leading-relaxed text-[#636363] md:text-[16px]">
@@ -125,7 +129,7 @@ export default function Login({
                                               })
                                             : register.url()
                                     }
-                                    className="block font-bold underline"
+                                    className="block font-medium text-[#49637F] underline transition hover:opacity-80"
                                     tabIndex={5}
                                 >
                                     crear cuenta
@@ -144,10 +148,15 @@ export default function Login({
 
             <Link
                 href={home()}
-                className="mt-2 text-center text-[14px] text-[#636363] transition hover:text-[#31374F] md:text-[16px]"
+                className="mt-8 text-center text-[14px] text-[#636363] transition hover:text-[#31374F] md:mt-12 md:text-[16px]"
             >
                 Volver al inicio
             </Link>
+
+            <ForgotPasswordModal
+                open={showForgotModal}
+                onClose={() => setShowForgotModal(false)}
+            />
         </AuthLayout>
     );
 }
