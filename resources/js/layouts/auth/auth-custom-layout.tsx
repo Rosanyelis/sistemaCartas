@@ -15,7 +15,7 @@ export default function AuthCustomLayout({
         <div className="flex min-h-screen w-full flex-col font-montserrat">
             {/* Top Bar (Rectangle 18142) */}
             <header className="fixed top-0 z-50 flex h-[74px] w-full items-center bg-white shadow-[0px_4px_4px_rgba(0,0,0,0.1)]">
-                <div className="mx-auto flex w-full max-w-[1440px] items-center justify-center px-6 md:justify-start md:px-10 lg:px-[237px]">
+                <div className="mx-auto flex w-full max-w-[1440px] items-center justify-center px-6 md:justify-start md:px-10">
                     <Link href={home()}>
                         {/* Mobile Logo */}
                         <img

@@ -80,7 +80,9 @@ export default function Login({
                 onSubmit={(e) => {
                     e.preventDefault();
                     form.post(store.url(), {
-                        resetOnSuccess: ['password'],
+                        onSuccess: () => {
+                            form.reset('password');
+                        },
                     });
                 }}
             >
