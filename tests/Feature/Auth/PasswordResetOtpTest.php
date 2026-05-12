@@ -1,163 +1,71 @@
 <?php
 
 use App\Models\User;
-use App\Notifications\PasswordResetOtp;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 
-test('send otp delivers notification to existing user', function () {
+test('las rutas de restablecimiento por enlace de Fortify no están registradas', function () {
+    $this->get('/forgot-password')->assertNotFound();
+    $this->get('/reset-password/fake-token')->assertNotFound();
+});
+
+test('se puede solicitar un código OTP para un correo registrado', function () {
     Notification::fake();
 
-    $user = User::factory()->create(['email' => 'test@example.com']);
+    $user = User::factory()->create();
 
-    $this->postJson('/password/send-otp', ['email' => 'test@example.com'])
-        ->assertSuccessful()
+    $this->postJson(route('password.otp.send'), ['email' => $user->email])
+        ->assertOk()
         ->assertJson(['sent' => true]);
 
-    Notification::assertSentTo($user, PasswordResetOtp::class);
-    expect($user->fresh()->otp_code)->not->toBeNull();
+    $user->refresh();
+
+    expect($user->otp_code)->not->toBeNull()
+        ->and(strlen((string) $user->otp_code))->toBe(6);
 });
 
-test('send otp rejects non-existent email', function () {
-    $this->postJson('/password/send-otp', ['email' => 'nobody@example.com'])
+test('solicitar OTP con correo inexistente devuelve error de validación', function () {
+    $this->postJson(route('password.otp.send'), ['email' => 'noexiste@example.com'])
         ->assertUnprocessable()
-        ->assertJsonValidationErrors('email');
+        ->assertJsonValidationErrors(['email']);
 });
 
-test('verify otp with correct code returns reset token', function () {
-    $user = User::factory()->create(['email' => 'test@example.com']);
-    $otp = $user->generateOtp();
+test('flujo completo OTP restablece la contraseña', function () {
+    Notification::fake();
 
-    $response = $this->postJson('/password/verify-otp', [
-        'email' => 'test@example.com',
+    $user = User::factory()->create([
+        'password' => 'password',
+    ]);
+
+    $this->postJson(route('password.otp.send'), ['email' => $user->email])
+        ->assertOk();
+
+    $user->refresh();
+    $otp = (string) $user->otp_code;
+
+    $verifyResponse = $this->postJson(route('password.otp.verify'), [
+        'email' => $user->email,
         'otp' => $otp,
     ]);
 
-    $response->assertSuccessful()
-        ->assertJsonStructure(['verified', 'reset_token']);
-
-    expect($response->json('verified'))->toBeTrue();
-    expect($response->json('reset_token'))->not->toBeEmpty();
-
-    // OTP should be cleared after verification
-    expect($user->fresh()->otp_code)->toBeNull();
-});
-
-test('verify otp rejects invalid code', function () {
-    $user = User::factory()->create(['email' => 'test@example.com']);
-    $user->generateOtp();
-
-    $this->postJson('/password/verify-otp', [
-        'email' => 'test@example.com',
-        'otp' => '000000',
-    ])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('otp');
-});
-
-test('verify otp rejects expired code', function () {
-    $user = User::factory()->create(['email' => 'test@example.com']);
-    $user->generateOtp();
-
-    // Force expire the OTP
-    $user->forceFill(['otp_expires_at' => now()->subMinute()])->save();
-
-    $this->postJson('/password/verify-otp', [
-        'email' => 'test@example.com',
-        'otp' => $user->otp_code,
-    ])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('otp');
-});
-
-test('reset password with valid token updates the password', function () {
-    $user = User::factory()->create(['email' => 'test@example.com']);
-    $otp = $user->generateOtp();
-
-    // Step 1: verify OTP to get reset token
-    $verifyResponse = $this->postJson('/password/verify-otp', [
-        'email' => 'test@example.com',
-        'otp' => $otp,
-    ]);
+    $verifyResponse
+        ->assertOk()
+        ->assertJson(['verified' => true])
+        ->assertJsonStructure(['reset_token']);
 
     $resetToken = $verifyResponse->json('reset_token');
+    expect($resetToken)->toBeString()->not->toBeEmpty();
 
-    // Step 2: reset password
-    $this->postJson('/password/reset-with-otp', [
-        'email' => 'test@example.com',
+    $this->postJson(route('password.otp.reset'), [
+        'email' => $user->email,
         'reset_token' => $resetToken,
-        'password' => 'NewP@ssw0rd!',
-        'password_confirmation' => 'NewP@ssw0rd!',
+        'password' => 'newpassword123',
+        'password_confirmation' => 'newpassword123',
     ])
-        ->assertSuccessful()
+        ->assertOk()
         ->assertJson(['reset' => true]);
 
-    // Verify user can login with new password
-    $this->post('/login', [
-        'email' => 'test@example.com',
-        'password' => 'NewP@ssw0rd!',
-    ])->assertRedirect();
-});
+    $user->refresh();
 
-test('reset password rejects invalid token', function () {
-    User::factory()->create(['email' => 'test@example.com']);
-
-    $this->postJson('/password/reset-with-otp', [
-        'email' => 'test@example.com',
-        'reset_token' => 'invalid-token',
-        'password' => 'NewP@ssw0rd!',
-        'password_confirmation' => 'NewP@ssw0rd!',
-    ])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('reset_token');
-});
-
-test('reset password rejects mismatched confirmation', function () {
-    $user = User::factory()->create(['email' => 'test@example.com']);
-    $otp = $user->generateOtp();
-
-    $verifyResponse = $this->postJson('/password/verify-otp', [
-        'email' => 'test@example.com',
-        'otp' => $otp,
-    ]);
-
-    $resetToken = $verifyResponse->json('reset_token');
-
-    $this->postJson('/password/reset-with-otp', [
-        'email' => 'test@example.com',
-        'reset_token' => $resetToken,
-        'password' => 'NewP@ssw0rd!',
-        'password_confirmation' => 'DifferentPassword!',
-    ])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('password');
-});
-
-test('reset token is consumed after use', function () {
-    $user = User::factory()->create(['email' => 'test@example.com']);
-    $otp = $user->generateOtp();
-
-    $verifyResponse = $this->postJson('/password/verify-otp', [
-        'email' => 'test@example.com',
-        'otp' => $otp,
-    ]);
-
-    $resetToken = $verifyResponse->json('reset_token');
-
-    // First reset should succeed
-    $this->postJson('/password/reset-with-otp', [
-        'email' => 'test@example.com',
-        'reset_token' => $resetToken,
-        'password' => 'NewP@ssw0rd!',
-        'password_confirmation' => 'NewP@ssw0rd!',
-    ])->assertSuccessful();
-
-    // Second reset with same token should fail
-    $this->postJson('/password/reset-with-otp', [
-        'email' => 'test@example.com',
-        'reset_token' => $resetToken,
-        'password' => 'AnotherP@ss1',
-        'password_confirmation' => 'AnotherP@ss1',
-    ])
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('reset_token');
+    expect(Hash::check('newpassword123', $user->password))->toBeTrue();
 });

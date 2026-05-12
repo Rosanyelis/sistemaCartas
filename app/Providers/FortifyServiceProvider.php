@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
-use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Responses\StorefrontLoginResponse;
 use App\Http\Responses\StorefrontRegisterResponse;
 use App\Support\ValidPublicStoreRedirect;
@@ -45,7 +44,6 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureActions(): void
     {
         Fortify::createUsersUsing(CreateNewUser::class);
-        Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
     }
 
     /**
@@ -54,25 +52,10 @@ class FortifyServiceProvider extends ServiceProvider
     private function configureViews(): void
     {
         Fortify::loginView(fn (Request $request) => Inertia::render('auth/login', [
-            'canResetPassword' => true,
             'canRegister' => Features::enabled(Features::registration()),
             'status' => $request->session()->get('status'),
             'redirect' => ValidPublicStoreRedirect::validate($request->query('redirect'), $request),
             'openForgotPassword' => $request->boolean('recuperar'),
-        ]));
-
-        Fortify::requestPasswordResetLinkView(function (Request $request) {
-            $redirect = ValidPublicStoreRedirect::validate($request->query('redirect'), $request);
-
-            return redirect()->route('login', array_filter([
-                'recuperar' => '1',
-                'redirect' => $redirect,
-            ]));
-        });
-
-        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
-            'token' => $request->route('token'),
-            'email' => $request->email,
         ]));
 
         Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/verify-email', [
