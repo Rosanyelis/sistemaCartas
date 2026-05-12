@@ -64,6 +64,9 @@ jobs:
             php artisan migrate:fresh --force --seed
 
             # Frontend
+            # eliminar node_modules
+            rm -rf node_modules
+            # instalar dependencias
             npm install
             npm run build
 
