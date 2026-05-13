@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import { appFontLinks } from '@/components/AppFontLinks';
 import CartDrawer from '@/components/tienda/CartDrawer';
 import { useCart } from '@/contexts/cart-context';
-import { terminosYCondiciones, avisoDePrivacidad } from '@/routes';
+import { terminosYCondiciones, avisoDePrivacidad, home, historias, productos } from '@/routes';
 
 interface ClienteLayoutProps {
     children: ReactNode;
@@ -15,6 +15,7 @@ interface ClienteLayoutProps {
 
 function ClienteLayoutShell({ children }: { children: ReactNode }) {
     const { auth } = usePage().props as any;
+    const pageUrl = usePage().url;
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const { isDrawerOpen, openCart, itemCount } = useCart();
     const cartQueryHandled = useRef(false);
@@ -56,6 +57,40 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
 
         window.history.replaceState(window.history.state, '', cleanUrl);
     }, [openCart]);
+
+    const pathname = (() => {
+        const raw = pageUrl.split('?')[0]?.split('#')[0] ?? '/';
+        if (raw.startsWith('http://') || raw.startsWith('https://')) {
+            try {
+                return new URL(raw).pathname || '/';
+            } catch {
+                return '/';
+            }
+        }
+        return raw.startsWith('/') ? raw : `/${raw}`;
+    })();
+
+    const navActive = {
+        home: pathname === '/' || pathname === '',
+        historias:
+            pathname === '/historias' || pathname.startsWith('/historias/'),
+        productos:
+            pathname === '/productos' || pathname.startsWith('/productos/'),
+    };
+
+    const desktopNavClass = (active: boolean) =>
+        [
+            "border-b-2 pb-1 font-['Inter',sans-serif] text-[16px] leading-[19px] text-[#1B3D6D] transition duration-300 focus:border-[#D7C181]",
+            active
+                ? 'border-[#D7C181] font-medium'
+                : 'border-transparent font-normal hover:border-[#D7C181]',
+        ].join(' ');
+
+    const mobileNavClass = (active: boolean) =>
+        [
+            "flex items-center border-b-2 py-4 font-['Inter',sans-serif] text-[15px] font-medium text-[#1B3D6D]",
+            active ? 'border-[#D7C181]' : 'border-[#f0ece3]',
+        ].join(' ');
 
     return (
         <div className="min-h-screen overflow-x-hidden bg-[#FFFCF4] font-['Inter',sans-serif] text-[#3e352f]">
@@ -106,24 +141,24 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                     {/* Nav desktop + Icons */}
                     <div className="hidden items-center gap-[36px] md:flex">
                         <nav className="flex items-center gap-[34px] pt-[5px]">
-                            <Link
-                                href="/"
-                                className="border-b-2 border-transparent pb-1 font-['Inter',sans-serif] text-[16px] leading-[19px] font-normal text-[#1B3D6D] transition duration-300 hover:border-[#D7C181] focus:border-[#D7C181]"
-                            >
-                                Inicio
-                            </Link>
-                            <Link
-                                href="/historias"
-                                className="border-b-2 border-transparent pb-1 font-['Inter',sans-serif] text-[16px] leading-[19px] font-normal text-[#1B3D6D] transition duration-300 hover:border-[#D7C181] focus:border-[#D7C181]"
-                            >
-                                Historias
-                            </Link>
-                            <Link
-                                href="/productos"
-                                className="border-b-2 border-transparent pb-1 font-['Inter',sans-serif] text-[16px] leading-[19px] font-normal text-[#1B3D6D] transition duration-300 hover:border-[#D7C181] focus:border-[#D7C181]"
-                            >
-                                Productos
-                            </Link>
+                        <Link
+                            href={home.url()}
+                            className={desktopNavClass(navActive.home)}
+                        >
+                            Inicio
+                        </Link>
+                        <Link
+                            href={historias.url()}
+                            className={desktopNavClass(navActive.historias)}
+                        >
+                            Historias
+                        </Link>
+                        <Link
+                            href={productos.url()}
+                            className={desktopNavClass(navActive.productos)}
+                        >
+                            Productos
+                        </Link>
                         </nav>
 
                         {/* Icons */}
@@ -214,23 +249,23 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                 >
                     <nav className="flex flex-col border-t border-[#e8e4d9] bg-white px-5 py-4">
                         <Link
-                            href="/"
+                            href={home.url()}
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="flex items-center border-b border-[#f0ece3] py-4 font-['Inter',sans-serif] text-[15px] font-medium text-[#1B3D6D]"
+                            className={mobileNavClass(navActive.home)}
                         >
                             Inicio
                         </Link>
                         <Link
-                            href="/historias"
+                            href={historias.url()}
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="flex items-center border-b border-[#f0ece3] py-4 font-['Inter',sans-serif] text-[15px] font-semibold text-[#1B3D6D]"
+                            className={mobileNavClass(navActive.historias)}
                         >
                             Historias
                         </Link>
                         <Link
-                            href="/productos"
+                            href={productos.url()}
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="flex items-center border-b border-[#f0ece3] py-4 font-['Inter',sans-serif] text-[15px] font-medium text-[#1B3D6D]"
+                            className={mobileNavClass(navActive.productos)}
                         >
                             Productos
                         </Link>

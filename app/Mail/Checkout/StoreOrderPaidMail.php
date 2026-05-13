@@ -20,7 +20,7 @@ class StoreOrderPaidMail extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Compra confirmada — pedido #'.$this->order->id.' | Historias por Correo',
+            subject: '¡Gracias por tu compra! — pedido #'.$this->order->id.' | Historias por Correo',
         );
     }
 
@@ -34,10 +34,10 @@ class StoreOrderPaidMail extends Mailable implements ShouldQueue
             with: [
                 'order' => $this->order,
                 'recipientName' => $recipientName,
-                'emailTitle' => 'Compra confirmada',
+                'emailTitle' => '¡Gracias por tu compra!',
                 'ctaUrl' => route('user.orders', [], true),
-                'ctaLabel' => 'Consulta el detalle de tu compra.',
-                'ctaText' => 'Ver mis pedidos',
+                'ctaLabel' => 'Si deseas validar tu compra ingresa a tu panel de usuario.',
+                'ctaText' => 'Ir a panel de usuario',
             ],
         );
     }
