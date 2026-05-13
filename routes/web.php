@@ -14,7 +14,9 @@ use App\Http\Controllers\Checkout\PayPalCheckoutController;
 use App\Http\Controllers\Checkout\PayPalSubscriptionCheckoutController;
 use App\Http\Controllers\Checkout\PayPalSubscriptionSyncController;
 use App\Http\Controllers\Checkout\PayPalWebhookController;
+use App\Http\Controllers\Storefront\AvisoPrivacidadController;
 use App\Http\Controllers\Storefront\HomeController;
+use App\Http\Controllers\Storefront\TerminosCondicionesController;
 use App\Http\Controllers\User\HistoriaController;
 use App\Http\Controllers\User\OrdenController;
 use App\Http\Controllers\User\ProductoController;
@@ -26,6 +28,12 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', HomeController::class)->name('home');
+
+Route::get('/terminos-y-condiciones', TerminosCondicionesController::class)
+    ->name('terminos-y-condiciones');
+
+Route::get('/aviso-de-privacidad', AvisoPrivacidadController::class)
+    ->name('aviso-de-privacidad');
 
 Route::get('/historias', [HistoriaController::class, 'index'])->name('historias');
 Route::get('/historias/{slug}', [HistoriaController::class, 'show'])->name('historias.show');

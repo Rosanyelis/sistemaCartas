@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import { appFontLinks } from '@/components/AppFontLinks';
 import CartDrawer from '@/components/tienda/CartDrawer';
 import { useCart } from '@/contexts/cart-context';
+import { terminosYCondiciones, avisoDePrivacidad } from '@/routes';
 
 interface ClienteLayoutProps {
     children: ReactNode;
@@ -352,18 +353,18 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                             Políticas
                         </h4>
                         <div className="flex flex-col items-center gap-[12px] md:items-start">
-                            <a
-                                href="#"
+                            <Link
+                                href={avisoDePrivacidad.url()}
                                 className="font-['Inter',sans-serif] text-[16px] leading-[22px] font-normal text-white transition hover:underline"
                             >
                                 Política de privacidad
-                            </a>
-                            <a
-                                href="#"
+                            </Link>
+                            <Link
+                                href={terminosYCondiciones.url()}
                                 className="font-['Inter',sans-serif] text-[16px] leading-[22px] font-normal text-white transition hover:underline"
                             >
                                 Términos y condiciones
-                            </a>
+                            </Link>
                         </div>
                     </div>
                 </div>
