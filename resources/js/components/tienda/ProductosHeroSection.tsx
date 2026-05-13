@@ -29,7 +29,7 @@ export default function ProductosHeroSection() {
                 {/* Hero Images Right Group */}
                 <div className="relative flex w-full items-center justify-center lg:w-[620px]">
                     <img
-                        src="/images/hero-objets.png"
+                        src="/images/hero-objets.webp"
                         className="h-auto w-full max-w-[450px] object-contain drop-shadow-xl lg:h-[509.64px] lg:w-[625.6px] lg:max-w-none"
                         alt="Catálogo de Objetos"
                     />

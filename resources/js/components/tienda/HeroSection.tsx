@@ -5,39 +5,16 @@ import { Estampilla2Icon } from '@/components/icons/Estampilla2Icon';
 
 export default function HeroSection() {
     const [isLoaded, setIsLoaded] = useState(false);
-    const [typedText, setTypedText] = useState('');
-    const heroText =
-        'En un mundo que corre, nosotros elegimos la calma. Recibe cada mes en tu buzón una historia física, escrita a mano y envuelta en papel real.';
 
     useEffect(() => {
         setIsLoaded(true);
 
-        let typingInterval: NodeJS.Timeout;
-        const startTimeout = setTimeout(() => {
-            let i = 0;
-            typingInterval = setInterval(() => {
-                if (i <= heroText.length) {
-                    setTypedText(heroText.slice(0, i));
-                    i++;
-                } else {
-                    clearInterval(typingInterval);
-                }
-            }, 50);
-        }, 1000); // Inicia después de la transición inicial
-
-        return () => {
-            clearTimeout(startTimeout);
-
-            if (typingInterval) {
-                clearInterval(typingInterval);
-            }
-        };
     }, []);
 
     return (
         <section className="relative isolate mt-20 flex h-auto min-h-[600px] w-full flex-col items-center overflow-hidden bg-black/98 p-0 lg:h-[600px]">
             {/* Background images and overlays */}
-            <div className="absolute inset-[-15%] bg-[url('/images/hero-image.png')] bg-cover bg-center"></div>
+            <div className="absolute inset-[-15%] bg-[url('/images/hero-image.webp')] bg-cover bg-center"></div>
 
             <div
                 className="pointer-events-none absolute top-0 left-1/2 z-[1] h-[660px] w-full -translate-x-1/2"
@@ -89,12 +66,7 @@ export default function HeroSection() {
                         </p>
                         <div className="hidden lg:flex">
                             <p className="min-h-[90px] w-[265px] text-left font-['Cormorant_Garamond',serif] text-xl leading-[22px] font-bold text-white/90 italic drop-shadow-sm">
-                                {typedText}
-                                {typedText.length < heroText.length && (
-                                    <span className="animate-pulse opacity-70">
-                                        |
-                                    </span>
-                                )}
+                                En un mundo que corre, nosotros elegimos la calma. Recibe cada mes en tu buzón una historia física, escrita a mano y envuelta en papel real.
                             </p>
                         </div>
 

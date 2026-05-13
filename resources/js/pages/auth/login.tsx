@@ -59,10 +59,13 @@ export default function Login({
         if (!openForgotPassword || typeof window === 'undefined') {
             return;
         }
+
         const url = new URL(window.location.href);
+
         if (!url.searchParams.has('recuperar')) {
             return;
         }
+
         url.searchParams.delete('recuperar');
         const next = url.pathname + url.search + url.hash;
         window.history.replaceState({}, '', next);
