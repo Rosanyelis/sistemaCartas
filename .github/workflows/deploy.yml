@@ -63,6 +63,9 @@ jobs:
             composer install  --prefer-dist --optimize-autoloader --no-interaction
             php artisan migrate:fresh --force --seed
 
+            # Rutas TypeScript de Wayfinder (resources/js/routes está en .gitignore)
+            php artisan wayfinder:generate --no-interaction
+
             # Frontend
             # eliminar node_modules
             rm -rf node_modules
