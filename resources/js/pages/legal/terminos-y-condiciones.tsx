@@ -1,7 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import ClienteLayout from '@/layouts/cliente-layout';
-import { home } from '@/routes';
+import { STOREFRONT_PATHS } from '@/constants/storefront-paths';
 
 const prose = 'text-[15px] leading-[1.65] text-[#3e352f] md:text-[16px] md:leading-[1.7]';
 const h2 =
@@ -566,7 +566,7 @@ export default function TerminosYCondiciones() {
                     </p>
                     <p className="mt-8">
                         <Link
-                            href={home.url()}
+                            href={STOREFRONT_PATHS.home}
                             className="inline-flex items-center justify-center rounded-md border border-[#1B3D6D] bg-transparent px-5 py-2.5 text-[14px] font-medium text-[#1B3D6D] transition hover:bg-[#1B3D6D] hover:text-white md:text-[15px]"
                         >
                             Volver al inicio

@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react';
 import { appFontLinks } from '@/components/AppFontLinks';
 import CartDrawer from '@/components/tienda/CartDrawer';
 import { useCart } from '@/contexts/cart-context';
-import { terminosYCondiciones, avisoDePrivacidad, home, historias, productos } from '@/routes';
+import { STOREFRONT_PATHS } from '@/constants/storefront-paths';
 
 interface ClienteLayoutProps {
     children: ReactNode;
@@ -142,19 +142,19 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                     <div className="hidden items-center gap-[36px] md:flex">
                         <nav className="flex items-center gap-[34px] pt-[5px]">
                         <Link
-                            href={home.url()}
+                            href={STOREFRONT_PATHS.home}
                             className={desktopNavClass(navActive.home)}
                         >
                             Inicio
                         </Link>
                         <Link
-                            href={historias.url()}
+                            href={STOREFRONT_PATHS.historias}
                             className={desktopNavClass(navActive.historias)}
                         >
                             Historias
                         </Link>
                         <Link
-                            href={productos.url()}
+                            href={STOREFRONT_PATHS.productos}
                             className={desktopNavClass(navActive.productos)}
                         >
                             Productos
@@ -249,21 +249,21 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                 >
                     <nav className="flex flex-col border-t border-[#e8e4d9] bg-white px-5 py-4">
                         <Link
-                            href={home.url()}
+                            href={STOREFRONT_PATHS.home}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={mobileNavClass(navActive.home)}
                         >
                             Inicio
                         </Link>
                         <Link
-                            href={historias.url()}
+                            href={STOREFRONT_PATHS.historias}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={mobileNavClass(navActive.historias)}
                         >
                             Historias
                         </Link>
                         <Link
-                            href={productos.url()}
+                            href={STOREFRONT_PATHS.productos}
                             onClick={() => setIsMobileMenuOpen(false)}
                             className={mobileNavClass(navActive.productos)}
                         >
@@ -389,13 +389,13 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                         </h4>
                         <div className="flex flex-col items-center gap-[12px] md:items-start">
                             <Link
-                                href={avisoDePrivacidad.url()}
+                                href={STOREFRONT_PATHS.avisoDePrivacidad}
                                 className="font-['Inter',sans-serif] text-[16px] leading-[22px] font-normal text-white transition hover:underline"
                             >
                                 Política de privacidad
                             </Link>
                             <Link
-                                href={terminosYCondiciones.url()}
+                                href={STOREFRONT_PATHS.terminosYCondiciones}
                                 className="font-['Inter',sans-serif] text-[16px] leading-[22px] font-normal text-white transition hover:underline"
                             >
                                 Términos y condiciones
