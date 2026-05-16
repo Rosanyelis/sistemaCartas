@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import CartConflictModal from '@/components/tienda/CartConflictModal';
 import ClienteLayout from '@/layouts/cliente-layout';
 import { useCart } from '@/contexts/cart-context';
+import { HISTORIA_SUSCRIPCION_SUBTITLE } from '@/types/cart-line';
 import { inclusionIconOrFallback } from '@/lib/historia-detalle-inclusion-lucide-map';
 
 export interface HistoriaPublicaDetalle {
@@ -307,7 +308,7 @@ export default function DetalleHistoria({
         const payload = {
             slug: historia.slug,
             name: historia.nombre,
-            subtitle: `Suscripción PayPal · ciclo cada ${dur} mes(es)`,
+            subtitle: HISTORIA_SUSCRIPCION_SUBTITLE,
             price,
             image: cover,
             duracion_meses: dur,
@@ -657,7 +658,7 @@ export default function DetalleHistoria({
                                     <h4 className="font-['Playfair_Display',serif] text-[22px] font-semibold text-[#1B3D6D] lg:text-[25px] lg:font-normal">
                                         {card.title}
                                     </h4>
-                                    <p className="max-w-[250px] font-['Inter',sans-serif] text-[13px] font-medium text-[#1B3D6D] italic opacity-80 lg:max-w-none">
+                                    <p className="max-w-[250px] font-['Inter',sans-serif] text-[13px] font-medium text-[#1B3D6D] opacity-80 lg:max-w-none">
                                         {card.text}
                                     </p>
                                 </div>

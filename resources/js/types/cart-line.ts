@@ -29,6 +29,10 @@ export type CartLineHistoriaSuscripcion = {
 
 export type CartLine = CartLineProduct | CartLineHistoriaSuscripcion;
 
+/** Subtítulo mostrado en carrito para suscripciones (cobro mensual vía PayPal). */
+export const HISTORIA_SUSCRIPCION_SUBTITLE =
+    'Suscripción PayPal · ciclo mensual';
+
 export function cartLineKey(line: CartLine): string {
     return `${line.kind}:${line.slug}`;
 }

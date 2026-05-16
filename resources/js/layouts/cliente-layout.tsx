@@ -99,7 +99,7 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
             </Head>
             {/* Header / Navegación */}
             <header className="fixed top-0 z-[70] w-full border-b border-[#e8e4d9] bg-white shadow-[0px_0px_16px_rgba(0,0,0,0.04)]">
-                <div className="mx-auto flex h-[80px] max-w-7xl items-center justify-between px-5 md:px-[71px]">
+                <div className="mx-auto flex h-[80px] max-w-8xl items-center justify-between px-8 ">
                     {/* Izquierda mobile: hamburger + texto marca */}
                     <div className="flex items-center gap-2 md:hidden">
                         <button

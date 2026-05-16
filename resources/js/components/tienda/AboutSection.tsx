@@ -8,9 +8,9 @@ export default function AboutSection() {
                 className="pointer-events-none absolute top-[310px] -left-[42px] z-[3] h-[142px] w-[146px] opacity-50"
             />
             <img
-                src="/images/Lineas_4-07 1.svg"
+                src="/images/circulo-linea.svg"
                 alt=""
-                className="pointer-events-none absolute top-[60px] right-0 z-[2] h-[85px] w-[220px]"
+                className="pointer-events-none absolute top-[60px] right-[-25px] z-[2] h-[85px] w-[220px]"
             />
 
             <div className="relative z-10 flex w-full max-w-[1296px] flex-col items-center gap-[57px]">
@@ -49,7 +49,7 @@ export default function AboutSection() {
                             <h3 className="text-center font-['Playfair_Display',serif] text-[22px] leading-tight font-bold text-[#1B3D6D] md:text-[25px] md:leading-[33px]">
                                 Historias ambientadas antes de 1970
                             </h3>
-                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D] italic">
+                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D] ">
                                 Capturando la esencia de épocas doradas y
                                 momentos olvidados.
                             </p>
@@ -81,7 +81,7 @@ export default function AboutSection() {
                             <h3 className="text-center font-['Playfair_Display',serif] text-[22px] leading-tight font-bold text-[#1B3D6D] md:text-[25px] md:leading-[33px]">
                                 Recíbelas físicamente en tu hogar
                             </h3>
-                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D] italic">
+                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D] ">
                                 Siente el tacto del papel y la emoción de abrir
                                 un sobre real.
                             </p>
@@ -113,7 +113,7 @@ export default function AboutSection() {
                             <h3 className="text-center font-['Playfair_Display',serif] text-[22px] leading-tight font-bold text-[#1B3D6D] md:text-[25px] md:leading-[33px]">
                                 Nuevas entregas periódicas
                             </h3>
-                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D] italic">
+                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D] ">
                                 Que mantienen viva la narrativa y la sorpresa de
                                 una nueva aventura.
                             </p>

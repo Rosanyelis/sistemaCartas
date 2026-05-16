@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Producto;
 use App\Models\ProductoCategoria;
 use App\Support\ProductoTiendaSerializer;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,6 +28,18 @@ class ProductoController extends Controller
             $query->where('producto_categoria_id', $request->integer('categoria_id'));
         }
 
+        if ($request->filled('search')) {
+            $raw = $request->string('search')->toString();
+            $term = '%'.addcslashes($raw, '%_\\').'%';
+            $query->where(function (Builder $q) use ($term): void {
+                $q->where('nombre', 'like', $term)
+                    ->orWhere('codigo', 'like', $term)
+                    ->orWhere('descripcion_corta', 'like', $term)
+                    ->orWhereHas('productoSubcategoria', fn (Builder $s) => $s->where('nombre', 'like', $term))
+                    ->orWhereHas('productoCategoria', fn (Builder $c) => $c->where('nombre', 'like', $term));
+            });
+        }
+
         $productos = $query->latest()
             ->paginate(12)
             ->withQueryString()
@@ -42,6 +55,7 @@ class ProductoController extends Controller
             'categorias' => $categorias,
             'filters' => [
                 'categoria_id' => $request->filled('categoria_id') ? $request->integer('categoria_id') : null,
+                'search' => $request->string('search')->toString(),
             ],
         ]);
     }

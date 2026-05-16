@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
 import CtaSection from '@/components/tienda/CtaSection';
 import FilterBarSection from '@/components/tienda/FilterBarSection';
@@ -17,6 +17,7 @@ type ProductosPageProps = {
     categorias: ProductoCategoriaRow[];
     filters: {
         categoria_id: number | null;
+        search: string;
     };
 };
 
@@ -31,20 +32,6 @@ export default function Productos() {
         ],
         [categorias],
     );
-
-    const activeCategoryId = filters.categoria_id ?? null;
-
-    const handleSelectCategory = (categoriaId: number | null) => {
-        router.get(
-            '/productos',
-            categoriaId !== null ? { categoria_id: categoriaId } : {},
-            {
-                preserveScroll: true,
-                preserveState: true,
-                replace: true,
-            },
-        );
-    };
 
     return (
         <ClienteLayout>
@@ -73,11 +60,7 @@ export default function Productos() {
 
             <ProductosHeroSection />
 
-            <FilterBarSection
-                categories={categoriesForBar}
-                activeCategoryId={activeCategoryId}
-                onSelectCategory={handleSelectCategory}
-            />
+            <FilterBarSection categories={categoriesForBar} filters={filters} />
 
             <GridProductsSection products={products} />
 

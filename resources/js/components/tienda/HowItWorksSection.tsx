@@ -125,7 +125,7 @@ export default function HowItWorksSection() {
                                             <h3 className="mb-1 font-['Inter',sans-serif] text-[25px] leading-[30px] font-semibold text-white">
                                                 {item.title}
                                             </h3>
-                                            <p className="font-['Inter',sans-serif] text-[16px] leading-[19px] font-light text-[#F2F2F2] italic">
+                                            <p className="font-['Inter',sans-serif] text-[16px] leading-[19px] font-light text-[#F2F2F2]">
                                                 {item.desc}
                                             </p>
                                         </div>
@@ -147,7 +147,7 @@ export default function HowItWorksSection() {
                                             <h3 className="mb-1 font-['Inter',sans-serif] text-[25px] leading-[30px] font-semibold text-white">
                                                 {item.title}
                                             </h3>
-                                            <p className="font-['Inter',sans-serif] text-[16px] leading-[19px] font-light text-[#F2F2F2] italic">
+                                            <p className="font-['Inter',sans-serif] text-[16px] leading-[19px] font-light text-[#F2F2F2] ">
                                                 {item.desc}
                                             </p>
                                         </div>
@@ -165,7 +165,7 @@ export default function HowItWorksSection() {
                                     <h3 className="mb-1 font-['Inter',sans-serif] text-[20px] leading-[26px] font-semibold text-white">
                                         {item.title}
                                     </h3>
-                                    <p className="font-['Inter',sans-serif] text-[14px] leading-[18px] font-light text-[#F2F2F2] italic">
+                                    <p className="font-['Inter',sans-serif] text-[14px] leading-[18px] font-light text-[#F2F2F2]">
                                         {item.desc}
                                     </p>
                                 </div>

@@ -21,6 +21,7 @@ import {
 } from '@/lib/cart-mode';
 import {
     cartLineKey,
+    HISTORIA_SUSCRIPCION_SUBTITLE,
     type CartLine,
     type CartLineProduct,
 } from '@/types/cart-line';
@@ -224,7 +225,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 kind: 'historia_suscripcion' as const,
                 slug: input.slug,
                 name: input.name,
-                subtitle: input.subtitle,
+                subtitle: HISTORIA_SUSCRIPCION_SUBTITLE,
                 price: input.price,
                 image: input.image,
                 quantity: 1 as const,

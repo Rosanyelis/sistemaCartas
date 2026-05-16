@@ -7,8 +7,11 @@ export default function HeroSection() {
     const [isLoaded, setIsLoaded] = useState(false);
 
     useEffect(() => {
-        setIsLoaded(true);
+        const id = requestAnimationFrame(() => {
+            setIsLoaded(true);
+        });
 
+        return () => cancelAnimationFrame(id);
     }, []);
 
     return (
@@ -77,19 +80,22 @@ export default function HeroSection() {
                                 className="absolute right-0 bottom-0 h-full w-auto max-w-[310px] rounded-t-[4px] object-cover shadow-[0px_0px_20px_rgba(36,16,167,0.15)] lg:right-[24px] lg:h-[419px] lg:w-[310px]"
                             />
                         </div>
-
-                        {/* Scroll indicator - solo desktop */}
-                        <div className="absolute top-[80px] -right-[70px] hidden w-[36px] flex-col items-center gap-[25px] lg:flex">
-                            <span className="origin-center -rotate-90 font-['Roboto',sans-serif] text-[13px] leading-[15px] font-medium whitespace-nowrap text-white opacity-80">
-                                Scroll
-                            </span>
-                            <div className="relative h-[59px] w-[36px]">
-                                <div className="absolute top-[23px] left-1/2 box-border h-[36px] w-[36px] -translate-x-1/2 rounded-full border-[1.5px] border-white/80"></div>
-                                <div className="absolute top-0 left-1/2 box-border h-[46px] w-[1.5px] -translate-x-1/2 bg-white/80"></div>
-                                <div className="absolute bottom-[8px] left-1/2 -ml-[0.5px] h-[8px] w-[8px] -translate-x-1/2 rotate-45 border-r-[1.5px] border-b-[1.5px] border-white/80"></div>
-                            </div>
-                        </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Scroll: anclado al borde derecho del hero (cerca de la scrollbar), vertical fluido según alto del viewport */}
+            <div
+                className="pointer-events-none absolute top-[clamp(10.5rem,24vh,15.5rem)] z-[5] hidden w-9 flex-col items-center gap-[25px] lg:right-[max(0.5rem,env(safe-area-inset-right,0px))] lg:flex"
+                aria-hidden="true"
+            >
+                <span className="origin-center -rotate-90 font-['Roboto',sans-serif] text-[13px] leading-[15px] font-medium whitespace-nowrap text-white opacity-80">
+                    Scroll
+                </span>
+                <div className="relative h-[59px] w-[36px]">
+                    <div className="absolute top-[23px] left-1/2 box-border h-[36px] w-[36px] -translate-x-1/2 rounded-full border-[1.5px] border-white/80"></div>
+                    <div className="absolute top-0 left-1/2 box-border h-[46px] w-[1.5px] -translate-x-1/2 bg-white/80"></div>
+                    <div className="absolute bottom-[8px] left-1/2 -ml-[0.5px] h-[8px] w-[8px] -translate-x-1/2 rotate-45 border-r-[1.5px] border-b-[1.5px] border-white/80"></div>
                 </div>
             </div>
         </section>

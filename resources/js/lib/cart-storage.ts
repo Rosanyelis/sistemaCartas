@@ -1,5 +1,5 @@
 import { normalizeCartItemsHomogeneous } from '@/lib/cart-mode';
-import type { CartLine } from '@/types/cart-line';
+import { HISTORIA_SUSCRIPCION_SUBTITLE, type CartLine } from '@/types/cart-line';
 
 const STORAGE_KEY = 'sistemaCartas:cart_v2';
 const RESUME_KEY = 'sistemaCartas:cart_resume_v1';
@@ -50,7 +50,7 @@ function normalizeCartLine(row: unknown): CartLine | null {
             kind: 'historia_suscripcion',
             slug: r.slug,
             name: r.name,
-            subtitle: r.subtitle,
+            subtitle: HISTORIA_SUSCRIPCION_SUBTITLE,
             price: r.price,
             image: r.image,
             quantity: 1,

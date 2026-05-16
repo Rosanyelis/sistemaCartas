@@ -367,15 +367,6 @@ const CartDrawer: React.FC = () => {
                     </div>
                 </div>
             </div>
-            {auth?.user ? (
-                <button
-                    type="button"
-                    onClick={syncShippingFromProfile}
-                    className="self-start font-['Inter',sans-serif] text-[12px] font-semibold text-[#1B3D6D] underline"
-                >
-                    Restaurar datos de mi perfil
-                </button>
-            ) : null}
         </div>
     );
 
@@ -535,7 +526,7 @@ const CartDrawer: React.FC = () => {
                                                                     ) : (
                                                                         <span className="px-2 font-['Roboto',sans-serif] text-[11px] font-medium text-[#1B3D6D]">
                                                                             1
-                                                                            ciclo
+                                                                            ciclo mensual
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -605,10 +596,6 @@ const CartDrawer: React.FC = () => {
                                                             Gratis
                                                         </span>
                                                     </div>
-                                                    <p className="mt-1 text-right font-['Inter',sans-serif] text-[11px] font-light text-[#1B3D6D] italic opacity-60">
-                                                        Envío gratuito incluido
-                                                        en esta demo.
-                                                    </p>
                                                 </div>
 
                                                 <div className="flex items-center justify-between">
