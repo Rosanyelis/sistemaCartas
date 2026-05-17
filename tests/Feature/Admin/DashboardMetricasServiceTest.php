@@ -31,12 +31,19 @@ test('to array ejecuta consultas de metricas sin excepcion', function (): void {
 
     expect($data)->toHaveKeys([
         'clientes_registrados',
+        'clientes_nuevos_mes',
+        'clientes_crecimiento_porcentaje',
         'suscripciones_del_mes',
+        'suscripciones_activas_mes',
+        'suscripciones_bajas_mes',
         'ordenes_del_dia',
+        'ordenes_completadas_dia',
+        'ordenes_rechazadas_dia',
         'historias_activas',
         'productos_activos',
         'ventas_del_mes',
         'suscripciones_por_historia',
+        'suscripciones_activas_total',
     ]);
 });
 

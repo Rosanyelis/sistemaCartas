@@ -1,19 +1,17 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
+import MetricCard from '@/components/admin/dashboard/MetricCard';
 import UserLayout from '@/layouts/user-layout';
 import { Head, Deferred, usePage, router } from '@inertiajs/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faUsers,
     faFileLines,
-    faBoxOpen,
-    faArrowUp,
-    faArrowDown,
-    faCheck,
-    faTimes,
+    faBox,
     faChevronDown,
     faDollarSign,
-    faBars,
     faCalendarDays,
+    faScroll,
+    faBagShopping,
 } from '@fortawesome/free-solid-svg-icons';
 import {
     LineChart,
@@ -34,12 +32,19 @@ import { dashboard as adminDashboard } from '@/routes/admin';
 interface PageProps extends BasePageProps {
     metricas?: {
         clientes_registrados: number;
+        clientes_nuevos_mes: number;
+        clientes_crecimiento_porcentaje: number;
         suscripciones_del_mes: number;
+        suscripciones_activas_mes: number;
+        suscripciones_bajas_mes: number;
         ordenes_del_dia: number;
+        ordenes_completadas_dia: number;
+        ordenes_rechazadas_dia: number;
         historias_activas: number;
         productos_activos: number;
         ventas_del_mes: number;
         suscripciones_por_historia: { name: string; value: number }[];
+        suscripciones_activas_total: number;
     };
     ventasChart?: {
         name: string;
@@ -52,18 +57,81 @@ interface PageProps extends BasePageProps {
     };
 }
 
-const DONUGHT_COLORS = ['#96674C', '#6B7144', '#1B3D6D', '#F3F4F6', '#BFDBFE'];
+const DONUT_COLORS = ['#734B19', '#707A5E', '#1B3D6D', '#E6E6E6', '#BFDBFE'];
+
+const cardShadow = 'shadow-[0px_0px_10px_rgba(36,16,167,0.15)]';
+
+function formatMxn(amount: number): string {
+    return `$${amount.toLocaleString('es-MX', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })} MX`;
+}
+
+function formatPeriodRange(periodo: string): string {
+    const now = new Date();
+    const format = (date: Date) =>
+        date.toLocaleDateString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        });
+
+    if (periodo === 'semana') {
+        const start = new Date(now);
+        start.setDate(now.getDate() - 6);
+
+        return `${format(start)} - ${format(now)}`;
+    }
+
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    return `${format(start)} - ${format(now)}`;
+}
 
 export default function Dashboard() {
     const { metricas, ventasChart, filters } = usePage<PageProps>().props;
-    
+
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
 
+    const periodRangeLabel = useMemo(
+        () => formatPeriodRange(filters.periodo),
+        [filters.periodo],
+    );
+
+    const ventasHistorias = useMemo(
+        () =>
+            ventasChart?.reduce((acc, curr) => acc + curr.historias, 0) ?? 0,
+        [ventasChart],
+    );
+
+    const ventasProductos = useMemo(
+        () =>
+            ventasChart?.reduce((acc, curr) => acc + curr.productos, 0) ?? 0,
+        [ventasChart],
+    );
+
+    const chartPromedio = useMemo(() => {
+        if (!ventasChart?.length) {
+            return 0;
+        }
+
+        const total = ventasChart.reduce(
+            (acc, point) =>
+                acc + point.historias + point.productos + point.cancelados,
+            0,
+        );
+
+        return total / ventasChart.length;
+    }, [ventasChart]);
+
     const onMouseDown = (e: React.MouseEvent) => {
-        if (!scrollContainerRef.current) return;
+        if (!scrollContainerRef.current) {
+            return;
+        }
         setIsDragging(true);
         setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
         setScrollLeft(scrollContainerRef.current.scrollLeft);
@@ -78,7 +146,9 @@ export default function Dashboard() {
     };
 
     const onMouseMove = (e: React.MouseEvent) => {
-        if (!isDragging || !scrollContainerRef.current) return;
+        if (!isDragging || !scrollContainerRef.current) {
+            return;
+        }
         e.preventDefault();
         const x = e.pageX - scrollContainerRef.current.offsetLeft;
         const walk = (x - startX) * 2;
@@ -93,212 +163,208 @@ export default function Dashboard() {
         );
     };
 
+    const mesSubtitle = metricas
+        ? `+${metricas.clientes_nuevos_mes} este mes`
+        : undefined;
+
     return (
         <UserLayout>
             <Head title="Admin Dashboard" />
 
-            <div className="flex flex-col gap-5 px-3 py-3 font-['Inter'] md:gap-6 md:px-6 md:py-4 lg:px-8">
-                {/* Cabecera */}
-                <div className="flex flex-col items-start gap-1 lg:flex-row lg:items-center lg:gap-3">
-                    <h1 className="text-[22px] leading-tight font-bold text-[#1B3D6D] lg:text-2xl">
-                        ¡Hola, Admin bienvenido! 👋
+            <div className="flex flex-col gap-5 bg-[#F5F6F7] px-3 py-3 font-['Inter'] md:gap-6 md:px-6 md:py-4 lg:px-8">
+                <div className="flex flex-col items-start gap-1 lg:flex-row lg:items-center lg:gap-5">
+                    <h1 className="text-[25px] font-semibold leading-tight text-[#1B3D6D]">
+                        ¡Hola, Admin bienvenido!{' '}
+                        <span className="text-[24px]">👋</span>
                     </h1>
-                    <span className="text-sm font-medium text-[#A0A0A0] lg:shrink-0">
+                    <span className="text-base font-normal text-[#7B7B7B] lg:shrink-0">
                         Dale un vistazo a tu resumen
                     </span>
                 </div>
 
-                {/* Métricas: scroll horizontal en móvil; grid desde md */}
-                <Deferred data="metricas" fallback={
-                    <div className="h-32 w-full animate-pulse bg-gray-200 rounded-md"></div>
-                }>
-                    <div
-                        ref={scrollContainerRef}
+                <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:gap-4">
+                    <div className="flex min-w-0 flex-1 flex-col gap-4">
+                        <Deferred
+                            data="metricas"
+                            fallback={
+                                <div className="h-[94px] w-full animate-pulse rounded bg-gray-200" />
+                            }
+                        >
+                            <div
+                                ref={scrollContainerRef}
                         onMouseDown={onMouseDown}
                         onMouseLeave={onMouseLeave}
                         onMouseUp={onMouseUp}
                         onMouseMove={onMouseMove}
-                        className={`flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:mx-0 md:grid md:snap-none md:grid-cols-3 md:gap-4 md:overflow-visible md:px-0 lg:grid-cols-5 [&::-webkit-scrollbar]:hidden ${
+                        className={`flex touch-pan-x snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] xl:grid xl:snap-none xl:grid-cols-5 xl:overflow-visible [&::-webkit-scrollbar]:hidden ${
                             isDragging
                                 ? 'cursor-grabbing select-none'
-                                : 'cursor-grab select-none md:cursor-auto md:select-auto'
+                                : 'cursor-grab select-none xl:cursor-auto xl:select-auto'
                         }`}
                     >
-                        {/* Tarjeta 1 */}
-                        <div className="flex max-w-[300px] min-w-[260px] shrink-0 snap-start flex-col bg-white p-4 shadow-[0px_0px_15px_rgba(36,16,167,0.08)] md:w-auto md:max-w-none md:min-w-0 md:shrink md:p-5">
-                            <div className="mb-3 flex items-center gap-2 text-[#7B7B7B]">
-                                <FontAwesomeIcon
-                                    icon={faUsers}
-                                    className="text-[#A0A0A0]"
-                                />
-                                <span className="text-sm font-semibold text-[#111827]">
-                                    Clientes
-                                </span>
+                        <MetricCard
+                            icon={faUsers}
+                            title="Registrados"
+                            subtitle={mesSubtitle}
+                            value={metricas?.clientes_registrados ?? 0}
+                            growthPercent={
+                                metricas?.clientes_crecimiento_porcentaje
+                            }
+                            className="min-w-[260px] max-w-[300px] shrink-0 snap-start xl:min-w-0 xl:max-w-none xl:w-full xl:shrink"
+                        />
+                        <MetricCard
+                            icon={faFileLines}
+                            title="Suscripciones"
+                            subtitle={mesSubtitle}
+                            value={metricas?.suscripciones_del_mes ?? 0}
+                            iconClassName="bg-[rgba(27,61,109,0.1)] text-[#1B3D6D]"
+                            stats={[
+                                {
+                                    label: 'Activos',
+                                    value:
+                                        metricas?.suscripciones_activas_mes ??
+                                        0,
+                                    tone: 'success',
+                                    icon: 'up',
+                                },
+                                {
+                                    label: 'Bajas',
+                                    value:
+                                        metricas?.suscripciones_bajas_mes ?? 0,
+                                    tone: 'danger',
+                                    icon: 'down',
+                                },
+                            ]}
+                            className="min-w-[260px] max-w-[300px] shrink-0 snap-start xl:min-w-0 xl:max-w-none xl:w-full xl:shrink"
+                        />
+                        <MetricCard
+                            icon={faBox}
+                            title="Órdenes de día"
+                            subtitle={mesSubtitle}
+                            value={metricas?.ordenes_del_dia ?? 0}
+                            stats={[
+                                {
+                                    label: 'Completadas',
+                                    value:
+                                        metricas?.ordenes_completadas_dia ?? 0,
+                                    tone: 'success',
+                                    icon: 'check',
+                                },
+                                {
+                                    label: 'Rechazadas',
+                                    value:
+                                        metricas?.ordenes_rechazadas_dia ?? 0,
+                                    tone: 'danger',
+                                    icon: 'times',
+                                },
+                            ]}
+                            className="min-w-[260px] max-w-[300px] shrink-0 snap-start xl:min-w-0 xl:max-w-none xl:w-full xl:shrink"
+                        />
+                        <MetricCard
+                            icon={faScroll}
+                            title="Historias activas"
+                            value={metricas?.historias_activas ?? 0}
+                            className="min-w-[130px] max-w-[130px] shrink-0 snap-start xl:min-w-0 xl:max-w-none xl:w-full xl:shrink"
+                        />
+                        <MetricCard
+                            icon={faBagShopping}
+                            title="Productos activos"
+                            value={metricas?.productos_activos ?? 0}
+                            className="min-w-[130px] max-w-[130px] shrink-0 snap-start xl:min-w-0 xl:max-w-none xl:w-full xl:shrink"
+                        />
+                        <div
+                            className="w-2 shrink-0 xl:hidden"
+                            aria-hidden
+                        />
                             </div>
-                            <div className="mb-0 text-xs font-medium text-[#A0A0A0]">
-                                Rol cliente
-                            </div>
-                            <div className="flex items-end gap-2">
-                                <span className="text-4xl font-bold text-[#111827]">
-                                    {metricas?.clientes_registrados ?? 0}
-                                </span>
-                            </div>
-                        </div>
+                        </Deferred>
 
-                        {/* Tarjeta 2 */}
-                        <div className="flex max-w-[300px] min-w-[260px] shrink-0 snap-start flex-col bg-white p-4 shadow-[0px_0px_15px_rgba(36,16,167,0.08)] md:w-auto md:max-w-none md:min-w-0 md:shrink md:p-5">
-                            <div className="mb-3 flex items-center gap-2 text-[#7B7B7B]">
-                                <FontAwesomeIcon
-                                    icon={faFileLines}
-                                    className="text-[#A0A0A0]"
-                                />
-                                <span className="text-sm font-semibold text-[#111827]">
-                                    Suscripciones
-                                </span>
-                            </div>
-                            <div className="mb-0 text-xs font-medium text-[#A0A0A0]">
-                                Del mes
-                            </div>
-                            <div className="flex items-end gap-3">
-                                <span className="text-4xl font-bold text-[#111827]">
-                                    {metricas?.suscripciones_del_mes ?? 0}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Tarjeta 3 */}
-                        <div className="flex max-w-[300px] min-w-[260px] shrink-0 snap-start flex-col bg-white p-4 shadow-[0px_0px_15px_rgba(36,16,167,0.08)] md:w-auto md:max-w-none md:min-w-0 md:shrink md:p-5">
-                            <div className="mb-3 flex items-center gap-2 text-[#7B7B7B]">
-                                <FontAwesomeIcon
-                                    icon={faBoxOpen}
-                                    className="text-[#A0A0A0]"
-                                />
-                                <span className="text-sm font-semibold text-[#111827]">
-                                    Órdenes
-                                </span>
-                            </div>
-                            <div className="mb-0 text-xs font-medium text-[#A0A0A0]">
-                                Del día
-                            </div>
-                            <div className="flex items-end gap-3">
-                                <span className="text-4xl font-bold text-[#111827]">
-                                    {metricas?.ordenes_del_dia ?? 0}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Tarjeta 4 */}
-                        <div className="flex max-w-[300px] min-w-[260px] shrink-0 snap-start flex-col bg-white p-4 shadow-[0px_0px_15px_rgba(36,16,167,0.08)] md:w-auto md:max-w-none md:min-w-0 md:shrink md:p-5">
-                            <div className="mb-3 flex items-center gap-2 text-[#7B7B7B]">
-                                <FontAwesomeIcon
-                                    icon={faFileLines}
-                                    className="text-[#A0A0A0]"
-                                />
-                                <span className="text-sm font-semibold text-[#111827]">
-                                    Historias activas
-                                </span>
-                            </div>
-                            <div className="mt-auto flex items-end">
-                                <span className="text-4xl font-bold text-[#111827]">
-                                    {metricas?.historias_activas ?? 0}
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Tarjeta 5 */}
-                        <div className="flex max-w-[300px] min-w-[260px] shrink-0 snap-start flex-col bg-white p-4 pr-5 shadow-[0px_0px_15px_rgba(36,16,167,0.08)] md:w-auto md:max-w-none md:min-w-0 md:shrink md:p-5 md:pr-5">
-                            <div className="mb-3 flex items-center gap-2 text-[#7B7B7B]">
-                                <FontAwesomeIcon
-                                    icon={faBoxOpen}
-                                    className="text-[#A0A0A0]"
-                                />
-                                <span className="text-sm font-semibold text-[#111827]">
-                                    Productos activos
-                                </span>
-                            </div>
-                            <div className="mt-auto flex items-end">
-                                <span className="text-4xl font-bold text-[#111827]">
-                                    {metricas?.productos_activos ?? 0}
-                                </span>
-                            </div>
-                        </div>
-                        {/* Espacio final para que el scroll horizontal no recorte la última tarjeta en móvil */}
-                        <div className="w-2 shrink-0 md:hidden" aria-hidden />
-                    </div>
-                </Deferred>
-
-                {/* Contenido principal */}
-                <div className="flex min-w-0 flex-col gap-5 xl:flex-row xl:gap-6 mt-4">
-                    {/* Gráfico Rendimientos de Ventas */}
-                    <div className="min-w-0 flex-1 bg-white p-4 shadow-[0px_0px_15px_rgba(36,16,167,0.08)] md:p-6">
-                        <div className="mb-4 flex flex-col items-stretch gap-3 md:mb-6 md:flex-row md:items-center md:justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[#EDF2F7] text-[#1B3D6D]">
+                        <div
+                            className={`min-w-0 rounded bg-white p-4 ${cardShadow} md:p-4`}
+                        >
+                        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <h2 className="text-xl font-semibold text-[#7B7B7B]">
+                                Rendimientos de ventas
+                            </h2>
+                            <div className="flex flex-wrap gap-4">
+                                <label className="flex h-10 items-center gap-2.5 rounded-md border border-[#DFE4EA] bg-white px-5 py-3 text-[13px] text-[#1B3D6D]">
                                     <FontAwesomeIcon
-                                        icon={faBars}
-                                        className="text-sm"
+                                        icon={faCalendarDays}
+                                        className="size-4 shrink-0"
+                                    />
+                                    <select
+                                        value={filters.periodo}
+                                        onChange={(e) =>
+                                            handlePeriodChange(e.target.value)
+                                        }
+                                        className="cursor-pointer appearance-none bg-transparent pr-5 outline-none"
+                                    >
+                                        <option value="semana">Semana</option>
+                                        <option value="mes">Mes</option>
+                                    </select>
+                                    <FontAwesomeIcon
+                                        icon={faChevronDown}
+                                        className="pointer-events-none -ml-4 size-4 shrink-0 text-[#1B3D6D]"
+                                    />
+                                </label>
+                                <div className="flex h-10 items-center gap-2.5 rounded-md border border-[#DFE4EA] bg-white px-5 py-3 text-[13px] text-[#1B3D6D]">
+                                    <span>{periodRangeLabel}</span>
+                                    <FontAwesomeIcon
+                                        icon={faChevronDown}
+                                        className="size-4 shrink-0 opacity-60"
                                     />
                                 </div>
-                                <h2 className="text-[17px] font-bold text-[#7B7B7B] md:text-xl">
-                                    Rendimientos de ventas
-                                </h2>
-                            </div>
-                            <div className="flex w-full min-w-0 gap-2 md:w-auto md:shrink-0">
-                                <select
-                                    value={filters.periodo}
-                                    onChange={(e) => handlePeriodChange(e.target.value)}
-                                    className="flex h-9 min-w-0 items-center justify-between gap-1 rounded-md border border-[#E5E7EB] px-2 py-1.5 text-xs font-medium text-[#4B5563] shadow-sm sm:flex-initial md:w-32 md:px-3 focus:ring-[#1B3D6D] focus:border-[#1B3D6D]"
-                                >
-                                    <option value="semana">Semana</option>
-                                    <option value="mes">Mes</option>
-                                </select>
                             </div>
                         </div>
 
                         <div className="flex flex-col gap-6 md:flex-row">
-                            {/* Panel Izquierdo Fltros */}
-                            <div className="hidden w-32 flex-col gap-4 text-xs font-semibold md:flex">
-                                <div className="cursor-pointer text-[#1B3D6D]">
-                                    Todos
-                                </div>
-                                <div className="cursor-pointer text-[#A0A0A0] hover:text-[#7B7B7B]">
-                                    Historias
-                                </div>
-                                <div className="cursor-pointer text-[#A0A0A0] hover:text-[#7B7B7B]">
-                                    Productos
-                                </div>
-                                <div className="cursor-pointer text-[#A0A0A0] hover:text-[#7B7B7B]">
-                                    Cancelados
-                                </div>
+                            <div className="hidden w-[110px] shrink-0 flex-col rounded bg-white shadow-[0px_0px_2px_rgba(0,0,0,0.1)] md:flex">
+                                {['Todos', 'Historias', 'Productos', 'Cancelados'].map(
+                                    (item, index) => (
+                                        <button
+                                            key={item}
+                                            type="button"
+                                            className={`px-2 py-2 text-left text-[13px] ${
+                                                index === 0
+                                                    ? 'font-semibold text-[#1B3D6D]'
+                                                    : 'font-normal text-[#7B7B7B] hover:text-[#373737]'
+                                            }`}
+                                        >
+                                            {item}
+                                        </button>
+                                    ),
+                                )}
                             </div>
 
-                            {/* Área del Gráfico */}
-                            <div className="flex-1">
-                                <div className="mb-4 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-[#1B3D6D] md:flex-nowrap">
-                                    <div className="flex items-center gap-1">
-                                        <div className="size-2 rounded-sm bg-[#6B7144]"></div>{' '}
-                                        <span className="text-[#6B7144]">
+                            <div className="min-w-0 flex-1">
+                                <div className="mb-4 flex flex-wrap gap-9 text-[13px]">
+                                    <div className="flex items-center gap-2">
+                                        <div className="size-3 rounded-sm bg-[#2C5629]" />
+                                        <span className="text-[#2C5629]">
                                             Historias
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <div className="size-2 rounded-sm bg-[#1B3D6D]"></div>{' '}
+                                    <div className="flex items-center gap-2">
+                                        <div className="size-3 rounded-sm bg-[#1B3D6D]" />
                                         <span className="text-[#1B3D6D]">
                                             Productos
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <div className="size-2 rounded-sm bg-[#93C5FD]"></div>{' '}
-                                        <span className="text-[#93C5FD]">
+                                    <div className="flex items-center gap-2">
+                                        <div className="size-3 rounded-sm bg-[#7297BC]" />
+                                        <span className="text-[#7297BC]">
                                             Cancelados
                                         </span>
                                     </div>
                                 </div>
-                                
-                                <Deferred data="ventasChart" fallback={
-                                    <div className="h-[240px] w-full min-w-0 sm:h-[280px] md:h-[300px] animate-pulse bg-gray-100 rounded-md"></div>
-                                }>
-                                    <div className="h-[240px] w-full min-w-0 sm:h-[280px] md:h-[300px]">
+
+                                <Deferred
+                                    data="ventasChart"
+                                    fallback={
+                                        <div className="h-[300px] w-full animate-pulse rounded bg-gray-100" />
+                                    }
+                                >
+                                    <div className="h-[280px] w-full min-w-0 md:h-[320px]">
                                         <ResponsiveContainer
                                             width="100%"
                                             height="100%"
@@ -307,8 +373,8 @@ export default function Dashboard() {
                                                 data={ventasChart || []}
                                                 margin={{
                                                     top: 5,
-                                                    right: 4,
-                                                    left: -12,
+                                                    right: 8,
+                                                    left: 0,
                                                     bottom: 5,
                                                 }}
                                             >
@@ -322,8 +388,9 @@ export default function Dashboard() {
                                                     axisLine={false}
                                                     tickLine={false}
                                                     tick={{
-                                                        fontSize: 11,
+                                                        fontSize: 14,
                                                         fill: '#7B7B7B',
+                                                        fontWeight: 700,
                                                     }}
                                                     dy={10}
                                                 />
@@ -331,30 +398,42 @@ export default function Dashboard() {
                                                     axisLine={false}
                                                     tickLine={false}
                                                     tick={{
-                                                        fontSize: 11,
-                                                        fill: '#7B7B7B',
+                                                        fontSize: 14,
+                                                        fill: '#373737',
                                                     }}
-                                                    tickFormatter={(val) => `$${val}`}
+                                                    tickFormatter={(val) =>
+                                                        `$${val}`
+                                                    }
                                                 />
                                                 <Tooltip
                                                     contentStyle={{
-                                                        borderRadius: '8px',
+                                                        borderRadius: '4px',
                                                         border: 'none',
-                                                        backgroundColor: '#1B3D6D',
+                                                        backgroundColor:
+                                                            '#1B3D6D',
                                                         color: '#fff',
-                                                        fontSize: '12px',
+                                                        fontSize: '14px',
+                                                        padding: '5px 14px',
                                                     }}
-                                                    itemStyle={{ color: '#fff' }}
+                                                    itemStyle={{
+                                                        color: '#fff',
+                                                    }}
+                                                    formatter={(value) =>
+                                                        formatMxn(
+                                                            Number(value),
+                                                        )
+                                                    }
                                                     cursor={{
                                                         stroke: '#1B3D6D',
                                                         strokeWidth: 1,
-                                                        strokeDasharray: '3 3',
+                                                        strokeDasharray:
+                                                            '3 3',
                                                     }}
                                                 />
                                                 <Line
                                                     type="monotone"
                                                     dataKey="historias"
-                                                    stroke="#6B7144"
+                                                    stroke="#2C5629"
                                                     strokeWidth={2.5}
                                                     dot={false}
                                                     strokeDasharray="4 4"
@@ -369,7 +448,7 @@ export default function Dashboard() {
                                                 <Line
                                                     type="monotone"
                                                     dataKey="cancelados"
-                                                    stroke="#93C5FD"
+                                                    stroke="#7297BC"
                                                     strokeWidth={2.5}
                                                     dot={false}
                                                 />
@@ -377,134 +456,178 @@ export default function Dashboard() {
                                         </ResponsiveContainer>
                                     </div>
                                 </Deferred>
+
+                                <p className="mt-4 text-center text-[13px] font-semibold text-[#7B7B7B] md:text-left">
+                                    Promedio de los últimos 30 Días:{' '}
+                                    {formatMxn(chartPromedio)}
+                                </p>
                             </div>
                         </div>
                     </div>
+                    </div>
 
-                    {/* Columna Derecha de Tarjetas */}
-                    <div className="flex w-full min-w-0 flex-col gap-5 xl:w-[320px] xl:shrink-0">
-                        {/* Ventas totales */}
-                        <div className="bg-white p-4 shadow-[0px_0px_15px_rgba(36,16,167,0.08)] md:p-6">
-                            <div className="mb-2 flex items-center justify-between">
-                                <h3 className="text-sm font-bold text-[#7B7B7B]">
-                                    Ventas del mes
+                    <div className="flex w-full min-w-0 flex-col gap-4 xl:w-[265px] xl:shrink-0">
+                        <div
+                            className={`rounded bg-white p-3 ${cardShadow}`}
+                        >
+                            <div className="mb-3 flex items-start justify-between gap-2">
+                                <h3 className="text-base font-semibold text-[#7B7B7B]">
+                                    Ventas totales
                                 </h3>
-                                <div className="flex size-7 items-center justify-center rounded-md bg-[#F3F4F6] text-[#1B3D6D]">
+                                <div className="rounded-sm bg-[#F5F5FF] p-1 text-[#1B3D6D]">
                                     <FontAwesomeIcon
                                         icon={faDollarSign}
-                                        className="text-xs"
+                                        className="size-6"
                                     />
                                 </div>
                             </div>
-                            
-                            <Deferred data="metricas" fallback={<div className="h-10 w-32 animate-pulse bg-gray-200 mt-2 mb-6 rounded"></div>}>
-                                <div className="mb-6 text-3xl font-bold text-[#111827]">
-                                    ${metricas?.ventas_del_mes?.toFixed(2) ?? '0.00'} MX
-                                </div>
+
+                            <Deferred
+                                data="metricas"
+                                fallback={
+                                    <div className="mb-4 h-8 w-40 animate-pulse rounded bg-gray-200" />
+                                }
+                            >
+                                <p className="mb-4 text-[25px] font-semibold leading-none text-[#A4A4A4]">
+                                    {formatMxn(
+                                        metricas?.ventas_del_mes ?? 0,
+                                    ).replace(' MX', 'MX')}
+                                </p>
                             </Deferred>
 
-                            <Deferred data="ventasChart" fallback={<div className="h-10 w-full animate-pulse bg-gray-200 rounded"></div>}>
-                                <div className="flex flex-col gap-3 text-xs font-semibold">
-                                    <div className="flex justify-between">
+                            <Deferred
+                                data="ventasChart"
+                                fallback={
+                                    <div className="h-12 w-full animate-pulse rounded bg-gray-200" />
+                                }
+                            >
+                                <div className="flex flex-col gap-2 text-[13px]">
+                                    <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="size-3 bg-[#96674C]"></div>
-                                            <span className="text-[#96674C]">
+                                            <div className="size-3 rounded-sm bg-[#734B19]" />
+                                            <span className="text-[#734B19]">
                                                 Historias
                                             </span>
                                         </div>
-                                        <span className="text-[#96674C]">
-                                            ${ventasChart?.reduce((acc, curr) => acc + curr.historias, 0).toFixed(2) ?? '0.00'} MX
+                                        <span className="text-[#734B19]">
+                                            {formatMxn(ventasHistorias)}
                                         </span>
                                     </div>
-                                    <div className="flex justify-between">
+                                    <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="size-3 bg-[#1B3D6D]"></div>
+                                            <div className="size-3 rounded-sm bg-[#1B3D6D]" />
                                             <span className="text-[#1B3D6D]">
                                                 Productos
                                             </span>
                                         </div>
                                         <span className="text-[#1B3D6D]">
-                                            ${ventasChart?.reduce((acc, curr) => acc + curr.productos, 0).toFixed(2) ?? '0.00'} MX
+                                            {formatMxn(ventasProductos)}
                                         </span>
                                     </div>
                                 </div>
                             </Deferred>
                         </div>
 
-                        {/* Historias activas */}
-                        <div className="flex-1 bg-white p-4 shadow-[0px_0px_15px_rgba(36,16,167,0.08)] md:p-6">
-                            <div className="mb-6 flex items-center justify-between gap-2">
-                                <h3 className="text-sm font-bold text-[#7B7B7B]">
-                                    Historias con más suscripciones
+                        <div
+                            className={`flex flex-1 flex-col rounded bg-white p-3 ${cardShadow}`}
+                        >
+                            <div className="mb-4 flex items-center justify-between gap-2">
+                                <h3 className="text-base font-semibold text-[#7B7B7B]">
+                                    Historias activas
                                 </h3>
-                                <div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-[#E5E7EB] text-[#A0A0A0]">
+                                <div className="rounded-sm bg-[#F5F5FF] p-1 text-[#1B3D6D]">
                                     <FontAwesomeIcon
-                                        icon={faFileLines}
-                                        className="text-xs"
+                                        icon={faScroll}
+                                        className="size-6"
                                     />
                                 </div>
                             </div>
 
-                            <Deferred data="metricas" fallback={
-                                <div className="h-64 w-full animate-pulse bg-gray-100 rounded-md"></div>
-                            }>
-                                {metricas?.suscripciones_por_historia?.length ? (
+                            <Deferred
+                                data="metricas"
+                                fallback={
+                                    <div className="h-64 w-full animate-pulse rounded bg-gray-100" />
+                                }
+                            >
+                                {metricas?.suscripciones_por_historia
+                                    ?.length ? (
                                     <>
-                                        <div className="relative mx-auto mb-6 h-40 w-40">
-                                            <ResponsiveContainer width="100%" height="100%">
+                                        <div className="relative mx-auto mb-4 flex h-[200px] w-full items-center justify-center border border-[#F2F2F2] p-4">
+                                            <ResponsiveContainer
+                                                width="100%"
+                                                height="100%"
+                                            >
                                                 <PieChart>
                                                     <Pie
-                                                        data={metricas.suscripciones_por_historia}
-                                                        innerRadius={55}
-                                                        outerRadius={75}
+                                                        data={
+                                                            metricas.suscripciones_por_historia
+                                                        }
+                                                        innerRadius={60}
+                                                        outerRadius={90}
                                                         paddingAngle={2}
                                                         dataKey="value"
                                                         stroke="none"
                                                     >
-                                                        {metricas.suscripciones_por_historia.map((entry, index) => (
-                                                            <Cell
-                                                                key={`cell-${index}`}
-                                                                fill={
-                                                                    DONUGHT_COLORS[
-                                                                        index %
-                                                                            DONUGHT_COLORS.length
-                                                                    ]
-                                                                }
-                                                            />
-                                                        ))}
+                                                        {metricas.suscripciones_por_historia.map(
+                                                            (entry, index) => (
+                                                                <Cell
+                                                                    key={`cell-${index}`}
+                                                                    fill={
+                                                                        DONUT_COLORS[
+                                                                            index %
+                                                                                DONUT_COLORS.length
+                                                                        ]
+                                                                    }
+                                                                />
+                                                            ),
+                                                        )}
                                                     </Pie>
                                                 </PieChart>
                                             </ResponsiveContainer>
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                <span className="text-2xl font-bold text-[#1B3D6D]">
-                                                    {metricas.suscripciones_por_historia.reduce((acc, c) => acc + c.value, 0)}
+                                            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                                                <span className="text-4xl font-semibold text-[#1B3D6D]">
+                                                    {metricas.suscripciones_activas_total}
                                                 </span>
-                                                <span className="text-center text-[8px] leading-tight font-medium text-[#A0A0A0]">
-                                                    Total sucripciones
-                                                    <br />
-                                                    en el top 5
+                                                <span className="max-w-[90px] text-center text-[9px] leading-tight text-[#7B7B7B]">
+                                                    Total suscripciones activas
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-col gap-2.5 text-xs font-medium text-[#7B7B7B]">
-                                            {metricas.suscripciones_por_historia.map((hist, i) => (
-                                                <div key={i} className="flex justify-between gap-2">
-                                                    <div className="flex min-w-0 items-center gap-2">
-                                                        <div className="size-2.5 shrink-0" style={{backgroundColor: DONUGHT_COLORS[i % DONUGHT_COLORS.length]}}></div>
-                                                        <span className="truncate">
-                                                            {hist.name}
+                                        <div className="flex flex-col gap-2 rounded-b bg-[#FBFBFF] p-4 text-[13px]">
+                                            {metricas.suscripciones_por_historia.map(
+                                                (hist, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className="flex items-center justify-between gap-2"
+                                                    >
+                                                        <div className="flex min-w-0 items-center gap-2">
+                                                            <div
+                                                                className="size-3 shrink-0 rounded-sm"
+                                                                style={{
+                                                                    backgroundColor:
+                                                                        DONUT_COLORS[
+                                                                            i %
+                                                                                DONUT_COLORS.length
+                                                                        ],
+                                                                }}
+                                                            />
+                                                            <span className="truncate text-[#7B7B7B]">
+                                                                {hist.name}
+                                                            </span>
+                                                        </div>
+                                                        <span className="shrink-0 font-semibold text-[#1B3D6D]">
+                                                            {hist.value}
                                                         </span>
                                                     </div>
-                                                    <span className="shrink-0 font-bold text-[#1B3D6D]">
-                                                        {hist.value}
-                                                    </span>
-                                                </div>
-                                            ))}
+                                                ),
+                                            )}
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="text-center text-sm text-gray-500 py-10">No hay datos suficientes</div>
+                                    <div className="py-10 text-center text-sm text-[#7B7B7B]">
+                                        No hay datos suficientes
+                                    </div>
                                 )}
                             </Deferred>
                         </div>

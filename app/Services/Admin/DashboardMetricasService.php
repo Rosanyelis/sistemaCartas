@@ -26,10 +26,67 @@ class DashboardMetricasService
             ->count();
     }
 
+    public function suscripcionesActivasMes(): int
+    {
+        return Suscripcion::query()
+            ->where('estado', 'activa')
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
+    }
+
+    public function suscripcionesBajasMes(): int
+    {
+        return Suscripcion::query()
+            ->where('estado', 'inactiva')
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
+    }
+
+    public function clientesNuevosMes(): int
+    {
+        return User::query()
+            ->where('role', 'cliente')
+            ->whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->count();
+    }
+
+    public function clientesCrecimientoPorcentaje(): float
+    {
+        $total = $this->clientesRegistrados();
+        $nuevos = $this->clientesNuevosMes();
+
+        if ($total <= $nuevos || $nuevos === 0) {
+            return 0.0;
+        }
+
+        $anteriores = $total - $nuevos;
+
+        return round(($nuevos / $anteriores) * 100, 2);
+    }
+
     public function ordenesDelDia(): int
     {
         return StoreOrder::query()
             ->whereDate('created_at', Carbon::today())
+            ->count();
+    }
+
+    public function ordenesCompletadasDia(): int
+    {
+        return StoreOrder::query()
+            ->whereDate('created_at', Carbon::today())
+            ->where('status', StoreOrder::STATUS_PAID)
+            ->count();
+    }
+
+    public function ordenesRechazadasDia(): int
+    {
+        return StoreOrder::query()
+            ->whereDate('created_at', Carbon::today())
+            ->where('status', StoreOrder::STATUS_CAPTURE_FAILED)
             ->count();
     }
 
@@ -59,13 +116,25 @@ class DashboardMetricasService
     {
         return [
             'clientes_registrados' => $this->clientesRegistrados(),
+            'clientes_nuevos_mes' => $this->clientesNuevosMes(),
+            'clientes_crecimiento_porcentaje' => $this->clientesCrecimientoPorcentaje(),
             'suscripciones_del_mes' => $this->suscripcionesDelMes(),
+            'suscripciones_activas_mes' => $this->suscripcionesActivasMes(),
+            'suscripciones_bajas_mes' => $this->suscripcionesBajasMes(),
             'ordenes_del_dia' => $this->ordenesDelDia(),
+            'ordenes_completadas_dia' => $this->ordenesCompletadasDia(),
+            'ordenes_rechazadas_dia' => $this->ordenesRechazadasDia(),
             'historias_activas' => $this->historiasActivas(),
             'productos_activos' => $this->productosActivos(),
             'ventas_del_mes' => $this->ventasDelMes(),
             'suscripciones_por_historia' => $this->suscripcionesPorHistoria(),
+            'suscripciones_activas_total' => $this->suscripcionesActivasTotal(),
         ];
+    }
+
+    public function suscripcionesActivasTotal(): int
+    {
+        return Suscripcion::query()->where('estado', 'activa')->count();
     }
 
     public function suscripcionesPorHistoria(): array
