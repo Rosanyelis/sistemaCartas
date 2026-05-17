@@ -62,6 +62,7 @@ jobs:
             # ejemplo: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
             composer install  --prefer-dist --optimize-autoloader --no-interaction
             #php artisan migrate:fresh --force --seed
+            php artisan migrate --force
 
             # Rutas TypeScript de Wayfinder (resources/js/routes está en .gitignore)
             php artisan wayfinder:generate --no-interaction
