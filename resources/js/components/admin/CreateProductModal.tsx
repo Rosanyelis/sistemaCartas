@@ -1,7 +1,7 @@
 import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useForm } from '@inertiajs/react';
-import type { ChangeEvent, FormEvent } from 'react';
+import type { ChangeEvent, FormEvent, MouseEvent } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
 import { ProductoMultimediaPanel } from '@/components/admin/create-product/ProductoMultimediaPanel';
@@ -82,8 +82,8 @@ interface CreateProductModalProps {
     categorias: CategoriaOption[];
     /** Si se indica, el modal carga el producto y envía PATCH al guardar */
     editingProductId?: number | null;
-    /** Tras guardar con éxito, abre el modal de taxonomía en la página (panel ya cerrado). */
-    onOpenTaxonomyAfterSave?: (kind: TaxonomyKind, context: { categoriaPadreId: number | null }) => void;
+    /** Abre el modal de taxonomía en la página (sin enviar el formulario). */
+    onOpenTaxonomy?: (kind: TaxonomyKind, context: { categoriaPadreId: number | null }) => void;
 }
 
 export function CreateProductModal({
@@ -91,7 +91,7 @@ export function CreateProductModal({
     onClose,
     categorias,
     editingProductId = null,
-    onOpenTaxonomyAfterSave,
+    onOpenTaxonomy,
 }: CreateProductModalProps) {
     const rootId = useId();
     const descripcionLargaId = `${rootId}-descripcion-larga`;
@@ -384,7 +384,7 @@ export function CreateProductModal({
         setGalleryItems((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const submitProduct = (openTaxonomyAfterSave: TaxonomyKind | null = null) => {
+    const submitProduct = () => {
         if (loadingProduct || processing) {
             return;
         }
@@ -433,9 +433,6 @@ export function CreateProductModal({
             return next;
         });
 
-        const categoriaPadreId =
-            data.producto_categoria_id === '' ? null : Number(data.producto_categoria_id);
-
         const visitOptions = {
             preserveScroll: true,
             preserveState: true,
@@ -444,9 +441,6 @@ export function CreateProductModal({
                 setRichEditors(null);
                 reset();
                 onClose();
-                if (openTaxonomyAfterSave && onOpenTaxonomyAfterSave) {
-                    onOpenTaxonomyAfterSave(openTaxonomyAfterSave, { categoriaPadreId });
-                }
             },
         };
 
@@ -464,11 +458,15 @@ export function CreateProductModal({
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
-        submitProduct(null);
+        submitProduct();
     };
 
-    const handleOpenTaxonomy = (kind: TaxonomyKind) => {
-        submitProduct(kind);
+    const handleOpenTaxonomy = (kind: TaxonomyKind, e: MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const categoriaPadreId =
+            data.producto_categoria_id === '' ? null : Number(data.producto_categoria_id);
+        onOpenTaxonomy?.(kind, { categoriaPadreId });
     };
 
     const handleClose = () => {
@@ -573,7 +571,7 @@ export function CreateProductModal({
                                         <button
                                             type="button"
                                             title="Gestionar categorías"
-                                            onClick={() => handleOpenTaxonomy('categoria')}
+                                            onClick={(e) => handleOpenTaxonomy('categoria', e)}
                                             className="inline-flex size-7 items-center justify-center  text-[#1B3D6D] hover:bg-[#F9FAFB]"
                                         >
                                             <FontAwesomeIcon icon={faPencil} className="text-[11px]" />
@@ -608,7 +606,7 @@ export function CreateProductModal({
                                         <button
                                             type="button"
                                             title="Gestionar subcategorías (elige la categoría en el modal)"
-                                            onClick={() => handleOpenTaxonomy('subcategoria')}
+                                            onClick={(e) => handleOpenTaxonomy('subcategoria', e)}
                                             className="inline-flex size-7 items-center justify-center rounded border border-[#E5E7EB] text-[#1B3D6D] hover:bg-[#F9FAFB]"
                                         >
                                             <FontAwesomeIcon icon={faPencil} className="text-[11px]" />

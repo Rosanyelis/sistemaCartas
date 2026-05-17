@@ -105,6 +105,13 @@ export default function Products({ productos, categorias, filters }: Props) {
         applyFilters({ categoria_id: categoriaId });
     };
 
+    const handleOpenTaxonomy = (kind: TaxonomyKind, ctx: { categoriaPadreId: number | null }) => {
+        setTaxonomyCategoriaPadreId(ctx.categoriaPadreId);
+        setIsCreateModalOpen(false);
+        setEditProductId(null);
+        setTaxonomyModal(kind);
+    };
+
     const goToPage = (page: number) => {
         router.get(
             adminProductosList.url({ query: { ...filters, page: String(page) } }),
@@ -472,10 +479,7 @@ export default function Products({ productos, categorias, filters }: Props) {
                     setEditProductId(null);
                 }}
                 categorias={categorias}
-                onOpenTaxonomyAfterSave={(kind, ctx) => {
-                    setTaxonomyCategoriaPadreId(ctx.categoriaPadreId);
-                    setTaxonomyModal(kind);
-                }}
+                onOpenTaxonomy={handleOpenTaxonomy}
             />
 
             <ProductoTaxonomyManageModal
