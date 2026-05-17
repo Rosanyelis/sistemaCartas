@@ -138,6 +138,13 @@ export default function Stories({ historias, categorias, filters }: Props) {
         applyFilters({ categoria_id: categoriaId });
     };
 
+    const handleOpenCategoriaManage = () => {
+        setIsCreateModalOpen(false);
+        setIsEditModalOpen(false);
+        setSelectedStory(null);
+        setIsCategoriaManageOpen(true);
+    };
+
     const goToPage = (page: number) => {
         router.get(
             adminHistoriasList.url({ query: { ...filters, page: String(page) } }),
@@ -477,7 +484,7 @@ export default function Stories({ historias, categorias, filters }: Props) {
                     isOpen={isCreateModalOpen}
                     onClose={() => setIsCreateModalOpen(false)}
                     categorias={categorias}
-                    onOpenCategoriaManage={() => setIsCategoriaManageOpen(true)}
+                    onOpenCategoriaManage={handleOpenCategoriaManage}
                 />
 
                 <CreateStoryModal
@@ -488,7 +495,7 @@ export default function Stories({ historias, categorias, filters }: Props) {
                     }}
                     categorias={categorias}
                     storyToEdit={selectedStory}
-                    onOpenCategoriaManage={() => setIsCategoriaManageOpen(true)}
+                    onOpenCategoriaManage={handleOpenCategoriaManage}
                 />
 
                 <HistoriaCategoriaManageModal

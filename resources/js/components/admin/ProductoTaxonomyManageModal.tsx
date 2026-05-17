@@ -457,6 +457,7 @@ export function ProductoTaxonomyManageModal({
             </div>
 
             <ConfirmDialog
+                elevated
                 isOpen={deleteTarget !== null}
                 onOpenChange={(open) => !open && setDeleteTarget(null)}
                 title={deleteTitle}

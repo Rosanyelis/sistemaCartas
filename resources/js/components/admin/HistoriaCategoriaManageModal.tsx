@@ -334,6 +334,7 @@ export function HistoriaCategoriaManageModal({ isOpen, onClose, onSaved }: Histo
                 </div>
             </div>
             <ConfirmDialog
+                elevated
                 isOpen={deleteTarget !== null}
                 onOpenChange={(open) => !open && setDeleteTarget(null)}
                 title="Eliminar categoría"
