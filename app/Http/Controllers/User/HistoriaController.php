@@ -77,11 +77,11 @@ class HistoriaController extends Controller
      */
     private function baseTienda(Request $request): Builder
     {
-        $query = Historia::query()->where('estado', 'activo');
+        $query = Historia::query()->where('estado', 'activo')->with('historiaCategoria');
 
         $categoria = $request->query('categoria');
         if (is_string($categoria) && $categoria !== '' && $categoria !== 'Todas') {
-            $query->where('categoria', $categoria);
+            $query->whereHas('historiaCategoria', fn (Builder $q) => $q->where('nombre', $categoria));
         }
 
         if ($request->filled('search')) {
@@ -103,9 +103,11 @@ class HistoriaController extends Controller
     {
         $existentes = Historia::query()
             ->where('estado', 'activo')
+            ->whereHas('historiaCategoria')
+            ->join('historia_categorias', 'historias.historia_categoria_id', '=', 'historia_categorias.id')
+            ->orderBy('historia_categorias.nombre')
             ->distinct()
-            ->orderBy('categoria')
-            ->pluck('categoria')
+            ->pluck('historia_categorias.nombre')
             ->filter(fn ($c) => is_string($c) && $c !== '')
             ->values()
             ->all();

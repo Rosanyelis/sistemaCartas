@@ -1,6 +1,6 @@
 import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { router, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
@@ -10,7 +10,7 @@ import { normalizeDetalleInclusiones } from '@/components/admin/create-story/for
 import { HistoriaDetalleInclusionsEditor } from '@/components/admin/create-story/HistoriaDetalleInclusionsEditor';
 import { LimitedWordRichEditor } from '@/components/admin/create-story/LimitedWordRichEditor';
 import type { GallerySlot, HistoriaDetalleInclusionRow } from '@/components/admin/create-story/types';
-import { ProductoTaxonomyManageModal } from '@/components/admin/ProductoTaxonomyManageModal';
+import type { TaxonomyKind } from '@/components/admin/ProductoTaxonomyManageModal';
 import { HISTORIA_DETALLE_INCLUSION_ICONS } from '@/constants/historia-detalle-inclusion-icons';
 import {
     formulario as productoFormulario,
@@ -82,6 +82,8 @@ interface CreateProductModalProps {
     categorias: CategoriaOption[];
     /** Si se indica, el modal carga el producto y envía PATCH al guardar */
     editingProductId?: number | null;
+    /** Tras guardar con éxito, abre el modal de taxonomía en la página (panel ya cerrado). */
+    onOpenTaxonomyAfterSave?: (kind: TaxonomyKind, context: { categoriaPadreId: number | null }) => void;
 }
 
 export function CreateProductModal({
@@ -89,6 +91,7 @@ export function CreateProductModal({
     onClose,
     categorias,
     editingProductId = null,
+    onOpenTaxonomyAfterSave,
 }: CreateProductModalProps) {
     const rootId = useId();
     const descripcionLargaId = `${rootId}-descripcion-larga`;
@@ -121,11 +124,10 @@ export function CreateProductModal({
 
     const [subRows, setSubRows] = useState<SubRow[]>([]);
     const [subcategoriasLoading, setSubcategoriasLoading] = useState(false);
-    const [taxonomyModal, setTaxonomyModal] = useState<'categoria' | 'subcategoria' | null>(null);
     const [loadingProduct, setLoadingProduct] = useState(false);
     const [loadError, setLoadError] = useState<string | null>(null);
     const [imgPreview, setImgPreview] = useState<string | null>(null);
-    const [videoPreview, setVideoPreview] = useState<string | null>(null);
+    const [stockInput, setStockInput] = useState('0');
     const [galleryItems, setGalleryItems] = useState<GallerySlot[]>([]);
     const [richEditors, setRichEditors] = useState<{
         seed: number;
@@ -220,7 +222,7 @@ export function CreateProductModal({
             openCycleRef.current += 1;
             reset();
             setImgPreview(null);
-            setVideoPreview(null);
+            setStockInput('0');
             setGalleryItems([]);
             setLoadError(null);
             setLoadingProduct(false);
@@ -275,7 +277,7 @@ export function CreateProductModal({
                     estado: payload.estado === 'pausado' ? 'pausado' : 'activo',
                 });
                 setImgPreview(payload.imagen || null);
-                setVideoPreview(payload.video || null);
+                setStockInput(String(payload.stock ?? 0));
                 const extras = (payload.galeria ?? []).filter((g) => !g.es_principal);
                 setGalleryItems(
                     extras.map((g) => ({
@@ -314,11 +316,10 @@ export function CreateProductModal({
             document.body.style.overflow = 'unset';
             reset();
             setSubRows([]);
-            setTaxonomyModal(null);
             setLoadError(null);
             setLoadingProduct(false);
             setImgPreview(null);
-            setVideoPreview(null);
+            setStockInput('0');
             setGalleryItems([]);
             setRichEditors(null);
         }
@@ -328,21 +329,17 @@ export function CreateProductModal({
         };
     }, [isOpen, reset]);
 
-    const handleFileChange = (e: ChangeEvent<HTMLInputElement>, field: 'imagen' | 'video') => {
+    const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
 
         if (!file) {
             return;
         }
 
-        setData(field, file);
+        setData('imagen', file);
         const reader = new FileReader();
         reader.onloadend = () => {
-            if (field === 'imagen') {
-                setImgPreview(reader.result as string);
-            } else {
-                setVideoPreview(reader.result as string);
-            }
+            setImgPreview(reader.result as string);
         };
         reader.readAsDataURL(file);
     };
@@ -387,10 +384,8 @@ export function CreateProductModal({
         setGalleryItems((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
-
-        if (loadingProduct) {
+    const submitProduct = (openTaxonomyAfterSave: TaxonomyKind | null = null) => {
+        if (loadingProduct || processing) {
             return;
         }
 
@@ -414,8 +409,10 @@ export function CreateProductModal({
 
                     return item;
                 });
+            const parsedStock = stockInput === '' ? 0 : parseInt(stockInput, 10);
             const next = {
                 ...form,
+                stock: Number.isFinite(parsedStock) ? parsedStock : 0,
                 galeria: files,
                 detalle: JSON.stringify(detalleCleaned),
             };
@@ -436,6 +433,9 @@ export function CreateProductModal({
             return next;
         });
 
+        const categoriaPadreId =
+            data.producto_categoria_id === '' ? null : Number(data.producto_categoria_id);
+
         const visitOptions = {
             preserveScroll: true,
             preserveState: true,
@@ -444,6 +444,9 @@ export function CreateProductModal({
                 setRichEditors(null);
                 reset();
                 onClose();
+                if (openTaxonomyAfterSave && onOpenTaxonomyAfterSave) {
+                    onOpenTaxonomyAfterSave(openTaxonomyAfterSave, { categoriaPadreId });
+                }
             },
         };
 
@@ -457,6 +460,15 @@ export function CreateProductModal({
             ...visitOptions,
             forceFormData: true,
         });
+    };
+
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        submitProduct(null);
+    };
+
+    const handleOpenTaxonomy = (kind: TaxonomyKind) => {
+        submitProduct(kind);
     };
 
     const handleClose = () => {
@@ -561,7 +573,7 @@ export function CreateProductModal({
                                         <button
                                             type="button"
                                             title="Gestionar categorías"
-                                            onClick={() => setTaxonomyModal('categoria')}
+                                            onClick={() => handleOpenTaxonomy('categoria')}
                                             className="inline-flex size-7 items-center justify-center  text-[#1B3D6D] hover:bg-[#F9FAFB]"
                                         >
                                             <FontAwesomeIcon icon={faPencil} className="text-[11px]" />
@@ -596,7 +608,7 @@ export function CreateProductModal({
                                         <button
                                             type="button"
                                             title="Gestionar subcategorías (elige la categoría en el modal)"
-                                            onClick={() => setTaxonomyModal('subcategoria')}
+                                            onClick={() => handleOpenTaxonomy('subcategoria')}
                                             className="inline-flex size-7 items-center justify-center rounded border border-[#E5E7EB] text-[#1B3D6D] hover:bg-[#F9FAFB]"
                                         >
                                             <FontAwesomeIcon icon={faPencil} className="text-[11px]" />
@@ -680,8 +692,7 @@ export function CreateProductModal({
                                             />
                                             {errors.impuesto ? <span className="text-[11px] text-red-500">{errors.impuesto}</span> : (
                                                 <span className="text-[11px] text-[#9CA3AF]">
-                                                    El cobro en tienda usa el IVA de TIENDA_IVA_PERCENTAGE (16&nbsp;%
-                                                    por defecto).
+                                                    IVA aplicado en tienda: 16&nbsp;%
                                                 </span>
                                             )}
                                         </div>
@@ -746,8 +757,9 @@ export function CreateProductModal({
                                             </label>
                                             <input
                                                 type="number"
-                                                value={data.stock}
-                                                onChange={(e) => setData('stock', parseInt(e.target.value, 10) || 0)}
+                                                min={0}
+                                                value={stockInput}
+                                                onChange={(e) => setStockInput(e.target.value)}
                                                 placeholder="20"
                                                 className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none ${
                                                     errors.stock ? 'border-red-500' : 'border-[#E5E7EB]'
@@ -760,7 +772,6 @@ export function CreateProductModal({
 
                                 <ProductoMultimediaPanel
                                     imgPreview={imgPreview}
-                                    videoPreview={videoPreview}
                                     galleryPreviews={galleryItems.map((g) => g.preview)}
                                     galleryPreviewKeys={galleryItems.map((g) =>
                                         g.kind === 'existente' ? `e-${g.id}` : g.clientKey,
@@ -769,19 +780,16 @@ export function CreateProductModal({
                                     estado={data.estado}
                                     estadoRadioName={estadoRadioName}
                                     onEstadoChange={(v) => setData('estado', v)}
-                                    onImageChange={(ev) => handleFileChange(ev, 'imagen')}
-                                    onVideoChange={(ev) => handleFileChange(ev, 'video')}
+                                    onImageChange={handleImageChange}
                                     onGalleryChange={handleGalleryChange}
                                     onRemoveGalleryImage={removeGalleryImage}
                                     errors={{
                                         imagen: errors.imagen,
-                                        video: errors.video,
                                         galeria: errors.galeria,
                                         estado: errors.estado,
                                     }}
                                     fieldIds={{
                                         imagen: `${rootId}-imagen`,
-                                        video: `${rootId}-video`,
                                     }}
                                 />
                             </div>
@@ -807,33 +815,6 @@ export function CreateProductModal({
                     </div>
                 </form>
             </AdminFormSidePanel>
-
-            <ProductoTaxonomyManageModal
-                isOpen={taxonomyModal === 'categoria'}
-                onClose={() => setTaxonomyModal(null)}
-                kind="categoria"
-                onSaved={() => router.reload({ only: ['categorias'] })}
-            />
-            <ProductoTaxonomyManageModal
-                isOpen={taxonomyModal === 'subcategoria'}
-                onClose={() => setTaxonomyModal(null)}
-                kind="subcategoria"
-                categorias={categorias}
-                categoriaPadreId={categoriaIdNum}
-                onSaved={() => {
-                    void fetch(
-                        productoSubcategoriasIndex.url({
-                            query: {
-                                producto_categoria_id: String(data.producto_categoria_id),
-                                per_page: 200,
-                            },
-                        }),
-                        { credentials: 'same-origin', headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } },
-                    )
-                        .then((r) => r.json())
-                        .then((j: { data?: SubRow[] }) => setSubRows(Array.isArray(j.data) ? j.data : []));
-                }}
-            />
 
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 6px; }

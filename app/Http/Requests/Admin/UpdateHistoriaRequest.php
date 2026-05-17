@@ -52,7 +52,7 @@ class UpdateHistoriaRequest extends FormRequest
             'detalle.*.icon' => ['required', 'string', Rule::in(HistoriaDetalleInclusionIcon::allowed())],
             'detalle.*.title' => ['required', 'string', 'max:255'],
             'detalle.*.description' => ['nullable', 'string', 'max:500'],
-            'categoria' => ['required', 'string', 'max:255'],
+            'historia_categoria_id' => ['required', 'integer', 'exists:historia_categorias,id'],
             'autor' => ['required', 'string', 'max:255'],
             'precio_base' => ['required', 'numeric', 'min:0'],
             'precio_promocional' => ['nullable', 'numeric', 'min:0'],

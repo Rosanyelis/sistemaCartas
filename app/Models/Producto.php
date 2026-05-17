@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Database\Factories\ProductoFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -50,6 +51,30 @@ class Producto extends Model
             'impuesto' => 'decimal:2',
             'stock' => 'integer',
         ];
+    }
+
+    /**
+     * @param  Builder<Producto>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Producto>
+     */
+    public function scopeAdminFilters(Builder $query, array $filters): Builder
+    {
+        if (! empty($filters['search'])) {
+            $search = (string) $filters['search'];
+            $query->where(function (Builder $q) use ($search): void {
+                $q->where('nombre', 'like', "%{$search}%")
+                    ->orWhere('codigo', 'like', "%{$search}%")
+                    ->orWhereHas('productoSubcategoria', fn (Builder $s) => $s->where('nombre', 'like', "%{$search}%"))
+                    ->orWhereHas('productoCategoria', fn (Builder $c) => $c->where('nombre', 'like', "%{$search}%"));
+            });
+        }
+
+        if (! empty($filters['categoria_id'])) {
+            $query->where('producto_categoria_id', (int) $filters['categoria_id']);
+        }
+
+        return $query;
     }
 
     /**

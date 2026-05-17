@@ -147,7 +147,7 @@ export function HistoriaDetalleInclusionsEditor({
                                     </SelectTrigger>
                                     <SelectContent
                                         position="popper"
-                                        className="max-h-[min(280px,50vh)] w-[var(--radix-select-trigger-width)] border-[#DFE4EA]"
+                                        className="max-h-[min(280px,50vh)] w-[var(--radix-select-trigger-width)] border-[#DFE4EA] bg-white text-[#1B3D6D] dark:bg-white dark:text-[#1B3D6D]"
                                         sideOffset={4}
                                     >
                                         {HISTORIA_DETALLE_INCLUSION_ICONS.map((name) => {
@@ -158,7 +158,7 @@ export function HistoriaDetalleInclusionsEditor({
                                                     key={name}
                                                     value={name}
                                                     textValue={name}
-                                                    className="cursor-pointer py-2 pl-2 pr-8 text-[13px] text-[#1B3D6D] focus:bg-[#1B3D6D]/8"
+                                                    className="cursor-pointer bg-white py-2 pl-2 pr-8 text-[13px] text-[#1B3D6D] focus:bg-[#1B3D6D]/8 dark:bg-white dark:text-[#1B3D6D]"
                                                 >
                                                     <IconOption
                                                         className="size-[18px] shrink-0 text-[#1B3D6D]"

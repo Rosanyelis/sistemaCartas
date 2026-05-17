@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use Database\Factories\HistoriaFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -26,7 +28,7 @@ class Historia extends Model
         'descripcion_corta',
         'descripcion_larga',
         'detalle',
-        'categoria',
+        'historia_categoria_id',
         'autor',
         'precio_base',
         'precio_promocional',
@@ -60,6 +62,45 @@ class Historia extends Model
             'fecha_publicacion' => 'datetime',
             'duracion_meses' => 'integer',
         ];
+    }
+
+    /**
+     * @return BelongsTo<HistoriaCategoria, $this>
+     */
+    public function historiaCategoria(): BelongsTo
+    {
+        return $this->belongsTo(HistoriaCategoria::class, 'historia_categoria_id');
+    }
+
+    /**
+     * @param  Builder<Historia>  $query
+     * @param  array<string, mixed>  $filters
+     * @return Builder<Historia>
+     */
+    public function scopeAdminFilters(Builder $query, array $filters): Builder
+    {
+        if (! empty($filters['search'])) {
+            $search = (string) $filters['search'];
+            $query->where(function (Builder $q) use ($search): void {
+                $q->where('nombre', 'like', "%{$search}%")
+                    ->orWhere('codigo', 'like', "%{$search}%")
+                    ->orWhere('autor', 'like', "%{$search}%");
+            });
+        }
+
+        if (! empty($filters['categoria_id'])) {
+            $query->where('historia_categoria_id', (int) $filters['categoria_id']);
+        }
+
+        if (! empty($filters['start_date'])) {
+            $query->whereDate('fecha_publicacion', '>=', $filters['start_date']);
+        }
+
+        if (! empty($filters['end_date'])) {
+            $query->whereDate('fecha_publicacion', '<=', $filters['end_date']);
+        }
+
+        return $query;
     }
 
     /**

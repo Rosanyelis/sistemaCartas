@@ -5,6 +5,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faFilter, faChevronDown, faChevronLeft, faChevronRight, faFileExcel, faPlus, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
 import { CreateProductModal } from '@/components/admin/CreateProductModal';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
+import { ProductoTaxonomyManageModal, type TaxonomyKind } from '@/components/admin/ProductoTaxonomyManageModal';
+import { buildExportQuery } from '@/lib/export-query';
+import { index as productoSubcategoriasIndex } from '@/routes/admin/taxonomia/producto-subcategorias';
 import { StockAdjuster } from '@/components/admin/StockAdjuster';
 import { productos as adminProductosList } from '@/routes/admin';
 import {
@@ -59,6 +62,8 @@ export default function Products({ productos, categorias, filters }: Props) {
     const [editProductId, setEditProductId] = useState<number | null>(null);
     const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
     const [adjustStockProduct, setAdjustStockProduct] = useState<Product | null>(null);
+    const [taxonomyModal, setTaxonomyModal] = useState<TaxonomyKind | null>(null);
+    const [taxonomyCategoriaPadreId, setTaxonomyCategoriaPadreId] = useState<number | null>(null);
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -252,9 +257,7 @@ export default function Products({ productos, categorias, filters }: Props) {
                             <button 
                                 onClick={() => {
                                     window.location.href = productosExport.url({
-                                        query: Object.fromEntries(
-                                            new URLSearchParams(filters as Record<string, string>),
-                                        ),
+                                        query: buildExportQuery(filters),
                                     });
                                 }}
                                 className="flex w-full md:w-auto justify-center items-center gap-2 rounded-[4px] md:rounded-md border border-[#1B3D6D] bg-white px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#F8F9FA] transition-colors"
@@ -469,6 +472,42 @@ export default function Products({ productos, categorias, filters }: Props) {
                     setEditProductId(null);
                 }}
                 categorias={categorias}
+                onOpenTaxonomyAfterSave={(kind, ctx) => {
+                    setTaxonomyCategoriaPadreId(ctx.categoriaPadreId);
+                    setTaxonomyModal(kind);
+                }}
+            />
+
+            <ProductoTaxonomyManageModal
+                isOpen={taxonomyModal === 'categoria'}
+                onClose={() => setTaxonomyModal(null)}
+                kind="categoria"
+                onSaved={() => router.reload({ only: ['categorias'] })}
+            />
+            <ProductoTaxonomyManageModal
+                isOpen={taxonomyModal === 'subcategoria'}
+                onClose={() => setTaxonomyModal(null)}
+                kind="subcategoria"
+                categorias={categorias}
+                categoriaPadreId={taxonomyCategoriaPadreId}
+                onSaved={() => {
+                    if (taxonomyCategoriaPadreId == null) {
+                        return;
+                    }
+
+                    void fetch(
+                        productoSubcategoriasIndex.url({
+                            query: {
+                                producto_categoria_id: String(taxonomyCategoriaPadreId),
+                                per_page: 200,
+                            },
+                        }),
+                        {
+                            credentials: 'same-origin',
+                            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                        },
+                    );
+                }}
             />
             
             <ConfirmDialog 

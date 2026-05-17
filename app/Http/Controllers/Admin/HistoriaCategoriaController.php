@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StoreHistoriaCategoriaRequest;
+use App\Models\HistoriaCategoria;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+
+class HistoriaCategoriaController extends Controller
+{
+    public function index(Request $request): JsonResponse
+    {
+        Gate::authorize('viewAny', HistoriaCategoria::class);
+
+        $perPage = max(1, min(50, $request->integer('per_page', 10)));
+
+        $paginator = HistoriaCategoria::query()
+            ->withCount('historias')
+            ->orderBy('nombre')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        return response()->json($paginator);
+    }
+
+    public function store(StoreHistoriaCategoriaRequest $request): JsonResponse
+    {
+        Gate::authorize('create', HistoriaCategoria::class);
+
+        $categoria = HistoriaCategoria::query()->create($request->validated());
+
+        return response()->json([
+            'id' => $categoria->id,
+            'nombre' => $categoria->nombre,
+        ], 201);
+    }
+
+    public function destroy(HistoriaCategoria $historiaCategoria): JsonResponse
+    {
+        Gate::authorize('delete', $historiaCategoria);
+
+        if ($historiaCategoria->historias()->exists()) {
+            return response()->json([
+                'message' => 'No se puede eliminar la categoría porque tiene historias asociadas.',
+            ], 422);
+        }
+
+        $historiaCategoria->delete();
+
+        return response()->json(null, 204);
+    }
+}

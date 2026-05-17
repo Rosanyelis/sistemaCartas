@@ -1,3 +1,5 @@
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useForm } from '@inertiajs/react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
@@ -10,11 +12,14 @@ import { LimitedWordRichEditor } from './create-story/LimitedWordRichEditor';
 import type { GallerySlot, HistoriaParaFormulario } from './create-story/types';
 import { store as historiasStore, update as historiasUpdate } from '@/routes/admin/historias';
 
+type CategoriaOption = { id: number; nombre: string };
+
 interface CreateStoryModalProps {
     isOpen: boolean;
     onClose: () => void;
-    categorias: string[];
+    categorias: CategoriaOption[];
     storyToEdit?: HistoriaParaFormulario | null;
+    onOpenCategoriaManage?: () => void;
 }
 
 const inputClass = (hasError: boolean) =>
@@ -24,10 +29,15 @@ const inputClass = (hasError: boolean) =>
  * Modal crear/editar historia: estado con Inertia `useForm`, secciones en subcomponentes
  * y descripción larga con editor enriquecido (HTML). «Qué incluye cada envío» se edita como lista JSON en `detalle`.
  */
-export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: CreateStoryModalProps) {
+export function CreateStoryModal({
+    isOpen,
+    onClose,
+    categorias,
+    storyToEdit,
+    onOpenCategoriaManage,
+}: CreateStoryModalProps) {
     const rootId = useId();
     const descripcionLargaId = `${rootId}-descripcion-larga`;
-    const categoriaListId = `${rootId}-categorias-datalist`;
     const estadoRadioName = `${rootId}-estado`;
     const destacadaRadioName = `${rootId}-destacada`;
 
@@ -148,9 +158,7 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
         setGalleryItems((prev) => prev.filter((_, i) => i !== index));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
+    const submitHistoria = () => {
         transform((form) => {
             const dm = parseInt(String(form.duracion_meses), 10);
             const duracion_meses =
@@ -198,28 +206,35 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
             return next;
         });
 
-        if (storyToEdit?.id != null) {
-            post(`/admin/historias/${storyToEdit.id}`, {
-                preserveScroll: true,
-                forceFormData: true,
-                onSuccess: () => {
-                    setRichEditors(null);
-                    reset();
-                    onClose();
-                },
-            });
-
-            return;
-        }
-
-        post(historiasStore.url(), {
+        const visitOptions = {
             preserveScroll: true,
+            preserveState: true,
+            forceFormData: true,
             onSuccess: () => {
                 setRichEditors(null);
                 reset();
                 onClose();
             },
-        });
+        };
+
+        if (storyToEdit?.id != null) {
+            post(historiasUpdate.url(storyToEdit.id), visitOptions);
+
+            return;
+        }
+
+        post(historiasStore.url(), visitOptions);
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        submitHistoria();
+    };
+
+    const handleOpenCategoriaManage = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onOpenCategoriaManage?.();
     };
 
     const handleClose = () => {
@@ -300,25 +315,38 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                 />
 
                                 <div className="flex flex-col gap-1.5">
-                                    <label htmlFor={`${rootId}-categoria`} className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Categoría<span className="text-[#EF4444]">*</span>
-                                    </label>
-                                    <input
+                                    <div className="flex items-center gap-2">
+                                        <label htmlFor={`${rootId}-categoria`} className="text-[13px] font-semibold text-[#1B3D6D]">
+                                            Categoría<span className="text-[#EF4444]">*</span>
+                                        </label>
+                                        <button
+                                            type="button"
+                                            title="Gestionar categorías"
+                                            onClick={handleOpenCategoriaManage}
+                                            className="inline-flex size-7 items-center justify-center text-[#1B3D6D] hover:bg-[#F9FAFB]"
+                                        >
+                                            <FontAwesomeIcon icon={faPencil} className="text-[11px]" />
+                                        </button>
+                                    </div>
+                                    <select
                                         id={`${rootId}-categoria`}
-                                        type="text"
-                                        list={categoriaListId}
-                                        value={data.categoria}
-                                        onChange={(ev) => setData('categoria', ev.target.value)}
-                                        placeholder="Ficción"
-                                        className={inputClass(Boolean(errors.categoria))}
-                                        autoComplete="off"
-                                    />
-                                    <datalist id={categoriaListId}>
+                                        value={data.historia_categoria_id === '' ? '' : String(data.historia_categoria_id)}
+                                        onChange={(ev) => {
+                                            const v = ev.target.value;
+                                            setData('historia_categoria_id', v === '' ? '' : v);
+                                        }}
+                                        className={inputClass(Boolean(errors.historia_categoria_id))}
+                                    >
+                                        <option value="">Seleccione una categoría</option>
                                         {categorias.map((c) => (
-                                            <option key={c} value={c} />
+                                            <option key={c.id} value={String(c.id)}>
+                                                {c.nombre}
+                                            </option>
                                         ))}
-                                    </datalist>
-                                    {errors.categoria && <span className="text-red-500 text-[11px]">{errors.categoria}</span>}
+                                    </select>
+                                    {errors.historia_categoria_id && (
+                                        <span className="text-red-500 text-[11px]">{errors.historia_categoria_id}</span>
+                                    )}
                                 </div>
 
                                 <div className="flex flex-col gap-1.5">
@@ -420,8 +448,7 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                         <span className="text-red-500 text-[11px]">{errors.impuesto}</span>
                                     ) : (
                                         <span className="text-[11.5px] text-[#A0A0A0]">
-                                            El cobro en tienda usa el IVA definido en TIENDA_IVA_PERCENTAGE
-                                            (16&nbsp;% por defecto).
+                                            IVA aplicado en tienda: 16&nbsp;%
                                         </span>
                                     )}
                                 </div>

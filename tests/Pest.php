@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\HistoriaCategoria;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,7 +48,7 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function historiaCategoriaId(string $nombre): int
 {
-    // ..
+    return HistoriaCategoria::query()->firstOrCreate(['nombre' => $nombre])->id;
 }

@@ -1,19 +1,21 @@
 <?php
 
 use App\Models\Historia;
+use App\Models\HistoriaCategoria;
 use Inertia\Testing\AssertableInertia as Assert;
 
 test('el catálogo de historias devuelve listado paginado y destacadas', function (): void {
     Historia::factory()->count(13)->activo()->create(['destacada' => 'no']);
+    $misterioId = HistoriaCategoria::factory()->create(['nombre' => 'Misterio'])->id;
     Historia::factory()->activo()->create([
         'slug' => 'historia-destacada-a',
         'destacada' => 'si',
-        'categoria' => 'Misterio',
+        'historia_categoria_id' => $misterioId,
     ]);
     Historia::factory()->activo()->create([
         'slug' => 'historia-destacada-b',
         'destacada' => 'si',
-        'categoria' => 'Misterio',
+        'historia_categoria_id' => $misterioId,
     ]);
 
     $this->get(route('historias'))
@@ -42,12 +44,12 @@ test('el catálogo no incluye historias eliminadas ni pausadas', function (): vo
 test('filtrar por categoría restringe el listado y las destacadas', function (): void {
     Historia::factory()->activo()->create([
         'slug' => 'aventura-1',
-        'categoria' => 'Aventura',
+        'historia_categoria_id' => HistoriaCategoria::factory()->create(['nombre' => 'Aventura'])->id,
         'destacada' => 'si',
     ]);
     Historia::factory()->activo()->create([
         'slug' => 'romance-1',
-        'categoria' => 'Romance',
+        'historia_categoria_id' => HistoriaCategoria::factory()->create(['nombre' => 'Romance'])->id,
         'destacada' => 'si',
     ]);
 

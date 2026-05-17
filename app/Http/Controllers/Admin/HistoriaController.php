@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreHistoriaRequest;
 use App\Http\Requests\Admin\UpdateHistoriaRequest;
 use App\Models\Historia;
+use App\Models\HistoriaCategoria;
 use App\Services\Admin\ExportService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,36 +26,27 @@ class HistoriaController extends Controller
     {
         Gate::authorize('viewAny', Historia::class);
 
-        $query = Historia::query();
+        $filters = $request->only(['search', 'categoria_id', 'start_date', 'end_date']);
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'like', "%{$search}%")
-                    ->orWhere('codigo', 'like', "%{$search}%")
-                    ->orWhere('autor', 'like', "%{$search}%");
+        $historias = Historia::query()
+            ->adminFilters($filters)
+            ->latest()
+            ->with(['galeria', 'variantes', 'historiaCategoria'])
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function (Historia $historia) {
+                return array_merge($historia->toArray(), [
+                    'categoria' => $historia->historiaCategoria?->nombre ?? '',
+                    'historia_categoria_id' => $historia->historia_categoria_id,
+                ]);
             });
-        }
 
-        if ($request->filled('categoria')) {
-            $query->where('categoria', $request->input('categoria'));
-        }
-
-        if ($request->filled('start_date')) {
-            $query->whereDate('fecha_publicacion', '>=', $request->input('start_date'));
-        }
-
-        if ($request->filled('end_date')) {
-            $query->whereDate('fecha_publicacion', '<=', $request->input('end_date'));
-        }
-
-        $historias = $query->latest()->with(['galeria', 'variantes'])->paginate(10)->withQueryString();
-        $categorias = Historia::query()->distinct()->pluck('categoria')->toArray();
+        $categorias = HistoriaCategoria::query()->orderBy('nombre')->get(['id', 'nombre']);
 
         return Inertia::render('admin/stories', [
             'historias' => $historias,
             'categorias' => $categorias,
-            'filters' => $request->only(['search', 'categoria', 'start_date', 'end_date']),
+            'filters' => $filters,
         ]);
     }
 
@@ -367,7 +359,7 @@ class HistoriaController extends Controller
     {
         Gate::authorize('viewAny', Historia::class);
 
-        $filters = $request->only(['search', 'categoria', 'start_date', 'end_date']);
+        $filters = $request->only(['search', 'categoria_id', 'start_date', 'end_date']);
         $fileName = 'historias_'.now()->format('Y_m_d_His').'.xlsx';
 
         return $exportService->export(HistoriasExport::class, $filters, $fileName);

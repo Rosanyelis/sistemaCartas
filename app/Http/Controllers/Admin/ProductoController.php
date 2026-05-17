@@ -28,36 +28,28 @@ class ProductoController extends Controller
     {
         Gate::authorize('viewAny', Producto::class);
 
-        $query = Producto::query()->with(['productoCategoria', 'productoSubcategoria']);
+        $filters = $request->only(['search', 'categoria_id']);
 
-        if ($request->filled('search')) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'like', "%{$search}%")
-                    ->orWhere('codigo', 'like', "%{$search}%")
-                    ->orWhereHas('productoSubcategoria', fn ($s) => $s->where('nombre', 'like', "%{$search}%"))
-                    ->orWhereHas('productoCategoria', fn ($c) => $c->where('nombre', 'like', "%{$search}%"));
+        $productos = Producto::query()
+            ->adminFilters($filters)
+            ->with(['productoCategoria', 'productoSubcategoria'])
+            ->latest()
+            ->paginate(10)
+            ->withQueryString()
+            ->through(function (Producto $p) {
+                return [
+                    'id' => $p->id,
+                    'nombre' => $p->nombre,
+                    'slug' => $p->slug,
+                    'codigo' => $p->codigo,
+                    'imagen' => $p->imagen,
+                    'categoria' => $p->productoCategoria?->nombre ?? '',
+                    'subcategoria' => $p->productoSubcategoria?->nombre,
+                    'precio' => $p->precio,
+                    'stock' => $p->stock,
+                    'estado' => $p->estado,
+                ];
             });
-        }
-
-        if ($request->filled('categoria_id')) {
-            $query->where('producto_categoria_id', $request->integer('categoria_id'));
-        }
-
-        $productos = $query->latest()->paginate(10)->withQueryString()->through(function (Producto $p) {
-            return [
-                'id' => $p->id,
-                'nombre' => $p->nombre,
-                'slug' => $p->slug,
-                'codigo' => $p->codigo,
-                'imagen' => $p->imagen,
-                'categoria' => $p->productoCategoria?->nombre ?? '',
-                'subcategoria' => $p->productoSubcategoria?->nombre,
-                'precio' => $p->precio,
-                'stock' => $p->stock,
-                'estado' => $p->estado,
-            ];
-        });
 
         $categorias = ProductoCategoria::query()->orderBy('nombre')->get(['id', 'nombre']);
 

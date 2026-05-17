@@ -14,41 +14,21 @@ class HistoriasExport implements FromQuery, WithHeadings, WithMapping
 
     public function query(): Builder
     {
-        $query = Historia::query();
-
-        if (! empty($this->filters['search'])) {
-            $search = $this->filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'like', "%{$search}%")
-                    ->orWhere('codigo', 'like', "%{$search}%");
-            });
-        }
-
-        if (! empty($this->filters['categoria'])) {
-            $query->where('categoria', $this->filters['categoria']);
-        }
-
-        if (! empty($this->filters['start_date']) && ! empty($this->filters['end_date'])) {
-            $query->whereBetween('created_at', [
-                $this->filters['start_date'].' 00:00:00',
-                $this->filters['end_date'].' 23:59:59',
-            ]);
-        }
-
-        return $query;
+        return Historia::query()
+            ->adminFilters($this->filters)
+            ->latest()
+            ->with('historiaCategoria');
     }
 
     public function headings(): array
     {
         return [
-            'ID',
             'Código',
-            'Nombre',
+            'Historia',
             'Categoría',
             'Autor',
-            'Precio Base',
+            'Precio',
             'Estado',
-            'Fecha Registro',
         ];
     }
 
@@ -58,14 +38,12 @@ class HistoriasExport implements FromQuery, WithHeadings, WithMapping
     public function map($historia): array
     {
         return [
-            $historia->id,
             $historia->codigo,
             $historia->nombre,
-            $historia->categoria,
+            $historia->historiaCategoria?->nombre ?? '',
             $historia->autor,
-            '$'.number_format($historia->precio_base, 2),
+            '$'.number_format((float) $historia->precio_base, 2),
             ucfirst($historia->estado),
-            $historia->created_at?->format('d/m/Y') ?? '-',
         ];
     }
 }

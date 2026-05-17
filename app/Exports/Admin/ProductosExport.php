@@ -14,37 +14,22 @@ class ProductosExport implements FromQuery, WithHeadings, WithMapping
 
     public function query(): Builder
     {
-        $query = Producto::query();
-
-        if (! empty($this->filters['search'])) {
-            $search = $this->filters['search'];
-            $query->where(function ($q) use ($search) {
-                $q->where('nombre', 'like', "%{$search}%")
-                    ->orWhere('codigo', 'like', "%{$search}%")
-                    ->orWhereHas('productoSubcategoria', fn ($s) => $s->where('nombre', 'like', "%{$search}%"))
-                    ->orWhereHas('productoCategoria', fn ($c) => $c->where('nombre', 'like', "%{$search}%"));
-            });
-        }
-
-        if (! empty($this->filters['categoria_id'])) {
-            $query->where('producto_categoria_id', $this->filters['categoria_id']);
-        }
-
-        return $query->with(['productoCategoria', 'productoSubcategoria']);
+        return Producto::query()
+            ->adminFilters($this->filters)
+            ->latest()
+            ->with(['productoCategoria', 'productoSubcategoria']);
     }
 
     public function headings(): array
     {
         return [
-            'ID',
             'Código',
-            'Nombre',
+            'Producto',
             'Categoría',
             'Subcategoría',
-            'Precio Base',
+            'Precio',
             'Stock',
             'Estado',
-            'Fecha Registro',
         ];
     }
 
@@ -54,7 +39,6 @@ class ProductosExport implements FromQuery, WithHeadings, WithMapping
     public function map($producto): array
     {
         return [
-            $producto->id,
             $producto->codigo,
             $producto->nombre,
             $producto->productoCategoria?->nombre ?? '-',
@@ -62,7 +46,6 @@ class ProductosExport implements FromQuery, WithHeadings, WithMapping
             '$'.number_format($producto->precio, 2),
             $producto->stock,
             ucfirst($producto->estado),
-            $producto->created_at?->format('d/m/Y') ?? '-',
         ];
     }
 }

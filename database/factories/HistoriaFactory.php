@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Historia;
+use App\Models\HistoriaCategoria;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -36,7 +37,7 @@ class HistoriaFactory extends Factory
                     'title' => 'Un detalle sorpresa',
                 ],
             ],
-            'categoria' => fake()->randomElement(['Aventura', 'Romance', 'Misterio', 'Ficción', 'Infantil']),
+            'historia_categoria_id' => HistoriaCategoria::factory(),
             'autor' => fake()->name(),
             'precio_base' => fake()->randomFloat(2, 50, 500),
             'precio_promocional' => fake()->optional(0.5)->randomFloat(2, 30, 400),

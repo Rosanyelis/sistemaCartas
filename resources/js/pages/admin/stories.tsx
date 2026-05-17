@@ -22,7 +22,11 @@ import {
 } from '@/routes/admin/historias';
 import type { HistoriaDetalleInclusionRow } from '@/components/admin/create-story/types';
 import { CreateStoryModal } from '@/components/admin/CreateStoryModal';
+import { HistoriaCategoriaManageModal } from '@/components/admin/HistoriaCategoriaManageModal';
+import { buildExportQuery } from '@/lib/export-query';
 import UserLayout from '@/layouts/user-layout';
+
+type CategoriaRow = { id: number; nombre: string };
 
 interface HistoriaGaleriaItem {
     id: number;
@@ -73,16 +77,19 @@ interface PaginatedData<T> {
 
 interface Props {
     historias: PaginatedData<Story>;
-    categorias: string[];
+    categorias: CategoriaRow[];
     filters: {
         search?: string;
-        categoria?: string;
+        categoria_id?: string;
+        start_date?: string;
+        end_date?: string;
     };
 }
 
 export default function Stories({ historias, categorias, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
-    const [selectedCategory, setSelectedCategory] = useState(filters.categoria || '');
+    const [selectedCategory, setSelectedCategory] = useState(filters.categoria_id || '');
+    const [isCategoriaManageOpen, setIsCategoriaManageOpen] = useState(false);
     const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
     const categoryMenuRef = useRef<HTMLDivElement>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -125,10 +132,10 @@ export default function Stories({ historias, categorias, filters }: Props) {
         applyFilters({ search: val });
     };
 
-    const handleCategorySelect = (cat: string) => {
-        setSelectedCategory(cat);
+    const handleCategorySelect = (categoriaId: string) => {
+        setSelectedCategory(categoriaId);
         setIsCategoryMenuOpen(false);
-        applyFilters({ categoria: cat });
+        applyFilters({ categoria_id: categoriaId });
     };
 
     const goToPage = (page: number) => {
@@ -227,8 +234,14 @@ export default function Stories({ historias, categorias, filters }: Props) {
                             {isCategoryMenuOpen && (
                                 <div className="absolute top-full right-0 mt-2 z-10 w-48 rounded-md border border-[#E5E7EB] bg-white py-1 shadow-lg">
                                     <button onClick={() => handleCategorySelect('')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Todas</button>
-                                    {categorias.map(cat => (
-                                        <button key={cat} onClick={() => handleCategorySelect(cat)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{cat}</button>
+                                    {categorias.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => handleCategorySelect(String(cat.id))}
+                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            {cat.nombre}
+                                        </button>
                                     ))}
                                 </div>
                             )}
@@ -241,15 +254,23 @@ export default function Stories({ historias, categorias, filters }: Props) {
                             >
                                 <FontAwesomeIcon icon={faFilter} className="text-[#A0A0A0]" />
                                 <span className="font-medium opacity-80 md:opacity-100">
-                                    {selectedCategory || 'Categoría'}
+                                    {selectedCategory
+                                        ? categorias.find((c) => String(c.id) === selectedCategory)?.nombre ?? 'Categoría'
+                                        : 'Categoría'}
                                 </span>
                                 <FontAwesomeIcon icon={faChevronDown} className={`text-[#A0A0A0] ml-1 text-[10px] md:text-xs transition-transform ${isCategoryMenuOpen ? 'rotate-180' : ''}`} />
                             </button>
                             {isCategoryMenuOpen && (
                                 <div className="absolute top-full left-0 mt-2 z-10 w-full md:w-48 rounded-md border border-[#E5E7EB] bg-white py-1 shadow-lg">
                                     <button onClick={() => handleCategorySelect('')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Todas</button>
-                                    {categorias.map(cat => (
-                                        <button key={cat} onClick={() => handleCategorySelect(cat)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">{cat}</button>
+                                    {categorias.map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => handleCategorySelect(String(cat.id))}
+                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                        >
+                                            {cat.nombre}
+                                        </button>
                                     ))}
                                 </div>
                             )}
@@ -260,9 +281,7 @@ export default function Stories({ historias, categorias, filters }: Props) {
                             <button 
                                 onClick={() => {
                                     window.location.href = historiasExport.url({
-                                        query: Object.fromEntries(
-                                            new URLSearchParams(filters as Record<string, string>),
-                                        ),
+                                        query: buildExportQuery(filters),
                                     });
                                 }}
                                 className="flex w-full md:w-auto justify-center items-center gap-2 rounded-[4px] md:rounded-md border border-[#1B3D6D] bg-white px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#F8F9FA] transition-colors"
@@ -454,20 +473,28 @@ export default function Stories({ historias, categorias, filters }: Props) {
             </div>
 
                 {/* Modals */}
-                <CreateStoryModal 
-                    isOpen={isCreateModalOpen} 
-                    onClose={() => setIsCreateModalOpen(false)} 
+                <CreateStoryModal
+                    isOpen={isCreateModalOpen}
+                    onClose={() => setIsCreateModalOpen(false)}
                     categorias={categorias}
+                    onOpenCategoriaManage={() => setIsCategoriaManageOpen(true)}
                 />
 
-                <CreateStoryModal 
-                    isOpen={isEditModalOpen} 
+                <CreateStoryModal
+                    isOpen={isEditModalOpen}
                     onClose={() => {
                         setIsEditModalOpen(false);
                         setSelectedStory(null);
-                    }} 
+                    }}
                     categorias={categorias}
                     storyToEdit={selectedStory}
+                    onOpenCategoriaManage={() => setIsCategoriaManageOpen(true)}
+                />
+
+                <HistoriaCategoriaManageModal
+                    isOpen={isCategoriaManageOpen}
+                    onClose={() => setIsCategoriaManageOpen(false)}
+                    onSaved={() => router.reload({ only: ['categorias'] })}
                 />
 
                 {isPreviewModalOpen && selectedStory && (

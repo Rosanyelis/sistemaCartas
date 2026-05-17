@@ -40,6 +40,7 @@ export interface HistoriaParaFormulario {
     /** JSON estructurado o, en datos legacy, HTML/string (se normaliza a filas en el formulario). */
     detalle?: HistoriaDetalleInclusionRow[] | string | null;
     categoria?: string;
+    historia_categoria_id?: number;
     autor?: string;
     precio_base?: string | number;
     precio_promocional?: string | number | null;
@@ -61,7 +62,7 @@ export interface HistoriaFormData {
     descripcion_corta: string;
     descripcion_larga: string;
     detalle: HistoriaDetalleInclusionRow[];
-    categoria: string;
+    historia_categoria_id: string | number;
     autor: string;
     precio_base: string;
     precio_promocional: string;

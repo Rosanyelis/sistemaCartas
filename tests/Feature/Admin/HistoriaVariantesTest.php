@@ -14,7 +14,7 @@ test('al crear una historia se persisten variantes con tipo y valor', function (
         'nombre' => 'Historia Test Variantes',
         'descripcion_corta' => 'Corta',
         'descripcion_larga' => $descripcionLarga,
-        'categoria' => 'Aventura',
+        'historia_categoria_id' => historiaCategoriaId('Aventura'),
         'autor' => 'Autor',
         'precio_base' => '10.50',
         'codigo' => $codigo,

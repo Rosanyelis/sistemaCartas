@@ -109,6 +109,9 @@ class HandleInertiaRequests extends Middleware
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
                 'warning' => $request->session()->get('warning'),
+                'open_historia_categoria_manage' => (bool) $request->session()->pull('open_historia_categoria_manage', false),
+                'open_producto_taxonomy' => $request->session()->pull('open_producto_taxonomy'),
+                'open_producto_taxonomy_categoria_id' => $request->session()->pull('open_producto_taxonomy_categoria_id'),
             ],
         ];
     }

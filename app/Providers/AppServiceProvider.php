@@ -3,12 +3,14 @@
 namespace App\Providers;
 
 use App\Models\Historia;
+use App\Models\HistoriaCategoria;
 use App\Models\Producto;
 use App\Models\ProductoCategoria;
 use App\Models\ProductoSubcategoria;
 use App\Models\StoreOrder;
 use App\Models\Suscripcion;
 use App\Models\User;
+use App\Policies\HistoriaCategoriaPolicy;
 use App\Policies\HistoriaPolicy;
 use App\Policies\ProductoCategoriaPolicy;
 use App\Policies\ProductoPolicy;
@@ -44,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Gate::policy(Historia::class, HistoriaPolicy::class);
+        Gate::policy(HistoriaCategoria::class, HistoriaCategoriaPolicy::class);
         Gate::policy(Producto::class, ProductoPolicy::class);
         Gate::policy(StoreOrder::class, StoreOrderPolicy::class);
         Gate::policy(ProductoCategoria::class, ProductoCategoriaPolicy::class);

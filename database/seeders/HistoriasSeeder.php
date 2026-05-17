@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Historia;
+use App\Models\HistoriaCategoria;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -105,29 +106,29 @@ class HistoriasSeeder extends Seeder
         ];
 
         foreach ($historias as $data) {
+            $categoriaNombre = $data['categoria'];
+            unset($data['categoria']);
+
+            $categoriaId = HistoriaCategoria::query()
+                ->where('nombre', $categoriaNombre)
+                ->value('id');
+
+            if ($categoriaId === null) {
+                $categoriaId = HistoriaCategoria::query()->create(['nombre' => $categoriaNombre])->id;
+            }
+
             $slug = Str::slug($data['nombre']);
 
             Historia::query()->updateOrCreate(
                 ['slug' => $slug],
                 [
-                    'nombre' => $data['nombre'],
-                    'codigo' => $data['codigo'],
+                    ...$data,
+                    'historia_categoria_id' => $categoriaId,
                     'imagen' => '/images/placeholder.svg',
                     'video' => null,
-                    'descripcion_corta' => $data['descripcion_corta'],
-                    'descripcion_larga' => $data['descripcion_larga'],
-                    'detalle' => $data['detalle'],
-                    'categoria' => $data['categoria'],
-                    'autor' => $data['autor'],
-                    'precio_base' => $data['precio_base'],
-                    'precio_promocional' => $data['precio_promocional'],
                     'impuesto' => 16.00,
                     'peso' => '0.3kg',
                     'dimensiones' => '20x14x2',
-                    'estado' => $data['estado'],
-                    'fecha_publicacion' => $data['fecha_publicacion'],
-                    'duracion_meses' => $data['duracion_meses'],
-                    'destacada' => $data['destacada'],
                 ],
             );
         }

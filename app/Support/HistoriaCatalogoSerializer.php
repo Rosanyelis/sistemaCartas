@@ -26,7 +26,7 @@ final class HistoriaCatalogoSerializer
             'desc' => $historia->descripcion_corta,
             'price' => 'Desde $'.$precioFmt,
             'img' => $historia->imagen ?: '/images/story_cover.png',
-            'categoria' => (string) ($historia->categoria ?? ''),
+            'categoria' => $historia->historiaCategoria?->nombre ?? '',
         ];
     }
 
@@ -38,7 +38,7 @@ final class HistoriaCatalogoSerializer
         return [
             'nombre' => $historia->nombre,
             'slug' => $historia->slug,
-            'categoria' => $historia->categoria,
+            'categoria' => $historia->historiaCategoria?->nombre ?? '',
             'descripcion_corta' => $historia->descripcion_corta,
             'descripcion_larga' => $historia->descripcion_larga,
             'detalle' => $historia->detalle ?? [],

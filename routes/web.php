@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ClienteController as AdminClienteController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\HistoriaCategoriaController as AdminHistoriaCategoriaController;
 use App\Http\Controllers\Admin\HistoriaController as AdminHistoriaController;
 use App\Http\Controllers\Admin\OrdenController as AdminOrdenController;
 use App\Http\Controllers\Admin\ProductoCategoriaController as AdminProductoCategoriaController;
@@ -151,6 +152,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('productos/{producto}/duplicate', [AdminProductoController::class, 'duplicate'])->name('productos.duplicate');
         Route::patch('productos/{producto}/toggle-status', [AdminProductoController::class, 'toggleStatus'])->name('productos.toggle-status');
         Route::patch('productos/{producto}/stock', [AdminProductoController::class, 'ajustarStock'])->name('productos.stock');
+
+        Route::get('taxonomia/historia-categorias', [AdminHistoriaCategoriaController::class, 'index'])->name('taxonomia.historia-categorias.index');
+        Route::post('taxonomia/historia-categorias', [AdminHistoriaCategoriaController::class, 'store'])->name('taxonomia.historia-categorias.store');
+        Route::delete('taxonomia/historia-categorias/{historia_categoria}', [AdminHistoriaCategoriaController::class, 'destroy'])->name('taxonomia.historia-categorias.destroy');
 
         Route::get('taxonomia/producto-categorias', [AdminProductoCategoriaController::class, 'index'])->name('taxonomia.producto-categorias.index');
         Route::post('taxonomia/producto-categorias', [AdminProductoCategoriaController::class, 'store'])->name('taxonomia.producto-categorias.store');

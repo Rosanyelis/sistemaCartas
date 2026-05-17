@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
 
         $this->call(TiposPagoSeeder::class);
         $this->call(ProductosSeeder::class);
+        $this->call(HistoriaCategoriasSeeder::class);
         $this->call(HistoriasSeeder::class);
         $this->call(ProductoGaleriasSeeder::class);
         $this->call(HistoriaGaleriasSeeder::class);
