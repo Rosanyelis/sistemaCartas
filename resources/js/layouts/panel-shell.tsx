@@ -123,7 +123,6 @@ export default function PanelShell({
                         className={`mt-auto space-y-1 pt-6 text-center font-['Inter'] text-[8.5px] text-white transition-all duration-300 ${!isSidebarOpen ? 'pointer-events-none scale-75 opacity-0' : 'opacity-100'}`}
                     >
                         <p>© Historias por correo</p>
-                        <div className="mx-auto h-2 w-px bg-white opacity-50" />
                         <p>Todos los derechos reservados</p>
                     </div>
                 </div>

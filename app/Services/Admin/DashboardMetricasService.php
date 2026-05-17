@@ -3,11 +3,13 @@
 namespace App\Services\Admin;
 
 use App\Models\Historia;
+use App\Models\PasarelaEvento;
 use App\Models\Producto;
 use App\Models\StoreOrder;
 use App\Models\StoreOrderItem;
 use App\Models\Suscripcion;
 use App\Models\User;
+use App\Support\HistoriaSuscripcionPrecio;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -15,7 +17,7 @@ class DashboardMetricasService
 {
     public function clientesRegistrados(): int
     {
-        return User::query()->where('role', 'cliente')->count();
+        return User::query()->clientes()->count();
     }
 
     public function suscripcionesDelMes(): int
@@ -47,7 +49,7 @@ class DashboardMetricasService
     public function clientesNuevosMes(): int
     {
         return User::query()
-            ->where('role', 'cliente')
+            ->clientes()
             ->whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
             ->count();
@@ -100,13 +102,29 @@ class DashboardMetricasService
         return Producto::query()->where('estado', 'activo')->count();
     }
 
+    public function ventasProductosDelMes(): float
+    {
+        return $this->sumPaidProductoLineTotals($this->orderMonthConstraint());
+    }
+
+    public function ventasHistoriasOrdenesDelMes(): float
+    {
+        return $this->sumPaidHistoriaLineTotals($this->orderMonthConstraint());
+    }
+
+    public function ventasSuscripcionesDelMes(): float
+    {
+        return $this->sumSuscripcionesNetasDelMes();
+    }
+
     public function ventasDelMes(): float
     {
-        return (float) StoreOrder::query()
-            ->where('status', StoreOrder::STATUS_PAID)
-            ->whereMonth('created_at', Carbon::now()->month)
-            ->whereYear('created_at', Carbon::now()->year)
-            ->sum('total');
+        return round(
+            $this->ventasProductosDelMes()
+            + $this->ventasHistoriasOrdenesDelMes()
+            + $this->ventasSuscripcionesDelMes(),
+            2,
+        );
     }
 
     /**
@@ -126,10 +144,69 @@ class DashboardMetricasService
             'ordenes_rechazadas_dia' => $this->ordenesRechazadasDia(),
             'historias_activas' => $this->historiasActivas(),
             'productos_activos' => $this->productosActivos(),
+            'ventas_productos_del_mes' => $this->ventasProductosDelMes(),
+            'ventas_historias_ordenes_del_mes' => $this->ventasHistoriasOrdenesDelMes(),
+            'ventas_suscripciones_del_mes' => $this->ventasSuscripcionesDelMes(),
             'ventas_del_mes' => $this->ventasDelMes(),
             'suscripciones_por_historia' => $this->suscripcionesPorHistoria(),
             'suscripciones_activas_total' => $this->suscripcionesActivasTotal(),
         ];
+    }
+
+    /**
+     * @return callable(Builder<StoreOrder>): void
+     */
+    protected function orderMonthConstraint(): callable
+    {
+        $now = Carbon::now();
+
+        return function (Builder $q) use ($now): void {
+            $q->whereMonth('created_at', $now->month)
+                ->whereYear('created_at', $now->year);
+        };
+    }
+
+    protected function sumSuscripcionesNetasDelMes(): float
+    {
+        $now = Carbon::now();
+
+        $eventos = PasarelaEvento::query()
+            ->where('estado', PasarelaEvento::ESTADO_COMPLETADO)
+            ->whereNotNull('suscripcion_id')
+            ->whereMonth('created_at', $now->month)
+            ->whereYear('created_at', $now->year)
+            ->whereIn('event_type', [
+                'PAYMENT.SALE.COMPLETED',
+                'BILLING.SUBSCRIPTION.ACTIVATED',
+            ])
+            ->with(['suscripcion.historia'])
+            ->orderBy('created_at')
+            ->get();
+
+        $suscripcionIdsConCobro = $eventos
+            ->where('event_type', 'PAYMENT.SALE.COMPLETED')
+            ->pluck('suscripcion_id')
+            ->unique();
+
+        $total = 0.0;
+
+        foreach ($eventos as $evento) {
+            if (
+                $evento->event_type === 'BILLING.SUBSCRIPTION.ACTIVATED'
+                && $suscripcionIdsConCobro->contains($evento->suscripcion_id)
+            ) {
+                continue;
+            }
+
+            $historia = $evento->suscripcion?->historia;
+            if ($historia === null) {
+                continue;
+            }
+
+            $total += HistoriaSuscripcionPrecio::montoPorCiclo($historia);
+        }
+
+        return round($total, 2);
     }
 
     public function suscripcionesActivasTotal(): int

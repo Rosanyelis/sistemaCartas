@@ -701,7 +701,9 @@ const CartDrawer: React.FC = () => {
                                     )}
                                 </>
                             ) : (
-                                <div className="flex flex-col gap-6 py-4">
+                                <div
+                                    className={`flex flex-col py-4 ${checkoutStep === 2 ? 'gap-4' : 'gap-6'}`}
+                                >
                                     {/*
                                   Productos y suscripciones: paso 1 = datos de envío (con sesión se guardan en perfil al continuar); paso 2 = PayPal.
                                   Suscripciones sin sesión: solo mensaje en paso 1; no se avanza al paso 2 con PayPal (el acceso normal es iniciar sesión desde el carrito).
@@ -742,7 +744,6 @@ const CartDrawer: React.FC = () => {
                                     checkoutStep === 2 &&
                                     historiaLines.length > 0 ? (
                                         <>
-                                            <div className="border-b border-[#DCDCDC]" />
                                             <div className="flex flex-col gap-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-[#1B3D6D] font-bold text-white">
@@ -824,7 +825,6 @@ const CartDrawer: React.FC = () => {
                                     {derivedCartMode === 'products' &&
                                     checkoutStep === 2 ? (
                                         <>
-                                            <div className="border-b border-[#DCDCDC]" />
                                             <div className="flex flex-col gap-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="flex h-8 w-8 items-center justify-center rounded-[4px] bg-[#1B3D6D] font-bold text-white">

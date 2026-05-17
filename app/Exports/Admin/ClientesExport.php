@@ -17,7 +17,7 @@ class ClientesExport implements FromQuery, WithHeadings, WithMapping
 
     public function query(): Builder
     {
-        $query = User::query()->where('role', '!=', 'admin');
+        $query = User::query()->clientes();
 
         if (! empty($this->filters['search'])) {
             $search = $this->filters['search'];

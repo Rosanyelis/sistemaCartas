@@ -42,6 +42,9 @@ interface PageProps extends BasePageProps {
         ordenes_rechazadas_dia: number;
         historias_activas: number;
         productos_activos: number;
+        ventas_productos_del_mes: number;
+        ventas_historias_ordenes_del_mes: number;
+        ventas_suscripciones_del_mes: number;
         ventas_del_mes: number;
         suscripciones_por_historia: { name: string; value: number }[];
         suscripciones_activas_total: number;
@@ -102,17 +105,18 @@ export default function Dashboard() {
         [filters.periodo],
     );
 
-    const ventasHistorias = useMemo(
-        () =>
-            ventasChart?.reduce((acc, curr) => acc + curr.historias, 0) ?? 0,
-        [ventasChart],
-    );
+    const ventasHistoriasMes = useMemo(() => {
+        if (!metricas) {
+            return 0;
+        }
 
-    const ventasProductos = useMemo(
-        () =>
-            ventasChart?.reduce((acc, curr) => acc + curr.productos, 0) ?? 0,
-        [ventasChart],
-    );
+        return (
+            (metricas.ventas_historias_ordenes_del_mes ?? 0) +
+            (metricas.ventas_suscripciones_del_mes ?? 0)
+        );
+    }, [metricas]);
+
+    const ventasProductosMes = metricas?.ventas_productos_del_mes ?? 0;
 
     const chartPromedio = useMemo(() => {
         if (!ventasChart?.length) {
@@ -163,6 +167,10 @@ export default function Dashboard() {
         );
     };
 
+    const clientesRegistradosSubtitle = metricas
+        ? `Rol cliente · +${metricas.clientes_nuevos_mes} este mes`
+        : 'Rol cliente';
+
     const mesSubtitle = metricas
         ? `+${metricas.clientes_nuevos_mes} este mes`
         : undefined;
@@ -205,7 +213,7 @@ export default function Dashboard() {
                         <MetricCard
                             icon={faUsers}
                             title="Registrados"
-                            subtitle={mesSubtitle}
+                            subtitle={clientesRegistradosSubtitle}
                             value={metricas?.clientes_registrados ?? 0}
                             growthPercent={
                                 metricas?.clientes_crecimiento_porcentaje
@@ -510,7 +518,7 @@ export default function Dashboard() {
                                             </span>
                                         </div>
                                         <span className="text-[#734B19]">
-                                            {formatMxn(ventasHistorias)}
+                                            {formatMxn(ventasHistoriasMes)}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between">
@@ -521,7 +529,7 @@ export default function Dashboard() {
                                             </span>
                                         </div>
                                         <span className="text-[#1B3D6D]">
-                                            {formatMxn(ventasProductos)}
+                                            {formatMxn(ventasProductosMes)}
                                         </span>
                                     </div>
                                 </div>

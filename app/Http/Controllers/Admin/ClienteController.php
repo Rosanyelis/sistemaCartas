@@ -19,7 +19,7 @@ class ClienteController extends Controller
         Gate::authorize('admin');
 
         $query = User::query()
-            ->where('role', '!=', 'admin')
+            ->clientes()
             ->withExists('suscripciones');
 
         if ($request->filled('search')) {

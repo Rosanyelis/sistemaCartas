@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Notifications\VerifyEmailOtp;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -103,6 +105,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
+    }
+
+    public function isCliente(): bool
+    {
+        return $this->role === 'cliente';
+    }
+
+    /**
+     * @param  Builder<User>  $query
+     */
+    #[Scope]
+    protected function clientes(Builder $query): void
+    {
+        $query->where('role', 'cliente');
     }
 
     /**
