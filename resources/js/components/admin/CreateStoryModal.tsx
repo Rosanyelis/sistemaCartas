@@ -1,15 +1,13 @@
-import { faTimes } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useForm } from '@inertiajs/react';
 import { useEffect, useId, useMemo, useState } from 'react';
+import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
 import { HISTORIA_DETALLE_INCLUSION_ICONS } from '@/constants/historia-detalle-inclusion-icons';
 import { MAX_IMAGENES_GALERIA, MAX_PALABRAS_TEXTO_LARGO } from './create-story/constants';
 import { buildHistoriaFormData } from './create-story/formDefaults';
 import { HistoriaDetalleInclusionsEditor } from './create-story/HistoriaDetalleInclusionsEditor';
 import { HistoriaMultimediaPanel } from './create-story/HistoriaMultimediaPanel';
-import { HistoriaVariantesEditor } from './create-story/HistoriaVariantesEditor';
 import { LimitedWordRichEditor } from './create-story/LimitedWordRichEditor';
-import type { GallerySlot, HistoriaParaFormulario, HistoriaVarianteForm } from './create-story/types';
+import type { GallerySlot, HistoriaParaFormulario } from './create-story/types';
 import { store as historiasStore, update as historiasUpdate } from '@/routes/admin/historias';
 
 interface CreateStoryModalProps {
@@ -83,9 +81,17 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
     }, [storyToEdit, isOpen, setData, reset]);
     /* eslint-enable react-hooks/set-state-in-effect */
 
-    if (!isOpen) {
-        return null;
-    }
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'imagen' | 'video') => {
         const file = e.target.files?.[0];
@@ -140,33 +146,6 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
 
     const removeGalleryImage = (index: number) => {
         setGalleryItems((prev) => prev.filter((_, i) => i !== index));
-    };
-
-    const addVariant = () => {
-        const newVariant: HistoriaVarianteForm = {
-            tipo: 'papel',
-            valor: '',
-        };
-        setData((prev) => ({
-            ...prev,
-            variantes: [...prev.variantes, newVariant],
-        }));
-    };
-
-    const updateVariant = (index: number, field: keyof HistoriaVarianteForm, value: string | number | boolean) => {
-        setData((prev) => {
-            const updated = [...prev.variantes];
-            updated[index] = { ...updated[index], [field]: value } as HistoriaVarianteForm;
-
-            return { ...prev, variantes: updated };
-        });
-    };
-
-    const removeVariant = (index: number) => {
-        setData((prev) => ({
-            ...prev,
-            variantes: prev.variantes.filter((_, i) => i !== index),
-        }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -250,26 +229,13 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1B3D6D]/40 backdrop-blur-[2px] p-4 transition-opacity">
-            <div
-                className="bg-white rounded-lg shadow-2xl flex flex-col w-full max-w-[1000px] max-h-[90vh] overflow-hidden"
-                onClick={(ev) => ev.stopPropagation()}
-            >
-                <div className="flex justify-between items-center px-8 py-5 border-b border-[#F3F4F6]">
-                    <h2 className="text-[16px] font-bold text-[#1B3D6D]">
-                        {storyToEdit ? 'Editar Historia' : 'Crear Historia'}
-                    </h2>
-                    <button
-                        type="button"
-                        onClick={handleClose}
-                        className="text-[#7B7B7B] hover:text-[#1B3D6D] transition-colors p-2 -mr-2 outline-none"
-                    >
-                        <FontAwesomeIcon icon={faTimes} className="text-[17px]" />
-                    </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto w-full custom-scrollbar flex flex-col">
-                    <div className="flex-1 p-8">
+        <AdminFormSidePanel
+            open={isOpen}
+            onClose={handleClose}
+            title={storyToEdit ? 'Editar Historia' : 'Crear Historia'}
+        >
+                <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                    <div className="custom-scrollbar flex-1 overflow-y-auto p-6 md:p-8">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col gap-1.5">
@@ -410,19 +376,6 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                                     </div>
                                 </div>
 
-                                <HistoriaVariantesEditor
-                                    variantes={data.variantes}
-                                    onAdd={addVariant}
-                                    onUpdate={updateVariant}
-                                    onRemove={removeVariant}
-                                />
-                                {Object.entries(errors)
-                                    .filter(([key]) => key.startsWith('variantes.'))
-                                    .map(([key, message]) => (
-                                        <p key={key} className="text-[11px] text-red-500">
-                                            {message}
-                                        </p>
-                                    ))}
                             </div>
 
                             <div className="flex flex-col gap-6">
@@ -535,7 +488,7 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                         </div>
                     </div>
 
-                    <div className="px-8 py-5 border-t border-[#F3F4F6] bg-white flex justify-end gap-3 rounded-b-lg shrink-0 mt-auto sticky bottom-0">
+                    <div className="sticky bottom-0 mt-auto flex shrink-0 justify-end gap-3 border-t border-[#F3F4F6] bg-white px-6 py-4 md:px-8 md:py-5">
                         <button
                             type="button"
                             onClick={handleClose}
@@ -553,7 +506,6 @@ export function CreateStoryModal({ isOpen, onClose, categorias, storyToEdit }: C
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
+        </AdminFormSidePanel>
     );
 }

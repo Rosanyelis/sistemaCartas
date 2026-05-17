@@ -9,10 +9,7 @@ import {
     faFilter,
     faChevronLeft,
     faChevronRight,
-    faEllipsisV,
-    faTrashAlt,
 } from '@fortawesome/free-solid-svg-icons';
-import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { clientes as adminClientesIndex } from '@/routes/admin';
 import { exportMethod as clientesExport } from '@/routes/admin/clientes';
 
@@ -44,8 +41,6 @@ interface Props {
 
 export default function Clients({ clientes, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
-    const [openMenuId, setOpenMenuId] = useState<number | null>(null);
-    const [deleteClientId, setDeleteClientId] = useState<number | null>(null);
 
     const applyFilters = useCallback(
         (params: Record<string, string>) => {
@@ -70,15 +65,6 @@ export default function Clients({ clientes, filters }: Props) {
             {},
             { preserveState: true, preserveScroll: true },
         );
-    };
-
-    const handleDeleteConfirm = () => {
-        if (deleteClientId !== null) {
-            router.delete(`/admin/clientes/${deleteClientId}`, {
-                preserveScroll: true,
-                onSuccess: () => setDeleteClientId(null)
-            });
-        }
     };
 
     const { data: clientList, current_page, last_page, from, to, total } = clientes;
@@ -152,7 +138,6 @@ export default function Clients({ clientes, filters }: Props) {
                                             ¿Tiene suscripción? <FontAwesomeIcon icon={faFilter} className="text-[10px] opacity-50" />
                                         </div>
                                     </th>
-                                    <th className="px-5 py-4 text-xs font-bold text-[#7B7B7B] uppercase tracking-wider text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#F3F4F6]">
@@ -169,30 +154,6 @@ export default function Clients({ clientes, filters }: Props) {
                                                     ${client.suscripciones_exists ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#FEE2E2] text-[#EF4444]'}`}>
                                                     {client.suscripciones_exists ? 'Sí' : 'No'}
                                                 </span>
-                                            </td>
-                                            <td className="px-5 py-4 text-center relative">
-                                                <div className="relative inline-block text-left">
-                                                    <button 
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setOpenMenuId(openMenuId === client.id ? null : client.id);
-                                                        }}
-                                                        className="p-2 text-[#7B7B7B] hover:text-[#1B3D6D] transition-colors rounded-full hover:bg-gray-100 outline-none"
-                                                    >
-                                                        <FontAwesomeIcon icon={faEllipsisV} className="text-sm" />
-                                                    </button>
-                                                    {openMenuId === client.id && (
-                                                        <div className="absolute right-0 top-full mt-1 w-36 bg-white border border-[#E5E7EB] rounded-md shadow-lg z-20 py-1 text-left">
-                                                            <button 
-                                                                onClick={() => setDeleteClientId(client.id)}
-                                                                className="w-full text-left px-4 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2"
-                                                            >
-                                                                <FontAwesomeIcon icon={faTrashAlt} className="text-xs" />
-                                                                Eliminar
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -297,14 +258,6 @@ export default function Clients({ clientes, filters }: Props) {
                     </div>
                 </div>
             </div>
-
-            <ConfirmDialog 
-                isOpen={deleteClientId !== null}
-                onOpenChange={(open) => !open && setDeleteClientId(null)}
-                title="Eliminar Cliente"
-                description="¿Estás seguro de que deseas eliminar este cliente? Esta acción no se puede deshacer."
-                onConfirm={handleDeleteConfirm}
-            />
         </UserLayout>
     );
 }

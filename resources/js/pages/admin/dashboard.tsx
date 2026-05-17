@@ -560,7 +560,7 @@ export default function Dashboard() {
                                 {metricas?.suscripciones_por_historia
                                     ?.length ? (
                                     <>
-                                        <div className="relative mx-auto mb-4 flex h-[200px] w-full items-center justify-center border border-[#F2F2F2] p-4">
+                                        <div className="relative mx-auto mb-4 flex h-[220px] w-full items-center justify-center border border-[#F2F2F2] p-4">
                                             <ResponsiveContainer
                                                 width="100%"
                                                 height="100%"
@@ -593,7 +593,7 @@ export default function Dashboard() {
                                                 </PieChart>
                                             </ResponsiveContainer>
                                             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                                                <span className="text-4xl font-semibold text-[#1B3D6D]">
+                                                <span className="text-3xl font-semibold text-[#1B3D6D]">
                                                     {metricas.suscripciones_activas_total}
                                                 </span>
                                                 <span className="max-w-[90px] text-center text-[9px] leading-tight text-[#7B7B7B]">

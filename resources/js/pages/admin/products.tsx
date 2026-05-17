@@ -213,28 +213,26 @@ export default function Products({ productos, categorias, filters }: Props) {
                                 </div>
                             )}
                         </div>
-                    </div>
 
-                    <div className="flex flex-col md:flex-row flex-wrap items-center gap-3 w-full lg:w-auto mt-0 lg:mt-0">
                         {/* Categoría Filter Desktop */}
-                        <div className="hidden md:block relative w-full md:w-auto" ref={categoryMenuRef}>
-                            <button 
+                        <div className="hidden md:block relative shrink-0" ref={categoryMenuRef}>
+                            <button
                                 onClick={(e) => { e.stopPropagation(); setIsCategoryMenuOpen(!isCategoryMenuOpen); }}
-                                className="flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-[4px] md:rounded-md border border-[#DFE4EA] md:border-[#E5E7EB] bg-white px-4 py-[10px] md:py-2.5 text-[13px] md:text-sm text-[#4B5563] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer hover:bg-gray-50 transition-colors"
+                                className="flex h-full w-full items-center justify-center gap-2 rounded-[4px] border border-[#DFE4EA] bg-white px-4 py-[10px] text-[13px] text-[#4B5563] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-gray-50 md:rounded-md md:py-2.5 md:text-sm"
                             >
                                 <FontAwesomeIcon icon={faFilter} className="text-[#A0A0A0]" />
-                                <span className="font-medium opacity-80 md:opacity-100">
+                                <span className="font-medium whitespace-nowrap">
                                     {selectedCategory
                                         ? categorias.find((c) => String(c.id) === selectedCategory)?.nombre ?? 'Categoría'
                                         : 'Categoría'}
                                 </span>
-                                <FontAwesomeIcon 
-                                    icon={faChevronDown} 
-                                    className={`text-[#A0A0A0] ml-1 text-[10px] md:text-xs transition-transform ${isCategoryMenuOpen ? 'rotate-180' : ''}`} 
+                                <FontAwesomeIcon
+                                    icon={faChevronDown}
+                                    className={`text-[#A0A0A0] ml-1 text-[10px] transition-transform ${isCategoryMenuOpen ? 'rotate-180' : ''}`}
                                 />
                             </button>
                             {isCategoryMenuOpen && (
-                                <div className="absolute top-full left-0 mt-2 z-10 w-full md:w-48 rounded-md border border-[#E5E7EB] bg-white py-1 shadow-lg">
+                                <div className="absolute top-full right-0 mt-2 z-10 w-48 rounded-md border border-[#E5E7EB] bg-white py-1 shadow-lg">
                                     <button onClick={() => handleCategorySelect('')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Todas</button>
                                     {categorias.map((cat) => (
                                         <button
@@ -246,11 +244,11 @@ export default function Products({ productos, categorias, filters }: Props) {
                                         </button>
                                     ))}
                                 </div>
-                             )}
+                            )}
                         </div>
+                    </div>
 
-                        {/* Botones de acción */}
-                        <div className="flex flex-col md:flex-row w-full md:w-auto items-center gap-3 ml-0 lg:ml-8">
+                    <div className="flex flex-col md:flex-row w-full lg:w-auto items-center gap-3">
                             <button 
                                 onClick={() => {
                                     window.location.href = productosExport.url({
@@ -277,7 +275,6 @@ export default function Products({ productos, categorias, filters }: Props) {
                                     <FontAwesomeIcon icon={faPlus} className="text-[9px]" />
                                 </div>
                             </button>
-                        </div>
                     </div>
                 </div>
 

@@ -1,8 +1,9 @@
-import { faTimes, faPencil } from '@fortawesome/free-solid-svg-icons';
+import { faPencil } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { router, useForm } from '@inertiajs/react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
 import { ProductoMultimediaPanel } from '@/components/admin/create-product/ProductoMultimediaPanel';
 import { MAX_IMAGENES_GALERIA, MAX_PALABRAS_TEXTO_LARGO } from '@/components/admin/create-story/constants';
 import { normalizeDetalleInclusiones } from '@/components/admin/create-story/formDefaults';
@@ -327,10 +328,6 @@ export function CreateProductModal({
         };
     }, [isOpen, reset]);
 
-    if (!isOpen) {
-        return null;
-    }
-
     const handleFileChange = (e: ChangeEvent<HTMLInputElement>, field: 'imagen' | 'video') => {
         const file = e.target.files?.[0];
 
@@ -472,24 +469,18 @@ export function CreateProductModal({
     const formDisabled = loadingProduct || Boolean(loadError);
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center font-['Inter']">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={handleClose} aria-hidden />
-
-            <div className="relative flex w-[90%] max-h-[90vh] flex-col overflow-hidden rounded-lg bg-white shadow-2xl md:w-[850px]">
-                <div className="flex items-center justify-between border-b border-[#F3F4F6] px-6 py-5">
-                    <h2 className="text-[17px] font-semibold text-[#1B3D6D]">
-                        {isEditMode ? 'Editar producto' : 'Crear producto'}
-                    </h2>
-                    <button type="button" onClick={handleClose} className="text-[#7B7B7B] transition-colors hover:text-[#111827]">
-                        <FontAwesomeIcon icon={faTimes} className="text-lg" />
-                    </button>
-                </div>
-
+        <>
+            <AdminFormSidePanel
+                open={isOpen}
+                onClose={handleClose}
+                title={isEditMode ? 'Editar producto' : 'Crear producto'}
+                className="font-['Inter']"
+            >
                 {loadError ? (
                     <div className="border-b border-red-100 bg-red-50 px-6 py-3 text-[13px] text-red-800">{loadError}</div>
                 ) : null}
 
-                <form onSubmit={handleSubmit} className="custom-scrollbar relative flex flex-1 flex-col overflow-y-auto">
+                <form onSubmit={handleSubmit} className="custom-scrollbar relative flex min-h-0 flex-1 flex-col overflow-y-auto">
                     {loadingProduct ? (
                         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 text-[13.5px] font-medium text-[#4B5563]">
                             Cargando producto…
@@ -815,7 +806,7 @@ export function CreateProductModal({
                         </button>
                     </div>
                 </form>
-            </div>
+            </AdminFormSidePanel>
 
             <ProductoTaxonomyManageModal
                 isOpen={taxonomyModal === 'categoria'}
@@ -849,6 +840,6 @@ export function CreateProductModal({
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #D1D5DB; border-radius: 20px; }
             `}</style>
-        </div>
+        </>
     );
 }

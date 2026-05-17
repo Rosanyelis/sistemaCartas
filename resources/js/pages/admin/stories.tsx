@@ -5,7 +5,6 @@ import {
     faFilter,
     faChevronLeft,
     faChevronRight,
-    faCalendarAlt,
     faPlus,
     faEllipsisV,
     faTimes
@@ -78,19 +77,12 @@ interface Props {
     filters: {
         search?: string;
         categoria?: string;
-        start_date?: string;
-        end_date?: string;
     };
 }
 
 export default function Stories({ historias, categorias, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [selectedCategory, setSelectedCategory] = useState(filters.categoria || '');
-    const [startDate, setStartDate] = useState(filters.start_date || '');
-    const [endDate, setEndDate] = useState(filters.end_date || '');
-    
-    const [isDateMenuOpen, setIsDateMenuOpen] = useState(false);
-    const dateMenuRef = useRef<HTMLDivElement>(null);
     const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
     const categoryMenuRef = useRef<HTMLDivElement>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -102,10 +94,6 @@ export default function Stories({ historias, categorias, filters }: Props) {
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (dateMenuRef.current && !dateMenuRef.current.contains(event.target as Node)) {
-                setIsDateMenuOpen(false);
-            }
-
             if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target as Node)) {
                 setIsCategoryMenuOpen(false);
             }
@@ -141,17 +129,6 @@ export default function Stories({ historias, categorias, filters }: Props) {
         setSelectedCategory(cat);
         setIsCategoryMenuOpen(false);
         applyFilters({ categoria: cat });
-    };
-
-    const handleDateApply = () => {
-        applyFilters({ start_date: startDate, end_date: endDate });
-        setIsDateMenuOpen(false);
-    };
-
-    const handleDateClear = () => {
-        setStartDate('');
-        setEndDate('');
-        applyFilters({ start_date: '', end_date: '' });
     };
 
     const goToPage = (page: number) => {
@@ -192,16 +169,6 @@ export default function Stories({ historias, categorias, filters }: Props) {
                 onSuccess: () => setDeleteStoryId(null)
             });
         }
-    };
-
-    const formatDateLabel = (dateStr: string) => {
-        if (!dateStr) {
-return '';
-}
-
-        const date = new Date(dateStr);
-
-        return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     };
 
     const { data: storyList, current_page, last_page, from, to, total } = historias;
@@ -266,11 +233,8 @@ return '';
                                 </div>
                             )}
                         </div>
-                    </div>
-
-                    <div className="flex flex-col md:flex-row flex-wrap items-center gap-3 w-full lg:w-auto mt-0 lg:mt-0">
                         {/* Categoría Filter Desktop */}
-                        <div className="hidden md:block relative w-full md:w-auto" ref={categoryMenuRef}>
+                        <div className="hidden md:block relative shrink-0" ref={categoryMenuRef}>
                             <button 
                                 onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
                                 className="flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-[4px] md:rounded-md border border-[#DFE4EA] md:border-[#E5E7EB] bg-white px-4 py-[10px] md:py-2.5 text-[13px] md:text-sm text-[#4B5563] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer hover:bg-gray-50 transition-colors"
@@ -290,47 +254,9 @@ return '';
                                 </div>
                             )}
                         </div>
+                    </div>
 
-                        {/* Rango de Fechas Filter Desktop */}
-                        <div className="hidden md:block relative w-full md:w-auto" ref={dateMenuRef}>
-                            <div 
-                                onClick={() => setIsDateMenuOpen(!isDateMenuOpen)}
-                                className="flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-[4px] md:rounded-md border border-[#DFE4EA] md:border-[#E5E7EB] bg-white px-4 py-[10px] md:py-2.5 text-[13px] md:text-sm text-[#1B3D6D] md:text-[#4B5563] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer hover:bg-gray-50 transition-colors"
-                            >
-                                <FontAwesomeIcon icon={faCalendarAlt} className="text-[#1B3D6D] md:text-[#A0A0A0] opacity-60 md:opacity-100" />
-                                <span className="font-medium md:font-medium opacity-80 md:opacity-100">
-                                    {startDate && endDate 
-                                        ? `${formatDateLabel(startDate)} - ${formatDateLabel(endDate)}` 
-                                        : startDate 
-                                            ? `Desde ${formatDateLabel(startDate)}` 
-                                            : endDate 
-                                                ? `Hasta ${formatDateLabel(endDate)}` 
-                                                : 'Rango de fechas'}
-                                </span>
-                                <FontAwesomeIcon icon={faChevronDown} className={`text-[#1B3D6D] md:text-[#A0A0A0] opacity-60 md:opacity-100 ml-1 text-[10px] md:text-xs transition-transform ${isDateMenuOpen ? 'rotate-180' : ''}`} />
-                            </div>
-
-                            {isDateMenuOpen && (
-                                <div className="absolute top-full right-0 lg:left-0 lg:right-auto mt-2 z-10 w-full md:w-72 rounded-md border border-[#E5E7EB] bg-white p-4 shadow-lg">
-                                    <div className="flex flex-col gap-3">
-                                        <div>
-                                            <label className="mb-1 block text-xs font-semibold text-[#7B7B7B]">Desde (Publicación):</label>
-                                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full rounded border border-[#E5E7EB] p-2 text-sm text-[#4B5563] outline-none focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]" />
-                                        </div>
-                                        <div>
-                                            <label className="mb-1 block text-xs font-semibold text-[#7B7B7B]">Hasta (Publicación):</label>
-                                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full rounded border border-[#E5E7EB] p-2 text-sm text-[#4B5563] outline-none focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]" />
-                                        </div>
-                                        <div className="mt-2 flex justify-end gap-2">
-                                            <button onClick={handleDateClear} className="rounded px-3 py-1.5 text-xs text-[#7B7B7B] font-medium hover:bg-gray-100 transition-colors">Limpiar</button>
-                                            <button onClick={handleDateApply} className="rounded bg-[#1B3D6D] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[#1B3D6D]/90 transition-colors">Aplicar</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex flex-col md:flex-row w-full md:w-auto items-center gap-3">
+                    <div className="flex flex-col md:flex-row w-full lg:w-auto items-center gap-3">
                             <button 
                                 onClick={() => {
                                     window.location.href = historiasExport.url({
@@ -349,7 +275,6 @@ return '';
                                 <span>Crear historia</span>
                                 <FontAwesomeIcon icon={faPlus} className="text-[12px] md:text-[14px]" />
                             </button>
-                        </div>
                     </div>
                 </div>
 

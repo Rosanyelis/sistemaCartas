@@ -90,7 +90,7 @@ export function HistoriaDetalleInclusionsEditor({
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <span className="text-[13px] font-semibold text-[#1B3D6D]">{sectionTitle}</span>
-                    <p className="text-[11.5px] text-[#A0A0A0] mt-0.5">{sectionHint}</p>
+                    
                 </div>
                 <button
                     type="button"
@@ -98,7 +98,7 @@ export function HistoriaDetalleInclusionsEditor({
                     className="inline-flex items-center justify-center gap-2 rounded-[4px] border border-[#1B3D6D] px-3 py-2 text-[13px] font-semibold text-[#1B3D6D] hover:bg-[#1B3D6D]/5"
                 >
                     <FontAwesomeIcon icon={faPlus} className="text-[12px]" />
-                    Añadir ítem
+                    Añadir
                 </button>
             </div>
 
