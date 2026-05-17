@@ -50,11 +50,6 @@ export default function Productos() {
                         href="https://fonts.bunny.net/css?family=playfair-display:400,600,700,700i|inter:400,500,600,700|cormorant-garamond:400,700,700i|roboto:400,500"
                         rel="stylesheet"
                     />,
-                    <link
-                        key="fa"
-                        rel="stylesheet"
-                        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-                    />,
                 ]}
             </Head>
 

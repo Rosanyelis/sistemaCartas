@@ -32,10 +32,6 @@ export default function Welcome({
         <ClienteLayout>
             <Head>
                 <title>Historias por Correo</title>
-                <link
-                    rel="stylesheet"
-                    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-                />
             </Head>
 
             {/* 2. Hero Section */}

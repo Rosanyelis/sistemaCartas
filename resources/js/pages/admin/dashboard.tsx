@@ -168,7 +168,7 @@ export default function Dashboard() {
     };
 
     const clientesRegistradosSubtitle = metricas
-        ? `Rol cliente · +${metricas.clientes_nuevos_mes} este mes`
+        ? `+${metricas.clientes_nuevos_mes} este mes`
         : 'Rol cliente';
 
     const mesSubtitle = metricas
@@ -597,7 +597,7 @@ export default function Dashboard() {
                                                     {metricas.suscripciones_activas_total}
                                                 </span>
                                                 <span className="max-w-[90px] text-center text-[9px] leading-tight text-[#7B7B7B]">
-                                                    Total suscripciones activas
+                                                    Total suscripciones
                                                 </span>
                                             </div>
                                         </div>
@@ -611,7 +611,7 @@ export default function Dashboard() {
                                                     >
                                                         <div className="flex min-w-0 items-center gap-2">
                                                             <div
-                                                                className="size-3 shrink-0 rounded-sm"
+                                                                className="size-4 shrink-0 rounded-sm"
                                                                 style={{
                                                                     backgroundColor:
                                                                         DONUT_COLORS[

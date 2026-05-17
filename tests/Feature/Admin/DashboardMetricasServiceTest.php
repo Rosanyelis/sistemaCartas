@@ -158,6 +158,33 @@ test('ventas del mes suma cobros de suscripcion del mes en neto', function (): v
     Carbon::setTestNow();
 });
 
+test('ventas del mes incluye suscripcion activa del mes sin evento de pasarela', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
+
+    $historia = Historia::factory()->create([
+        'slug' => 'historia-ventas-fallback',
+        'estado' => 'activo',
+        'precio_suscripcion' => 15.00,
+    ]);
+    $user = User::factory()->create(['role' => 'cliente']);
+
+    Suscripcion::factory()
+        ->for($historia)
+        ->for($user)
+        ->activa()
+        ->create([
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+    $service = app(DashboardMetricasService::class);
+
+    expect($service->ventasSuscripcionesDelMes())->toBe(15.00)
+        ->and($service->ventasDelMes())->toBe(15.00);
+
+    Carbon::setTestNow();
+});
+
 test('ventas del mes no duplica activacion y cobro de suscripcion en el mismo mes', function (): void {
     Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
 

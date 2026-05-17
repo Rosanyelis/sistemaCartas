@@ -43,7 +43,7 @@ export default function HeroSection() {
                                 Una correspondencia para el alma
                             </h2>
                             <h1 className="font-['Playfair_Display',serif] text-[48px] leading-[58px] font-bold tracking-[-1.4px] text-white lg:text-[69px] lg:leading-[82px]">
-                                "Antes de los mensajes instantáneos..."
+                                “Antes de los mensajes instantáneos…”
                             </h1>
                         </div>
 

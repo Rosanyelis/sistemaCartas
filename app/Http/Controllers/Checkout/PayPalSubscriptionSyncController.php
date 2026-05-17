@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Checkout;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Checkout\SyncPayPalSubscriptionRequest;
 use App\Mail\Checkout\SubscriptionActivatedMail;
+use App\Models\PasarelaEvento;
 use App\Models\Suscripcion;
+use App\Services\PasarelaEventoRecorder;
 use App\Services\PayPalService;
 use App\Support\SuscripcionPayPalActivationSync;
 use Illuminate\Http\JsonResponse;
@@ -56,6 +58,16 @@ class PayPalSubscriptionSyncController extends Controller
         }
 
         $sendMail = SuscripcionPayPalActivationSync::applyFromActivatedResource($suscripcion, $remote);
+
+        PasarelaEventoRecorder::recordOrFetchByPayPalEventId(
+            'sync-'.$subscriptionId,
+            'BILLING.SUBSCRIPTION.ACTIVATED',
+            PasarelaEvento::ESTADO_COMPLETADO,
+            $remote,
+            null,
+            null,
+            $suscripcion->id,
+        );
 
         $suscripcion->refresh();
 

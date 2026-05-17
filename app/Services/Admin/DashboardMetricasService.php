@@ -189,6 +189,7 @@ class DashboardMetricasService
             ->unique();
 
         $total = 0.0;
+        $suscripcionIdsContabilizados = [];
 
         foreach ($eventos as $evento) {
             if (
@@ -199,6 +200,27 @@ class DashboardMetricasService
             }
 
             $historia = $evento->suscripcion?->historia;
+            if ($historia === null || $evento->suscripcion_id === null) {
+                continue;
+            }
+
+            $total += HistoriaSuscripcionPrecio::montoPorCiclo($historia);
+            $suscripcionIdsContabilizados[] = $evento->suscripcion_id;
+        }
+
+        $suscripcionesSinEvento = Suscripcion::query()
+            ->where('estado', 'activa')
+            ->whereMonth('created_at', $now->month)
+            ->whereYear('created_at', $now->year)
+            ->when(
+                $suscripcionIdsContabilizados !== [],
+                fn (Builder $q) => $q->whereNotIn('id', $suscripcionIdsContabilizados),
+            )
+            ->with('historia')
+            ->get();
+
+        foreach ($suscripcionesSinEvento as $suscripcion) {
+            $historia = $suscripcion->historia;
             if ($historia === null) {
                 continue;
             }

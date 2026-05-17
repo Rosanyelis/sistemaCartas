@@ -139,10 +139,6 @@ function DetalleProductoContent() {
                     href="https://fonts.bunny.net/css?family=playfair-display:400,600,700,700i|inter:400,500,600,700|roboto:400,500"
                     rel="stylesheet"
                 />
-                <link
-                    rel="stylesheet"
-                    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-                />
             </Head>
 
             <div className="flex w-full flex-col items-center bg-white">
@@ -539,7 +535,7 @@ function DetalleProductoContent() {
                                     <h4 className="font-['Playfair_Display',serif] text-[25px] font-normal text-[#1B3D6D]">
                                         {card.title}
                                     </h4>
-                                    <p className="font-['Inter',sans-serif] text-[13px] font-medium text-[#1B3D6D] italic opacity-80">
+                                    <p className="font-['Inter',sans-serif] text-[13px] font-medium text-[#1B3D6D] opacity-80">
                                         {card.text}
                                     </p>
                                 </div>
