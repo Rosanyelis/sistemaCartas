@@ -72,6 +72,7 @@ final class SuscripcionPayPalActivationSync
         if ($mesesArco >= 1) {
             $payload['meses_entrega_total'] = $mesesArco;
         }
+        $payload['renewal_reminder_sent_at'] = null;
         $suscripcion->update($payload);
 
         return ! $wasActiva;
@@ -96,6 +97,7 @@ final class SuscripcionPayPalActivationSync
 
         $suscripcion->update([
             'proximo_cobro' => $proximo,
+            'renewal_reminder_sent_at' => null,
             'paypal_last_payload' => $resource,
         ]);
     }

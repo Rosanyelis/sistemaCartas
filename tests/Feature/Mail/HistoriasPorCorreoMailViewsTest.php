@@ -5,6 +5,7 @@ use App\Mail\Checkout\PaymentFailedMail;
 use App\Mail\Checkout\StoreOrderCaptureFailedMail;
 use App\Mail\Checkout\StoreOrderPaidMail;
 use App\Mail\Checkout\SubscriptionActivatedMail;
+use App\Mail\Checkout\SubscriptionRenewalReminderMail;
 use App\Mail\Checkout\SubscriptionRenewedMail;
 use App\Models\Historia;
 use App\Models\StoreOrder;
@@ -72,6 +73,9 @@ test('vistas de correo se renderizan sin excepción', function (): void {
 
     $htmlRenew = (new SubscriptionRenewedMail($suscripcion, ['id' => 'SALE-1']))->render();
     expect($htmlRenew)->toContain('Renovación registrada');
+
+    $htmlReminder = (new SubscriptionRenewalReminderMail($suscripcion, 3))->render();
+    expect($htmlReminder)->toContain('Recordatorio de renovación');
 
     $htmlPayFail = (new PaymentFailedMail(
         $suscripcion,

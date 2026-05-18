@@ -9,25 +9,19 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-/**
- * Cobro recurrente de suscripción rechazado (p. ej. webhook BILLING.SUBSCRIPTION.PAYMENT.FAILED).
- */
-class PaymentFailedMail extends Mailable
+class SubscriptionRenewalReminderMail extends Mailable
 {
     use SerializesModels;
 
     public function __construct(
         public Suscripcion $suscripcion,
-        public ?string $paypalReasonCode,
-        public string $motivoUsuario,
-        public ?string $detallePaypal,
-        public ?string $importeFormateado,
+        public int $daysBefore,
     ) {}
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Cobro de suscripción no completado | Historias por Correo',
+            subject: 'Recordatorio: próximo cobro de tu suscripción | Historias por Correo',
         );
     }
 
@@ -37,17 +31,14 @@ class PaymentFailedMail extends Mailable
         $recipientName = is_string($name) && $name !== '' ? $name : null;
 
         return new Content(
-            view: 'mail.checkout.subscription-payment-failed',
+            view: 'mail.checkout.subscription-renewal-reminder',
             with: [
                 'suscripcion' => $this->suscripcion,
-                'paypalReasonCode' => $this->paypalReasonCode,
-                'motivoUsuario' => $this->motivoUsuario,
-                'detallePaypal' => $this->detallePaypal,
-                'importeFormateado' => $this->importeFormateado,
+                'daysBefore' => $this->daysBefore,
                 'recipientName' => $recipientName,
-                'emailTitle' => 'Cobro no completado',
+                'emailTitle' => 'Próximo cobro de suscripción',
                 'ctaUrl' => route('user.subscriptions', [], true),
-                'ctaLabel' => 'Actualiza el pago en PayPal y revisa el estado aquí.',
+                'ctaLabel' => 'Revisa fechas y estado en tu panel.',
                 'ctaText' => 'Ver mis suscripciones',
             ],
         );

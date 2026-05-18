@@ -68,7 +68,7 @@ test('sync activa suscripción y rellena fechas tras onApprove', function (): vo
     expect($suscripcion->proximo_cobro->format('Y-m-d'))->toBe('2026-05-10');
     expect($suscripcion->fecha_finalizacion->format('Y-m-d'))->toBe('2026-06-10');
 
-    Mail::assertQueued(SubscriptionActivatedMail::class);
+    Mail::assertSent(SubscriptionActivatedMail::class);
 });
 
 test('sync responde 404 si la suscripción no es del usuario', function (): void {

@@ -22,7 +22,7 @@ test('otp válido marca correo verificado y envía bienvenida', function (): voi
     expect($user->hasVerifiedEmail())->toBeTrue()
         ->and($user->otp_code)->toBeNull();
 
-    Mail::assertQueued(EmailVerifiedWelcomeMail::class, function (EmailVerifiedWelcomeMail $mail) use ($user): bool {
+    Mail::assertSent(EmailVerifiedWelcomeMail::class, function (EmailVerifiedWelcomeMail $mail) use ($user): bool {
         return $mail->user->is($user);
     });
 });

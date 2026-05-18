@@ -169,7 +169,7 @@ test('webhook cobro suscripción fallido envía correo al usuario', function ():
 
     $response->assertOk()->assertJson(['status' => 'ok']);
 
-    Mail::assertQueued(PaymentFailedMail::class, function (PaymentFailedMail $mail) use ($suscripcion): bool {
+    Mail::assertSent(PaymentFailedMail::class, function (PaymentFailedMail $mail) use ($suscripcion): bool {
         return $mail->suscripcion->is($suscripcion)
             && $mail->paypalReasonCode === 'INSUFFICIENT_FUNDS'
             && $mail->importeFormateado === 'USD 12,50';
@@ -223,5 +223,5 @@ test('webhook pago completado sincroniza proximo_cobro con PayPal', function ():
     $suscripcion->refresh();
     expect($suscripcion->proximo_cobro->format('Y-m-d'))->toBe('2026-07-09');
 
-    Mail::assertQueued(SubscriptionRenewedMail::class);
+    Mail::assertSent(SubscriptionRenewedMail::class);
 });

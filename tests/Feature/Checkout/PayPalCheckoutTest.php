@@ -275,7 +275,7 @@ test('captura paypal rechazada con usuario registrado envía correo de aviso', f
         'status' => StoreOrder::STATUS_CAPTURE_FAILED,
     ]);
 
-    Mail::assertQueued(StoreOrderCaptureFailedMail::class, function (StoreOrderCaptureFailedMail $mail): bool {
+    Mail::assertSent(StoreOrderCaptureFailedMail::class, function (StoreOrderCaptureFailedMail $mail): bool {
         return $mail->paypalErrorCode === 'INSTRUMENT_DECLINED'
             && str_contains($mail->motivoUsuario, 'rechazó');
     });
