@@ -185,6 +185,78 @@ test('ventas del mes incluye suscripcion activa del mes sin evento de pasarela',
     Carbon::setTestNow();
 });
 
+test('ventas chart mes refleja suscripciones de historias en el bucket del mes', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
+
+    $historia = Historia::factory()->create([
+        'slug' => 'historia-chart-mes',
+        'estado' => 'activo',
+        'precio_suscripcion' => 20.00,
+    ]);
+    $user = User::factory()->create(['role' => 'cliente']);
+    $suscripcion = Suscripcion::factory()
+        ->for($historia)
+        ->for($user)
+        ->activa()
+        ->create();
+
+    PasarelaEvento::query()->create([
+        'suscripcion_id' => $suscripcion->id,
+        'paypal_event_id' => 'evt-chart-mes-1',
+        'event_type' => 'PAYMENT.SALE.COMPLETED',
+        'estado' => PasarelaEvento::ESTADO_COMPLETADO,
+        'payload' => [],
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $service = app(DashboardMetricasService::class);
+    $chart = $service->ventasChart('mes');
+    $mesActual = collect($chart)->last();
+
+    expect($mesActual)->not->toBeNull()
+        ->and($mesActual['historias'])->toBe(20.00);
+
+    Carbon::setTestNow();
+});
+
+test('ventas chart mes deja historias en cero con solo compra de producto', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
+
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-chart-solo',
+        'estado' => 'activo',
+    ]);
+
+    $order = StoreOrder::query()->create([
+        'paypal_order_id' => 'PAYPAL-ORDER-CHART-SOLO',
+        'status' => StoreOrder::STATUS_PAID,
+        'currency' => 'USD',
+        'total' => 25.00,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => $producto->slug,
+        'product_name' => $producto->nombre,
+        'quantity' => 1,
+        'unit_price' => 25.00,
+        'line_total' => 25.00,
+    ]);
+
+    $service = app(DashboardMetricasService::class);
+    $chart = $service->ventasChart('mes');
+    $mesActual = collect($chart)->last();
+
+    expect($mesActual)->not->toBeNull()
+        ->and($mesActual['historias'])->toBe(0.0)
+        ->and($mesActual['productos'])->toBe(25.00);
+
+    Carbon::setTestNow();
+});
+
 test('ventas del mes no duplica activacion y cobro de suscripcion en el mismo mes', function (): void {
     Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
 

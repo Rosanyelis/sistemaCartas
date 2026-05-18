@@ -62,6 +62,15 @@ interface PageProps extends BasePageProps {
 
 const DONUT_COLORS = ['#734B19', '#707A5E', '#1B3D6D', '#E6E6E6', '#BFDBFE'];
 
+type ChartSerieFilter = 'todos' | 'historias' | 'productos' | 'cancelados';
+
+const CHART_FILTER_OPTIONS: { key: ChartSerieFilter; label: string }[] = [
+    { key: 'todos', label: 'Todos' },
+    { key: 'historias', label: 'Historias' },
+    { key: 'productos', label: 'Productos' },
+    { key: 'cancelados', label: 'Cancelados' },
+];
+
 const cardShadow = 'shadow-[0px_0px_10px_rgba(36,16,167,0.15)]';
 
 function formatMxn(amount: number): string {
@@ -99,6 +108,8 @@ export default function Dashboard() {
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
+    const [chartSerieFilter, setChartSerieFilter] =
+        useState<ChartSerieFilter>('todos');
 
     const periodRangeLabel = useMemo(
         () => formatPeriodRange(filters.periodo),
@@ -118,6 +129,23 @@ export default function Dashboard() {
 
     const ventasProductosMes = metricas?.ventas_productos_del_mes ?? 0;
 
+    const chartSeriesKeys = useMemo((): (
+        | 'historias'
+        | 'productos'
+        | 'cancelados'
+    )[] => {
+        switch (chartSerieFilter) {
+            case 'historias':
+                return ['historias'];
+            case 'productos':
+                return ['productos'];
+            case 'cancelados':
+                return ['cancelados'];
+            default:
+                return ['historias', 'productos', 'cancelados'];
+        }
+    }, [chartSerieFilter]);
+
     const chartPromedio = useMemo(() => {
         if (!ventasChart?.length) {
             return 0;
@@ -125,12 +153,20 @@ export default function Dashboard() {
 
         const total = ventasChart.reduce(
             (acc, point) =>
-                acc + point.historias + point.productos + point.cancelados,
+                acc +
+                chartSeriesKeys.reduce((sum, key) => sum + point[key], 0),
             0,
         );
 
         return total / ventasChart.length;
-    }, [ventasChart]);
+    }, [ventasChart, chartSeriesKeys]);
+
+    const showHistoriasLine =
+        chartSerieFilter === 'todos' || chartSerieFilter === 'historias';
+    const showProductosLine =
+        chartSerieFilter === 'todos' || chartSerieFilter === 'productos';
+    const showCanceladosLine =
+        chartSerieFilter === 'todos' || chartSerieFilter === 'cancelados';
 
     const onMouseDown = (e: React.MouseEvent) => {
         if (!scrollContainerRef.current) {
@@ -327,21 +363,20 @@ export default function Dashboard() {
 
                         <div className="flex flex-col gap-6 md:flex-row">
                             <div className="hidden w-[110px] shrink-0 flex-col rounded bg-white shadow-[0px_0px_2px_rgba(0,0,0,0.1)] md:flex">
-                                {['Todos', 'Historias', 'Productos', 'Cancelados'].map(
-                                    (item, index) => (
-                                        <button
-                                            key={item}
-                                            type="button"
-                                            className={`px-2 py-2 text-left text-[13px] ${
-                                                index === 0
-                                                    ? 'font-semibold text-[#1B3D6D]'
-                                                    : 'font-normal text-[#7B7B7B] hover:text-[#373737]'
-                                            }`}
-                                        >
-                                            {item}
-                                        </button>
-                                    ),
-                                )}
+                                {CHART_FILTER_OPTIONS.map(({ key, label }) => (
+                                    <button
+                                        key={key}
+                                        type="button"
+                                        onClick={() => setChartSerieFilter(key)}
+                                        className={`px-2 py-2 text-left text-[13px] ${
+                                            chartSerieFilter === key
+                                                ? 'font-semibold text-[#1B3D6D]'
+                                                : 'font-normal text-[#7B7B7B] hover:text-[#373737]'
+                                        }`}
+                                    >
+                                        {label}
+                                    </button>
+                                ))}
                             </div>
 
                             <div className="min-w-0 flex-1">
@@ -438,28 +473,34 @@ export default function Dashboard() {
                                                             '3 3',
                                                     }}
                                                 />
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="historias"
-                                                    stroke="#2C5629"
-                                                    strokeWidth={2.5}
-                                                    dot={false}
-                                                    strokeDasharray="4 4"
-                                                />
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="productos"
-                                                    stroke="#1B3D6D"
-                                                    strokeWidth={2.5}
-                                                    dot={false}
-                                                />
-                                                <Line
-                                                    type="monotone"
-                                                    dataKey="cancelados"
-                                                    stroke="#7297BC"
-                                                    strokeWidth={2.5}
-                                                    dot={false}
-                                                />
+                                                {showHistoriasLine && (
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="historias"
+                                                        stroke="#2C5629"
+                                                        strokeWidth={2.5}
+                                                        dot={false}
+                                                        strokeDasharray="4 4"
+                                                    />
+                                                )}
+                                                {showProductosLine && (
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="productos"
+                                                        stroke="#1B3D6D"
+                                                        strokeWidth={2.5}
+                                                        dot={false}
+                                                    />
+                                                )}
+                                                {showCanceladosLine && (
+                                                    <Line
+                                                        type="monotone"
+                                                        dataKey="cancelados"
+                                                        stroke="#7297BC"
+                                                        strokeWidth={2.5}
+                                                        dot={false}
+                                                    />
+                                                )}
                                             </LineChart>
                                         </ResponsiveContainer>
                                     </div>

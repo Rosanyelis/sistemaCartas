@@ -170,11 +170,21 @@ class DashboardMetricasService
     {
         $now = Carbon::now();
 
+        return $this->sumSuscripcionesHistoriasNetasBetween(
+            $now->copy()->startOfMonth(),
+            $now->copy()->endOfMonth(),
+        );
+    }
+
+    /**
+     * Monto neto de suscripciones a historias en un intervalo (eventos PayPal + fallback sin evento).
+     */
+    protected function sumSuscripcionesHistoriasNetasBetween(Carbon $start, Carbon $end): float
+    {
         $eventos = PasarelaEvento::query()
             ->where('estado', PasarelaEvento::ESTADO_COMPLETADO)
             ->whereNotNull('suscripcion_id')
-            ->whereMonth('created_at', $now->month)
-            ->whereYear('created_at', $now->year)
+            ->whereBetween('created_at', [$start, $end])
             ->whereIn('event_type', [
                 'PAYMENT.SALE.COMPLETED',
                 'BILLING.SUBSCRIPTION.ACTIVATED',
@@ -210,8 +220,7 @@ class DashboardMetricasService
 
         $suscripcionesSinEvento = Suscripcion::query()
             ->where('estado', 'activa')
-            ->whereMonth('created_at', $now->month)
-            ->whereYear('created_at', $now->year)
+            ->whereBetween('created_at', [$start, $end])
             ->when(
                 $suscripcionIdsContabilizados !== [],
                 fn (Builder $q) => $q->whereNotIn('id', $suscripcionIdsContabilizados),
@@ -320,7 +329,10 @@ class DashboardMetricasService
                     $q->whereDate('created_at', $date->toDateString());
                 };
 
-                $historias = $this->sumPaidHistoriaLineTotals($orderForDay);
+                $historias = $this->sumSuscripcionesHistoriasNetasBetween(
+                    $date->copy()->startOfDay(),
+                    $date->copy()->endOfDay(),
+                );
                 $productos = $this->sumPaidProductoLineTotals($orderForDay);
                 $cancelados = (float) StoreOrder::query()
                     ->where('status', '!=', StoreOrder::STATUS_PAID)
@@ -343,7 +355,10 @@ class DashboardMetricasService
                         ->whereYear('created_at', $date->year);
                 };
 
-                $historias = $this->sumPaidHistoriaLineTotals($orderForMonth);
+                $historias = $this->sumSuscripcionesHistoriasNetasBetween(
+                    $date->copy()->startOfMonth(),
+                    $date->copy()->endOfMonth(),
+                );
                 $productos = $this->sumPaidProductoLineTotals($orderForMonth);
                 $cancelados = (float) StoreOrder::query()
                     ->where('status', '!=', StoreOrder::STATUS_PAID)
