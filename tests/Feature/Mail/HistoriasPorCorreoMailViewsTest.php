@@ -21,7 +21,7 @@ test('vistas de correo se renderizan sin excepción', function (): void {
         'paypal_order_id' => 'PAYPAL-VIEW-1',
         'status' => StoreOrder::STATUS_PAID,
         'currency' => 'EUR',
-        'total' => 19.99,
+        'total' => 34.99,
     ]);
     StoreOrderItem::query()->create([
         'store_order_id' => $order->id,
@@ -31,10 +31,22 @@ test('vistas de correo se renderizan sin excepción', function (): void {
         'unit_price' => 19.99,
         'line_total' => 19.99,
     ]);
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => 'carta-demo',
+        'product_name' => 'Carta demo',
+        'quantity' => 2,
+        'unit_price' => 7.50,
+        'line_total' => 15.00,
+    ]);
     $order->load(['user', 'items']);
 
     $htmlPaid = (new StoreOrderPaidMail($order))->render();
     expect($htmlPaid)->toContain('¡Gracias por tu compra!')->toContain('#'.$order->id)
+        ->toContain('Libro demo')
+        ->toContain('Carta demo')
+        ->toContain('×2')
+        ->not->toContain('(+1)')
         ->toContain('logo-principal.png')
         ->toContain('background-color:#1B3D6D')
         ->toContain('© Historias por correo')
@@ -86,8 +98,19 @@ test('vistas de correo se renderizan sin excepción', function (): void {
     ))->render();
     expect($htmlPayFail)->toContain('suscripción');
 
-    $htmlWelcome = (new EmailVerifiedWelcomeMail($user))->render();
-    expect($htmlWelcome)->toContain('Correo verificado');
+    $welcomeMail = new EmailVerifiedWelcomeMail($user);
+    expect($welcomeMail->envelope()->subject)->toBe('Tu primer sobre está por abrirse');
+
+    $htmlWelcome = $welcomeMail->render();
+    expect($htmlWelcome)->toContain('Tu primer sobre está por abrirse')
+        ->toContain('¡Bienvenido a nuestra familia!')
+        ->toContain('Hola, Ana Prueba,')
+        ->toContain('Bienvenido a Historias por Correo')
+        ->toContain('Historias que cobran vida')
+        ->toContain('Tesoros físicos')
+        ->toContain('Secretos exclusivos')
+        ->toContain('Descubrir historias')
+        ->not->toContain('Correo verificado');
 
     $notif = new VerifyEmailOtp('123456');
     $mailMessage = $notif->toMail($user);

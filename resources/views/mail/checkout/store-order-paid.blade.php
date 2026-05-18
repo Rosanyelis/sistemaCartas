@@ -17,14 +17,6 @@
 @endsection
 
 @section('content')
-    @php
-        $firstItem = $order->relationLoaded('items') && $order->items->isNotEmpty()
-            ? $order->items->first()
-            : null;
-        $productLabel = $firstItem
-            ? $firstItem->product_name.($order->items->count() > 1 ? ' (+' . ($order->items->count() - 1) . ')' : '')
-            : '—';
-    @endphp
     <p style="margin:0 0 8px 0;padding:0;font-family:Inter,system-ui,sans-serif;font-size:16px;line-height:19px;font-weight:600;color:#1B3D6D;">
         Detalles de la compra
     </p>
@@ -48,14 +40,27 @@
                 {{ $order->currency }} {{ number_format((float) $order->total, 2, ',', '.') }}
             </td>
         </tr>
-        <tr>
-            <td style="padding:8px 0 0 0;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:16px;font-weight:600;color:#1B3D6D;">
-                Producto:
-            </td>
-            <td style="padding:8px 0 0 0;text-align:right;font-family:Roboto,Inter,system-ui,sans-serif;font-size:13px;line-height:15px;font-weight:700;color:#1B3D6D;">
-                {{ $productLabel }}
-            </td>
-        </tr>
+        @forelse ($order->relationLoaded('items') ? $order->items : collect() as $item)
+            <tr>
+                <td style="padding:8px 0 0 0;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:16px;font-weight:600;color:#1B3D6D;vertical-align:top;">
+                    Producto{{ $loop->count > 1 ? ' '.$loop->iteration : '' }}:
+                </td>
+                <td style="padding:8px 0 0 0;text-align:right;font-family:Roboto,Inter,system-ui,sans-serif;font-size:13px;line-height:15px;font-weight:700;color:#1B3D6D;vertical-align:top;">
+                    {{ $item->product_name }}@if ($item->quantity > 1) <span style="font-weight:600;color:#7B7B7B;">×{{ $item->quantity }}</span>@endif
+                    <br />
+                    <span style="font-size:12px;font-weight:600;color:#7B7B7B;">{{ $order->currency }} {{ number_format((float) $item->line_total, 2, ',', '.') }}</span>
+                </td>
+            </tr>
+        @empty
+            <tr>
+                <td style="padding:8px 0 0 0;font-family:Inter,system-ui,sans-serif;font-size:13px;line-height:16px;font-weight:600;color:#1B3D6D;">
+                    Producto:
+                </td>
+                <td style="padding:8px 0 0 0;text-align:right;font-family:Roboto,Inter,system-ui,sans-serif;font-size:13px;line-height:15px;font-weight:700;color:#1B3D6D;">
+                    —
+                </td>
+            </tr>
+        @endforelse
     </table>
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:12px 0 0 0;background-color:#ffffff;border-radius:4px;">
         <tr>

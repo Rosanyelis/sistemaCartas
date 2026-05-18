@@ -15,6 +15,7 @@ Contenido variable (preferir @section en vistas hijas o variables pasadas desde 
 
 Variables opcionales:
 - $recipientName (string|null) — Si existe, se muestra saludo «¡Hola, {nombre}!» bajo el titular.
+- $suppressDefaultGreeting (bool) — Si es true, no se muestra el saludo automático (p. ej. bienvenida con subtítulo propio).
 
 Seguridad cliente de correo: tablas + estilos inline; sin flex/grid críticos ni JavaScript.
 --}}
@@ -31,6 +32,7 @@ Seguridad cliente de correo: tablas + estilos inline; sin flex/grid críticos ni
     $ctaLabel = $ctaLabel ?? null;
     $recipientName = $recipientName ?? null;
     $emailTitle = $emailTitle ?? null;
+    $suppressDefaultGreeting = (bool) ($suppressDefaultGreeting ?? false);
 @endphp
 <!DOCTYPE html>
 <html lang="es">
@@ -79,7 +81,7 @@ Seguridad cliente de correo: tablas + estilos inline; sin flex/grid críticos ni
                         <h1 style="margin:0 0 8px 0;padding:0;font-family:'Playfair Display',Georgia,'Times New Roman',Times,serif;font-size:32px;line-height:1.15;font-weight:700;color:#1B3D6D;text-align:center;letter-spacing:-1px;">
                             @yield('title')
                         </h1>
-                        @if (!empty($recipientName))
+                        @if (!empty($recipientName) && ! $suppressDefaultGreeting)
                             <p style="margin:0 0 8px 0;padding:0;font-family:Inter,system-ui,sans-serif;font-size:25px;line-height:30px;font-weight:600;color:#1B3D6D;text-align:center;">
                                 ¡Hola, {{ $recipientName }}! 👋
                             </p>

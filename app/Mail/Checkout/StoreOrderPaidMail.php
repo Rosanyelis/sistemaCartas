@@ -18,7 +18,7 @@ class StoreOrderPaidMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '¡Gracias por tu compra! — pedido #'.$this->order->id.' | Historias por Correo',
+            subject: '¡Compra exitosa!',
         );
     }
 

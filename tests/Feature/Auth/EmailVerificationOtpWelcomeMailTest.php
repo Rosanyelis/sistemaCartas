@@ -23,7 +23,8 @@ test('otp válido marca correo verificado y envía bienvenida', function (): voi
         ->and($user->otp_code)->toBeNull();
 
     Mail::assertSent(EmailVerifiedWelcomeMail::class, function (EmailVerifiedWelcomeMail $mail) use ($user): bool {
-        return $mail->user->is($user);
+        return $mail->user->is($user)
+            && $mail->envelope()->subject === 'Tu primer sobre está por abrirse';
     });
 });
 

@@ -18,7 +18,7 @@ class EmailVerifiedWelcomeMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Cuenta activa — bienvenido a Historias por Correo',
+            subject: 'Tu primer sobre está por abrirse',
         );
     }
 
@@ -31,10 +31,11 @@ class EmailVerifiedWelcomeMail extends Mailable
             view: 'mail.auth.email-verified-welcome',
             with: [
                 'recipientName' => $recipientName,
-                'emailTitle' => 'Cuenta activa',
+                'emailTitle' => 'Tu primer sobre está por abrirse',
+                'suppressDefaultGreeting' => true,
                 'ctaUrl' => route('productos', [], true),
-                'ctaLabel' => 'Explora el catálogo de historias y productos.',
-                'ctaText' => 'Ir a la tienda',
+                'ctaLabel' => 'Tu nueva historia te espera. Ve a la página web y descubre un mundo de emociones',
+                'ctaText' => 'Descubrir historias',
             ],
         );
     }
