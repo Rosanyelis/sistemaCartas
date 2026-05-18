@@ -10,6 +10,8 @@ class PasswordResetOtp extends Notification
 {
     use Queueable;
 
+    public const EXPIRES_IN_MINUTES = 10;
+
     /**
      * Create a new notification instance.
      */
@@ -37,12 +39,13 @@ class PasswordResetOtp extends Notification
         $recipientName = is_string($name) && $name !== '' ? $name : null;
 
         return (new MailMessage)
-            ->subject('Código de recuperación — Historias por Correo')
+            ->subject('Tu código de acceso para Historias por Correo')
             ->view('mail.auth.password-reset-otp', [
                 'recipientName' => $recipientName,
                 'otp' => $this->otp,
-                'expiresInMinutes' => 10,
-                'emailTitle' => 'Recuperación de contraseña',
+                'expiresInMinutes' => self::EXPIRES_IN_MINUTES,
+                'emailTitle' => 'Tu código de acceso para Historias por Correo',
+                'suppressDefaultGreeting' => true,
             ]);
     }
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Notifications\PasswordResetOtp;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 
@@ -22,6 +23,34 @@ test('se puede solicitar un código OTP para un correo registrado', function () 
 
     expect($user->otp_code)->not->toBeNull()
         ->and(strlen((string) $user->otp_code))->toBe(6);
+
+    Notification::assertSentTo($user, PasswordResetOtp::class, function (PasswordResetOtp $notification) use ($user): bool {
+        $mail = $notification->toMail($user);
+
+        return $mail->subject === 'Tu código de acceso para Historias por Correo';
+    });
+});
+
+test('el correo OTP de recuperación incluye la copia de marca', function (): void {
+    $html = view('mail.auth.password-reset-otp', [
+        'recipientName' => 'María',
+        'otp' => '482910',
+        'expiresInMinutes' => PasswordResetOtp::EXPIRES_IN_MINUTES,
+        'emailTitle' => 'Tu código de acceso para Historias por Correo',
+        'suppressDefaultGreeting' => true,
+    ])->render();
+
+    expect($html)
+        ->toContain('Código de acceso generado')
+        ->toContain('Hola, María, 👋 Abajo encontrarás el código para restablecimiento')
+        ->toContain('extraviado la llave de tu escritorio personal')
+        ->toContain('482910')
+        ->toContain('expirará en 10 minutos por motivos de seguridad')
+        ->toContain('Instrucciones rápidas')
+        ->toContain('Pégalo en la casilla de verificación')
+        ->toContain('¿No has solicitado este código?')
+        ->toContain('lacre de seguridad')
+        ->not->toContain('¡Hola, María!');
 });
 
 test('solicitar OTP con correo inexistente devuelve error de validación', function () {
