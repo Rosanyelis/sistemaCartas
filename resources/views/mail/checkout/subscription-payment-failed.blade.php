@@ -4,10 +4,6 @@
     Cobro de suscripción no completado — actualiza tu pago en PayPal
 @endsection
 
-@section('hero_icon')
-    @include('mail.partials.hero-icon', ['variant' => 'cart-warning'])
-@endsection
-
 @section('title')
     Problema con el cobro de tu suscripción
 @endsection

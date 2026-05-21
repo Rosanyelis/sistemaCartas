@@ -4,10 +4,6 @@
     Tu código de acceso para restablecer tu contraseña (caduca en {{ $expiresInMinutes }} minutos)
 @endsection
 
-@section('hero_icon')
-    @include('mail.partials.hero-icon', ['variant' => 'lock'])
-@endsection
-
 @section('title')
     Código de acceso generado
 @endsection

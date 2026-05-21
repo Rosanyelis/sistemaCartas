@@ -4,10 +4,6 @@
     Próximo cobro de tu suscripción a {{ $suscripcion->historia->nombre ?? 'la historia' }}
 @endsection
 
-@section('hero_icon')
-    @include('mail.partials.hero-icon', ['variant' => 'subscription'])
-@endsection
-
 @section('title')
     Recordatorio de renovación
 @endsection

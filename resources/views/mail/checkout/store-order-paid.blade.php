@@ -4,10 +4,6 @@
     Pedido #{{ $order->id }} pagado correctamente — {{ $order->currency }} {{ number_format((float) $order->total, 2, ',', '.') }}
 @endsection
 
-@section('hero_icon')
-    @include('mail.partials.hero-icon', ['variant' => 'bag'])
-@endsection
-
 @section('title')
     ¡Gracias por tu compra!
 @endsection

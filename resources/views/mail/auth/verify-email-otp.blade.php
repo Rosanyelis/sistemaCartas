@@ -4,10 +4,6 @@
     Tu código de verificación (caduca en {{ $expiresInMinutes }} minutos)
 @endsection
 
-@section('hero_icon')
-    @include('mail.partials.hero-icon', ['variant' => 'lock'])
-@endsection
-
 @section('title')
     Verificación de correo
 @endsection

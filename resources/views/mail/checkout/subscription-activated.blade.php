@@ -4,10 +4,6 @@
     Tu suscripción a {{ $suscripcion->historia->nombre ?? 'la historia' }} está activa
 @endsection
 
-@section('hero_icon')
-    @include('mail.partials.hero-icon', ['variant' => 'subscription'])
-@endsection
-
 @section('title')
     Suscripción activada
 @endsection

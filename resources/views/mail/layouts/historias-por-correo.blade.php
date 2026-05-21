@@ -4,7 +4,6 @@ Plantilla base para correos transaccionales «Historias por Correo».
 Contenido variable (preferir @section en vistas hijas o variables pasadas desde el Mailable):
 
 - @yield('preheader') — Texto oculto para previsualización en la bandeja (mantener breve).
-- @yield('hero_icon') — Bloque HTML con icono (p. ej. @include('mail.partials.hero-icon', ['variant' => 'bag'])).
 - @yield('title') — Titular principal (serif vía estilos inline del layout).
 - @yield('status_strip') — Texto corto de la franja beige de estado.
 - @yield('content') — Cuerpo HTML dentro de la tarjeta (detalles, listas, código OTP, etc.).
@@ -62,22 +61,9 @@ Seguridad cliente de correo: tablas + estilos inline; sin flex/grid críticos ni
                 <tr>
                     <td style="height:2px;line-height:2px;font-size:2px;background-color:#DEE2E6;padding:0;">&nbsp;</td>
                 </tr>
-                {{-- Icono hero en círculo + título + saludo --}}
+                {{-- Título + saludo --}}
                 <tr>
                     <td style="padding:16px 24px 8px 24px;text-align:center;background-color:#ffffff;">
-                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 12px auto;">
-                            <tr>
-                                <td align="center" style="width:64px;height:64px;background-color:#F2F2F2;border-radius:50%;vertical-align:middle;text-align:center;">
-                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto;">
-                                        <tr>
-                                            <td style="padding:10px 0 0 0;" align="center">
-                                                @yield('hero_icon')
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
                         <h1 style="margin:0 0 8px 0;padding:0;font-family:'Playfair Display',Georgia,'Times New Roman',Times,serif;font-size:32px;line-height:1.15;font-weight:700;color:#1B3D6D;text-align:center;letter-spacing:-1px;">
                             @yield('title')
                         </h1>
@@ -110,16 +96,7 @@ Seguridad cliente de correo: tablas + estilos inline; sin flex/grid críticos ni
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:12px;background-color:#F5F5FF;border:1px solid #E8E8F4;border-radius:4px;border-collapse:separate;">
                                 <tr>
                                     <td style="padding:12px;font-family:Inter,system-ui,sans-serif;font-size:10px;line-height:13px;color:#1B3D6D;">
-                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                            <tr>
-                                                <td width="32" valign="top" style="padding-right:4px;">
-                                                    @include('mail.partials.hero-icon', ['variant' => 'shield'])
-                                                </td>
-                                                <td valign="top" style="padding-top:2px;">
-                                                    @yield('secondary_notice')
-                                                </td>
-                                            </tr>
-                                        </table>
+                                        @yield('secondary_notice')
                                     </td>
                                 </tr>
                             </table>

@@ -4,10 +4,6 @@
     Renovación registrada — {{ $suscripcion->historia->nombre ?? 'tu historia' }}
 @endsection
 
-@section('hero_icon')
-    @include('mail.partials.hero-icon', ['variant' => 'subscription'])
-@endsection
-
 @section('title')
     Renovación registrada
 @endsection

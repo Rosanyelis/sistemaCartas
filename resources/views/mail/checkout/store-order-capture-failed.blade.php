@@ -4,10 +4,6 @@
     Pago no completado — pedido #{{ $order->id }}
 @endsection
 
-@section('hero_icon')
-    @include('mail.partials.hero-icon', ['variant' => 'cart-warning'])
-@endsection
-
 @section('title')
     No hemos podido completar el pago
 @endsection

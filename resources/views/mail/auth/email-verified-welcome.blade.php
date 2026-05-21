@@ -4,10 +4,6 @@
     Tu primer sobre está por abrirse — bienvenido a Historias por Correo
 @endsection
 
-@section('hero_icon')
-    @include('mail.partials.hero-icon', ['variant' => 'heart'])
-@endsection
-
 @section('title')
     ¡Bienvenido a nuestra familia!
 @endsection

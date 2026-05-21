@@ -48,6 +48,7 @@ test('vistas de correo se renderizan sin excepción', function (): void {
         ->toContain('×2')
         ->not->toContain('(+1)')
         ->toContain('logo-principal.png')
+        ->not->toContain('images/mail/icons/')
         ->toContain('background-color:#1B3D6D')
         ->toContain('© Historias por correo')
         ->toContain('48 horas')
@@ -116,5 +117,6 @@ test('vistas de correo se renderizan sin excepción', function (): void {
     $mailMessage = $notif->toMail($user);
     expect($mailMessage->view)->toBe('mail.auth.verify-email-otp');
     $otpHtml = view($mailMessage->view, $mailMessage->viewData)->render();
-    expect($otpHtml)->toContain('123456')->toContain('Verificación');
+    expect($otpHtml)->toContain('123456')->toContain('Verificación')
+        ->not->toContain('images/mail/icons/');
 });
