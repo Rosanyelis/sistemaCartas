@@ -1,14 +1,14 @@
-import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
+import type { LucideIcon } from 'lucide-react';
 import {
-    faBook,
-    faBoxOpen,
-    faCartShopping,
-    faHouse,
-    faStore,
-    faUser,
-    faUserGroup,
-    faUsers,
-} from '@fortawesome/free-solid-svg-icons';
+    BookOpen,
+    LayoutGrid,
+    PackageOpen,
+    ShoppingCart,
+    Store,
+    User,
+    Users,
+    UsersRound,
+} from 'lucide-react';
 import {
     clientes,
     clients as adminClientsLegacy,
@@ -26,7 +26,7 @@ import { orders, profile, subscriptions } from '@/routes/user';
 
 export type PanelNavItem = {
     name: string;
-    icon: IconDefinition;
+    icon: LucideIcon;
     href: string;
     active: boolean;
 };
@@ -45,13 +45,13 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
     return [
         {
             name: 'Panel',
-            icon: faHouse,
+            icon: LayoutGrid,
             href: adminDashboard.url(),
             active: currentUrl === d,
         },
         {
             name: 'Ordenes',
-            icon: faCartShopping,
+            icon: ShoppingCart,
             href: ordenes.url(),
             active:
                 currentUrl.startsWith(o) ||
@@ -59,7 +59,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Suscripciones',
-            icon: faUsers,
+            icon: Users,
             href: adminSuscripciones.url(),
             active:
                 currentUrl.startsWith(s) ||
@@ -67,7 +67,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Clientes',
-            icon: faUserGroup,
+            icon: UsersRound,
             href: clientes.url(),
             active:
                 currentUrl.startsWith(c) ||
@@ -75,7 +75,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Historias',
-            icon: faBook,
+            icon: BookOpen,
             href: adminHistorias.url(),
             active:
                 currentUrl.startsWith(h) ||
@@ -83,7 +83,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Productos',
-            icon: faBoxOpen,
+            icon: PackageOpen,
             href: adminProductos.url(),
             active:
                 currentUrl.startsWith(p) ||
@@ -103,25 +103,25 @@ export function getClientePanelNav(currentUrl: string): PanelNavItem[] {
     return [
         {
             name: 'Ir a tienda',
-            icon: faStore,
+            icon: Store,
             href: '/',
             active: currentUrl === '/' || currentUrl === '',
         },
         {
             name: 'Ordenes',
-            icon: faCartShopping,
+            icon: ShoppingCart,
             href: orders.url(),
             active: currentUrl.startsWith(ou),
         },
         {
             name: 'Suscripciones',
-            icon: faUsers,
+            icon: Users,
             href: subscriptions.url(),
             active: currentUrl.startsWith(su),
         },
         {
             name: 'Perfil',
-            icon: faUser,
+            icon: User,
             href: profile.url(),
             active: currentUrl.startsWith(pr),
         },

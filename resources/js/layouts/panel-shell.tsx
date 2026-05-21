@@ -1,7 +1,9 @@
-import { faBars, faPowerOff, faTriangleExclamation, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faTriangleExclamation, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { LogOut } from 'lucide-react';
 import { appFontLinks } from '@/components/AppFontLinks';
 import { FlashToasts } from '@/components/FlashToasts';
+import { Icon } from '@/components/ui/icon';
 import type { PanelNavItem } from '@/config/panel-nav';
 import type { User } from '@/types/auth';
 import { Head, Link, router } from '@inertiajs/react';
@@ -83,8 +85,8 @@ export default function PanelShell({
                                 }`}
                             >
                                 <span className="flex size-5 shrink-0 items-center justify-center">
-                                    <FontAwesomeIcon
-                                        icon={item.icon}
+                                    <Icon
+                                        iconNode={item.icon}
                                         className={
                                             isSidebarOpen ? 'size-4' : 'size-5'
                                         }
@@ -107,9 +109,9 @@ export default function PanelShell({
                         className={`flex w-full items-center rounded-[4px] text-left text-white transition-all hover:bg-[rgba(255,255,255,0.1)] ${isSidebarOpen ? 'gap-4 px-4 py-3' : 'justify-center px-0 py-4'}`}
                     >
                         <span className="flex size-6 shrink-0 items-center justify-center">
-                            <FontAwesomeIcon
-                                icon={faPowerOff}
+                            <LogOut
                                 className={isSidebarOpen ? 'size-5' : 'size-6'}
+                                strokeWidth={1.75}
                             />
                         </span>
                         <span
