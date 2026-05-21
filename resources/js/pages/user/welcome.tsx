@@ -59,7 +59,7 @@ export default function Welcome({
             <CtaSection
                 title="Algunas historias merecen seguir llegando"
                 buttonText="Explorar historias"
-                buttonLink="#historias"
+                buttonLink="/historias"
             />
         </ClienteLayout>
     );

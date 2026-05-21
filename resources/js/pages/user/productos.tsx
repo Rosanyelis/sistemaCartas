@@ -63,7 +63,7 @@ export default function Productos() {
                 title="Todos los objetos esconden una gran historia"
                 description="Si ya regalaste una historia a ese ser especial, regálale un objeto que le permita revivir cada historia"
                 buttonText="Encontrar objeto para regalar"
-                buttonLink="#"
+                buttonLink="/productos"
             />
         </ClienteLayout>
     );
