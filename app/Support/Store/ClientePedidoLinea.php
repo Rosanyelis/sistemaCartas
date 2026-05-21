@@ -77,18 +77,18 @@ final class ClientePedidoLinea
     }
 
     /**
-     * Misma lógica semántica que el panel admin (pagado, fallo de captura, pendiente);
-     * claves reales: paid, capture_failed, pending_payment, etc.
+     * Etiquetas visibles en el panel del cliente y exportaciones admin.
+     * Claves reales: paid, capture_failed, pending_payment, etc.
      *
      * @return array{label: string, color: 'success'|'danger'|'warning'}
      */
     public static function estadoMeta(string $status): array
     {
         return match ($status) {
-            StoreOrder::STATUS_PAID => ['label' => 'Pagado', 'color' => 'success'],
-            StoreOrder::STATUS_CAPTURE_FAILED => ['label' => 'Pago no completado', 'color' => 'danger'],
-            StoreOrder::STATUS_PENDING_PAYMENT => ['label' => 'Pendiente de pago', 'color' => 'warning'],
-            default => ['label' => $status, 'color' => 'warning'],
+            StoreOrder::STATUS_PAID, 'completed' => ['label' => 'Completado', 'color' => 'success'],
+            StoreOrder::STATUS_CAPTURE_FAILED, 'failed', 'cancelled', 'canceled' => ['label' => 'Rechazado', 'color' => 'danger'],
+            StoreOrder::STATUS_PENDING_PAYMENT, 'pending' => ['label' => 'Pendiente de pago', 'color' => 'warning'],
+            default => ['label' => 'Rechazado', 'color' => 'danger'],
         };
     }
 }

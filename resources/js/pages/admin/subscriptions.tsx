@@ -117,6 +117,36 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
 
     const formatDateLabel = (date: string) => date.split('-').reverse().join('/');
 
+    /** Alineado con `SuscripcionUsuarioListaSerializer::estadoPresentacion` (PHP). */
+    const subscriptionStatusPresentation = (estado: string) => {
+        const key = estado.toLowerCase();
+        const map: Record<string, { label: string; tone: 'success' | 'danger' | 'warning' }> = {
+            activa: { label: 'Completado', tone: 'success' },
+            inactiva: { label: 'Rechazado', tone: 'danger' },
+            pendiente: { label: 'Pendiente', tone: 'warning' },
+        };
+
+        return map[key] ?? { label: 'Rechazado', tone: 'danger' };
+    };
+
+    const subscriptionStatusBadgeClass = (tone: 'success' | 'danger' | 'warning', compact = false): string => {
+        if (tone === 'success') {
+            return compact
+                ? 'bg-[#D1F4E0] text-[#12A05B]'
+                : 'bg-[#E8F8F0] text-[#10B981]';
+        }
+
+        if (tone === 'danger') {
+            return compact
+                ? 'bg-[#FEE2E2] text-[#EF4444]'
+                : 'bg-[#FEE2E2] text-[#EF4444]';
+        }
+
+        return compact
+            ? 'bg-[#FEF3C7] text-[#D97706]'
+            : 'bg-[#FEF3C7] text-[#D97706]';
+    };
+
     const { data: subList, current_page, last_page, from, to, total } = suscripciones;
 
     return (
@@ -267,12 +297,16 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
                                             <td className="px-5 py-4 text-sm font-medium text-[#111827]">{sub.user?.name ?? '-'}</td>
                                             <td className="px-5 py-4 text-sm text-[#7B7B7B]">{sub.user?.direction ?? '-'}</td>
                                             <td className="px-5 py-4">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
-                                                    ${sub.estado === 'activa' ? 'bg-[#E8F8F0] text-[#10B981]' : 
-                                                    sub.estado === 'inactiva' ? 'bg-[#FEE2E2] text-[#EF4444]' : 
-                                                    'bg-[#FEF3C7] text-[#D97706]'}`}>
-                                                    {sub.estado.charAt(0).toUpperCase() + sub.estado.slice(1)}
-                                                </span>
+                                                {(() => {
+                                                    const st = subscriptionStatusPresentation(sub.estado);
+                                                    return (
+                                                        <span
+                                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${subscriptionStatusBadgeClass(st.tone)}`}
+                                                        >
+                                                            {st.label}
+                                                        </span>
+                                                    );
+                                                })()}
                                             </td>
                                         </tr>
                                     ))
@@ -295,12 +329,16 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
                                     <div key={sub.id} className="flex flex-col py-[18px] px-5 gap-3">
                                         <div className="flex justify-between items-center bg-white">
                                             <span className="text-[13.5px] font-medium text-[#4B5563]">#{sub.id}</span>
-                                            <span className={`inline-flex items-center px-[10px] py-[3px] rounded text-[11.5px] font-medium tracking-wide
-                                                ${sub.estado === 'activa' ? 'bg-[#D1F4E0] text-[#12A05B]' : 
-                                                sub.estado === 'inactiva' ? 'bg-[#FEE2E2] text-[#EF4444]' : 
-                                                'bg-[#FEF3C7] text-[#D97706]'}`}>
-                                                {sub.estado.charAt(0).toUpperCase() + sub.estado.slice(1)}
-                                            </span>
+                                            {(() => {
+                                                const st = subscriptionStatusPresentation(sub.estado);
+                                                return (
+                                                    <span
+                                                        className={`inline-flex items-center rounded px-[10px] py-[3px] text-[11.5px] font-medium tracking-wide ${subscriptionStatusBadgeClass(st.tone, true)}`}
+                                                    >
+                                                        {st.label}
+                                                    </span>
+                                                );
+                                            })()}
                                         </div>
                                         <div className="-mt-1 text-[13.5px] font-medium text-[#111827]">
                                             {sub.historia?.nombre ?? '-'}

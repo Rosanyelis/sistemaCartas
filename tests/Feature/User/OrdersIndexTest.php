@@ -57,7 +57,7 @@ test('cliente ve lineas de pedido pagadas desde la base de datos', function (): 
             ->where('ordenes.data.0.order_id', $order->id)
             ->where('ordenes.data.0.producto', 'Producto panel órdenes')
             ->where('ordenes.data.0.cantidad', 2)
-            ->where('ordenes.data.0.estado', 'Pagado'));
+            ->where('ordenes.data.0.estado', 'Completado'));
 });
 
 test('cliente no ve ordenes de otro usuario', function (): void {

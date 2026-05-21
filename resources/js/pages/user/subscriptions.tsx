@@ -26,6 +26,7 @@ interface Suscripcion {
     proximo_cobro: string;
     estado: string;
     estado_color: 'success' | 'warning' | 'danger';
+    es_activa: boolean;
 }
 
 interface SubscriptionsProps {
@@ -133,8 +134,7 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
         );
     };
 
-    const canDarDeBaja = (sub: Suscripcion): boolean =>
-        sub.estado === 'Activa';
+    const canDarDeBaja = (sub: Suscripcion): boolean => sub.es_activa;
 
     return (
         <UserLayout title="Suscripciones">

@@ -103,12 +103,14 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
         const key = status.toLowerCase();
         /** Alineado con `StoreOrder` y `ClientePedidoLinea::estadoMeta` (PHP). */
         const map: Record<string, { label: string; color: 'success' | 'danger' | 'warning' }> = {
-            paid: { label: 'Pagado', color: 'success' },
-            completed: { label: 'Pagado', color: 'success' },
+            paid: { label: 'Completado', color: 'success' },
+            completed: { label: 'Completado', color: 'success' },
             pending_payment: { label: 'Pendiente de pago', color: 'warning' },
             pending: { label: 'Pendiente de pago', color: 'warning' },
-            capture_failed: { label: 'Pago no completado', color: 'danger' },
-            failed: { label: 'Pago no completado', color: 'danger' },
+            capture_failed: { label: 'Rechazado', color: 'danger' },
+            failed: { label: 'Rechazado', color: 'danger' },
+            cancelled: { label: 'Rechazado', color: 'danger' },
+            canceled: { label: 'Rechazado', color: 'danger' },
         };
 
         return map[key] ?? { label: status || 'Sin estado', color: 'warning' };

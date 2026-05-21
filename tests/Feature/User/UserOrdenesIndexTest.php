@@ -38,7 +38,7 @@ test('cliente con compra pagada ve filas reales en mis órdenes', function (): v
             ->where('ordenes.data.0.producto', 'Producto de prueba orden')
             ->where('ordenes.data.0.cantidad', 2)
             ->where('ordenes.data.0.order_id', $order->id)
-            ->where('ordenes.data.0.estado', 'Pagado')
+            ->where('ordenes.data.0.estado', 'Completado')
             ->where('ordenes.total', 1));
 });
 
@@ -107,6 +107,6 @@ test('intento de pago no completado se lista con estado danger', function (): vo
         ->get(route('user.orders'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('ordenes.data.0.estado', 'Pago no completado')
+            ->where('ordenes.data.0.estado', 'Rechazado')
             ->where('ordenes.data.0.estado_color', 'danger'));
 });

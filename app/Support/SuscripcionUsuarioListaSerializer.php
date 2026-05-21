@@ -17,10 +17,10 @@ final class SuscripcionUsuarioListaSerializer
     public static function estadoPresentacion(string $estado): array
     {
         return match ($estado) {
-            'activa' => ['label' => 'Activa', 'color' => 'success'],
-            'inactiva' => ['label' => 'Inactiva', 'color' => 'warning'],
+            'activa' => ['label' => 'Completado', 'color' => 'success'],
+            'inactiva' => ['label' => 'Rechazado', 'color' => 'danger'],
             'pendiente' => ['label' => 'Pendiente', 'color' => 'warning'],
-            default => ['label' => ucfirst($estado), 'color' => 'danger'],
+            default => ['label' => 'Rechazado', 'color' => 'danger'],
         };
     }
 
@@ -47,6 +47,7 @@ final class SuscripcionUsuarioListaSerializer
             'proximo_cobro' => self::formatoFecha($s->proximo_cobro),
             'estado' => $presentacion['label'],
             'estado_color' => $presentacion['color'],
+            'es_activa' => $s->estado === 'activa',
         ];
     }
 
