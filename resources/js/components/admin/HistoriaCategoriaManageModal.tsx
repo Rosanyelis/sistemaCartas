@@ -2,12 +2,8 @@
 import { createPortal } from 'react-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faChevronLeft, faChevronRight, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { adminTaxonomiaUrls } from '@/lib/admin-taxonomia-urls';
 import { laravelJsonFetch } from '@/lib/laravel-json-fetch';
-import {
-    destroy as taxonomiaHistoriaCategoriaDestroy,
-    index as taxonomiaHistoriaCategoriaIndex,
-    store as taxonomiaHistoriaCategoriaStore,
-} from '@/routes/admin/taxonomia/historia-categorias';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 
 type Paginated<T> = {
@@ -49,7 +45,7 @@ export function HistoriaCategoriaManageModal({ isOpen, onClose, onSaved }: Histo
         setError(null);
         try {
             const res = await laravelJsonFetch<Paginated<Row>>(
-                taxonomiaHistoriaCategoriaIndex.url({ query: { page, per_page: PER_PAGE } }),
+                adminTaxonomiaUrls.historiaCategorias.index({ page, per_page: PER_PAGE }),
             );
             setRows(res.data);
             setLastPage(res.last_page);
@@ -96,7 +92,7 @@ export function HistoriaCategoriaManageModal({ isOpen, onClose, onSaved }: Histo
         setSaving(true);
         setError(null);
         try {
-            await laravelJsonFetch(taxonomiaHistoriaCategoriaStore.url(), {
+            await laravelJsonFetch(adminTaxonomiaUrls.historiaCategorias.store(), {
                 method: 'POST',
                 body: JSON.stringify({ nombre: trimmed }),
             });
@@ -117,7 +113,9 @@ export function HistoriaCategoriaManageModal({ isOpen, onClose, onSaved }: Histo
         setDeleting(true);
         setError(null);
         try {
-            await laravelJsonFetch(taxonomiaHistoriaCategoriaDestroy.url(deleteTarget.id), { method: 'DELETE' });
+            await laravelJsonFetch(adminTaxonomiaUrls.historiaCategorias.destroy(deleteTarget.id), {
+                method: 'DELETE',
+            });
             setDeleteTarget(null);
             onSaved?.();
             if (rows.length === 1 && page > 1) {

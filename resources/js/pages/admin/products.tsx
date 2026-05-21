@@ -7,7 +7,7 @@ import { CreateProductModal } from '@/components/admin/CreateProductModal';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { ProductoTaxonomyManageModal, type TaxonomyKind } from '@/components/admin/ProductoTaxonomyManageModal';
 import { buildExportQuery } from '@/lib/export-query';
-import { index as productoSubcategoriasIndex } from '@/routes/admin/taxonomia/producto-subcategorias';
+import { adminTaxonomiaUrls } from '@/lib/admin-taxonomia-urls';
 import { StockAdjuster } from '@/components/admin/StockAdjuster';
 import { productos as adminProductosList } from '@/routes/admin';
 import {
@@ -500,11 +500,9 @@ export default function Products({ productos, categorias, filters }: Props) {
                     }
 
                     void fetch(
-                        productoSubcategoriasIndex.url({
-                            query: {
-                                producto_categoria_id: String(taxonomyCategoriaPadreId),
-                                per_page: 200,
-                            },
+                        adminTaxonomiaUrls.productoSubcategorias.index({
+                            producto_categoria_id: taxonomyCategoriaPadreId,
+                            per_page: 200,
                         }),
                         {
                             credentials: 'same-origin',

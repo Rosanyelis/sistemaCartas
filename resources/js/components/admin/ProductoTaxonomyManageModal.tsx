@@ -1,17 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes, faChevronLeft, faChevronRight, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { adminTaxonomiaUrls } from '@/lib/admin-taxonomia-urls';
 import { laravelJsonFetch } from '@/lib/laravel-json-fetch';
-import {
-    destroy as taxonomiaCategoriaDestroy,
-    index as taxonomiaCategoriaIndex,
-    store as taxonomiaCategoriaStore,
-} from '@/routes/admin/taxonomia/producto-categorias';
-import {
-    destroy as taxonomiaSubcategoriaDestroy,
-    index as taxonomiaSubcategoriaIndex,
-    store as taxonomiaSubcategoriaStore,
-} from '@/routes/admin/taxonomia/producto-subcategorias';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 
 export type TaxonomyKind = 'categoria' | 'subcategoria';
@@ -79,7 +70,7 @@ export function ProductoTaxonomyManageModal({
         try {
             if (isCategoria) {
                 const res = await laravelJsonFetch<Paginated<Row>>(
-                    taxonomiaCategoriaIndex.url({ query: { page, per_page: PER_PAGE } }),
+                    adminTaxonomiaUrls.productoCategorias.index({ page, per_page: PER_PAGE }),
                 );
                 setRows(res.data);
                 setLastPage(res.last_page);
@@ -96,12 +87,10 @@ export function ProductoTaxonomyManageModal({
                     return;
                 }
                 const res = await laravelJsonFetch<Paginated<Row>>(
-                    taxonomiaSubcategoriaIndex.url({
-                        query: {
-                            producto_categoria_id: subCategoriaIdNum,
-                            page,
-                            per_page: PER_PAGE,
-                        },
+                    adminTaxonomiaUrls.productoSubcategorias.index({
+                        producto_categoria_id: subCategoriaIdNum,
+                        page,
+                        per_page: PER_PAGE,
                     }),
                 );
                 setRows(res.data);
@@ -160,7 +149,7 @@ export function ProductoTaxonomyManageModal({
         setError(null);
         try {
             if (isCategoria) {
-                await laravelJsonFetch(taxonomiaCategoriaStore.url(), {
+                await laravelJsonFetch(adminTaxonomiaUrls.productoCategorias.store(), {
                     method: 'POST',
                     body: JSON.stringify({ nombre: trimmed }),
                 });
@@ -170,7 +159,7 @@ export function ProductoTaxonomyManageModal({
                     setSaving(false);
                     return;
                 }
-                await laravelJsonFetch(taxonomiaSubcategoriaStore.url(), {
+                await laravelJsonFetch(adminTaxonomiaUrls.productoSubcategorias.store(), {
                     method: 'POST',
                     body: JSON.stringify({
                         nombre: trimmed,
@@ -196,8 +185,8 @@ export function ProductoTaxonomyManageModal({
         setError(null);
         try {
             const path = isCategoria
-                ? taxonomiaCategoriaDestroy.url(deleteTarget.id)
-                : taxonomiaSubcategoriaDestroy.url(deleteTarget.id);
+                ? adminTaxonomiaUrls.productoCategorias.destroy(deleteTarget.id)
+                : adminTaxonomiaUrls.productoSubcategorias.destroy(deleteTarget.id);
             await laravelJsonFetch(path, { method: 'DELETE' });
             setDeleteTarget(null);
             onSaved?.();

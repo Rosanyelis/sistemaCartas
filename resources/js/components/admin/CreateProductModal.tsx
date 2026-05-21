@@ -17,7 +17,7 @@ import {
     store as productosStore,
     update as productosUpdate,
 } from '@/routes/admin/productos';
-import { index as productoSubcategoriasIndex } from '@/routes/admin/taxonomia/producto-subcategorias';
+import { adminTaxonomiaUrls } from '@/lib/admin-taxonomia-urls';
 
 export type CategoriaOption = {
     id: number;
@@ -159,8 +159,9 @@ export function CreateProductModal({
         let cancelled = false;
         setSubcategoriasLoading(true);
         fetch(
-            productoSubcategoriasIndex.url({
-                query: { producto_categoria_id: catId, per_page: 200 },
+            adminTaxonomiaUrls.productoSubcategorias.index({
+                producto_categoria_id: catId,
+                per_page: 200,
             }),
             { credentials: 'same-origin', headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } },
         )
