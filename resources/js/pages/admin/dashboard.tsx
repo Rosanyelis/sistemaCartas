@@ -26,6 +26,12 @@ import {
     Cell,
 } from 'recharts';
 
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { PageProps as BasePageProps } from '@inertiajs/core';
 import { dashboard as adminDashboard } from '@/routes/admin';
 
@@ -106,7 +112,7 @@ function formatPeriodRange(periodo: string): string {
         return `${format(start)} - ${format(now)}`;
     }
 
-    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const start = new Date(now.getFullYear(), 0, 1);
 
     return `${format(start)} - ${format(now)}`;
 }
@@ -338,12 +344,46 @@ export default function Dashboard() {
                         >
                             <div className="mb-4 flex flex-col gap-3">
                                 <div className="flex items-center gap-3">
-                                    <div className={iconBoxClass}>
-                                        <AlignJustify
-                                            className="size-6"
-                                            strokeWidth={iconStroke}
-                                        />
-                                    </div>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className={`${iconBoxClass} cursor-pointer transition-opacity hover:opacity-80`}
+                                                aria-haspopup="menu"
+                                                aria-label="Filtrar series del gráfico"
+                                            >
+                                                <AlignJustify
+                                                    className="size-6"
+                                                    strokeWidth={iconStroke}
+                                                />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent
+                                            align="start"
+                                            className="min-w-[148px] rounded-[4px] border-0 bg-white p-2 shadow-[0px_0px_10px_rgba(36,16,167,0.15)]"
+                                        >
+                                            {CHART_FILTER_OPTIONS.map(
+                                                ({ key, label }) => (
+                                                    <DropdownMenuItem
+                                                        key={key}
+                                                        onSelect={() =>
+                                                            setChartSerieFilter(
+                                                                key,
+                                                            )
+                                                        }
+                                                        className={`cursor-pointer rounded-[2px] px-3 py-2.5 text-[13px] focus:bg-[#F5F5FF] ${
+                                                            chartSerieFilter ===
+                                                            key
+                                                                ? 'font-semibold text-[#1B3D6D]'
+                                                                : 'font-normal text-[#7B7B7B]'
+                                                        }`}
+                                                    >
+                                                        {label}
+                                                    </DropdownMenuItem>
+                                                ),
+                                            )}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                     <h2 className="text-[20px] font-semibold text-[#7B7B7B]">
                                         Rendimientos de ventas
                                     </h2>
@@ -383,51 +423,29 @@ export default function Dashboard() {
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-4 md:flex-row md:gap-6">
-                                <div className="hidden w-[110px] shrink-0 flex-col rounded-[4px] bg-white shadow-[0px_0px_2px_rgba(0,0,0,0.1)] md:flex">
-                                    {CHART_FILTER_OPTIONS.map(
-                                        ({ key, label }) => (
-                                            <button
-                                                key={key}
-                                                type="button"
-                                                onClick={() =>
-                                                    setChartSerieFilter(key)
-                                                }
-                                                className={`px-2 py-2 text-left text-[13px] ${
-                                                    chartSerieFilter === key
-                                                        ? 'font-semibold text-[#1B3D6D]'
-                                                        : 'font-normal text-[#7B7B7B] hover:text-[#373737]'
-                                                }`}
-                                            >
-                                                {label}
-                                            </button>
-                                        ),
-                                    )}
+                            <div className="min-w-0">
+                                <div className="mb-4 flex flex-wrap gap-6 text-[13px]">
+                                    <div className="flex items-center gap-2">
+                                        <div className="size-3 rounded-[2px] bg-[#2C5629]" />
+                                        <span className="text-[#2C5629]">
+                                            Historias
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="size-3 rounded-[2px] bg-[#1B3D6D]" />
+                                        <span className="text-[#1B3D6D]">
+                                            Productos
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="size-3 rounded-[2px] bg-[#7297BC]" />
+                                        <span className="text-[#7297BC]">
+                                            Cancelados
+                                        </span>
+                                    </div>
                                 </div>
 
-                                <div className="min-w-0 flex-1">
-                                    <div className="mb-4 flex flex-wrap gap-6 text-[13px]">
-                                        <div className="flex items-center gap-2">
-                                            <div className="size-3 rounded-[2px] bg-[#2C5629]" />
-                                            <span className="text-[#2C5629]">
-                                                Historias
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="size-3 rounded-[2px] bg-[#1B3D6D]" />
-                                            <span className="text-[#1B3D6D]">
-                                                Productos
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <div className="size-3 rounded-[2px] bg-[#7297BC]" />
-                                            <span className="text-[#7297BC]">
-                                                Cancelados
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <Deferred
+                                <Deferred
                                         data="ventasChart"
                                         fallback={
                                             <div className="h-[186px] w-full animate-pulse rounded bg-gray-100 md:h-[320px]" />
@@ -533,11 +551,10 @@ export default function Dashboard() {
                                         </div>
                                     </Deferred>
 
-                                    <p className="mt-4 text-center text-[13px] font-semibold text-[#7B7B7B] md:text-left">
-                                        Promedio de los últimos 30 Días:{' '}
-                                        {formatMxn(chartPromedio)}
-                                    </p>
-                                </div>
+                                <p className="mt-4 text-center text-[13px] font-semibold text-[#7B7B7B] md:text-left">
+                                    Promedio de los últimos 30 Días:{' '}
+                                    {formatMxn(chartPromedio)}
+                                </p>
                             </div>
                         </div>
                     </div>

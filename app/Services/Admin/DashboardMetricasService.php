@@ -15,6 +15,12 @@ use Illuminate\Database\Eloquent\Builder;
 
 class DashboardMetricasService
 {
+    /** @var list<string> */
+    private const MESES_ABREV_ES = [
+        'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+        'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+    ];
+
     public function clientesRegistrados(): int
     {
         return User::query()->clientes()->count();
@@ -347,8 +353,8 @@ class DashboardMetricasService
                 ];
             }
         } else {
-            for ($i = 11; $i >= 0; $i--) {
-                $date = $now->copy()->subMonths($i);
+            for ($month = 1; $month <= $now->month; $month++) {
+                $date = $now->copy()->month($month)->startOfMonth();
 
                 $orderForMonth = function (Builder $q) use ($date): void {
                     $q->whereMonth('created_at', $date->month)
@@ -367,7 +373,7 @@ class DashboardMetricasService
                     ->sum('total');
 
                 $data[] = [
-                    'name' => $date->format('M'),
+                    'name' => self::MESES_ABREV_ES[$month - 1],
                     'historias' => $historias,
                     'productos' => $productos,
                     'cancelados' => $cancelados,

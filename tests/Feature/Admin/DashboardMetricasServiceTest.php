@@ -84,11 +84,39 @@ test('clientes nuevos del mes excluye administradores', function (): void {
     Carbon::setTestNow();
 });
 
-test('ventas chart devuelve siete puntos para semana y doce para mes', function (): void {
+test('ventas chart devuelve siete puntos para semana', function (): void {
     $service = app(DashboardMetricasService::class);
 
-    expect($service->ventasChart('semana'))->toHaveCount(7)
-        ->and($service->ventasChart('mes'))->toHaveCount(12);
+    expect($service->ventasChart('semana'))->toHaveCount(7);
+});
+
+test('ventas chart mes incluye meses del año actual hasta el mes presente', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
+
+    $service = app(DashboardMetricasService::class);
+    $chart = $service->ventasChart('mes');
+
+    expect($chart)->toHaveCount(5)
+        ->and(collect($chart)->pluck('name')->all())->toBe([
+            'Ene', 'Feb', 'Mar', 'Abr', 'May',
+        ]);
+
+    Carbon::setTestNow();
+});
+
+test('ventas chart mes en diciembre devuelve doce puntos del mismo año', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-12-15 12:00:00'));
+
+    $service = app(DashboardMetricasService::class);
+    $chart = $service->ventasChart('mes');
+
+    expect($chart)->toHaveCount(12)
+        ->and(collect($chart)->pluck('name')->all())->toBe([
+            'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+            'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+        ]);
+
+    Carbon::setTestNow();
 });
 
 test('ventas del mes usa line_total neto y no el total con iva', function (): void {
