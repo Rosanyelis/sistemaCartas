@@ -2,17 +2,17 @@ import React, { useMemo, useRef, useState } from 'react';
 import MetricCard from '@/components/admin/dashboard/MetricCard';
 import UserLayout from '@/layouts/user-layout';
 import { Head, Deferred, usePage, router } from '@inertiajs/react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-    faUsers,
-    faFileLines,
-    faBox,
-    faChevronDown,
-    faDollarSign,
-    faCalendarDays,
-    faScroll,
-    faBagShopping,
-} from '@fortawesome/free-solid-svg-icons';
+    AlignJustify,
+    CalendarDays,
+    ChevronDown,
+    DollarSign,
+    FileText,
+    Package,
+    ScrollText,
+    ShoppingBag,
+    Users,
+} from 'lucide-react';
 import {
     LineChart,
     Line,
@@ -60,7 +60,14 @@ interface PageProps extends BasePageProps {
     };
 }
 
-const DONUT_COLORS = ['#734B19', '#707A5E', '#1B3D6D', '#E6E6E6', '#BFDBFE'];
+/** Colores del donut según Figma (Historias activas). */
+const DONUT_COLORS = [
+    '#734B19',
+    '#707A5E',
+    '#1B3D6D',
+    '#E6E6E6',
+    '#BFDBFE',
+];
 
 type ChartSerieFilter = 'todos' | 'historias' | 'productos' | 'cancelados';
 
@@ -72,6 +79,9 @@ const CHART_FILTER_OPTIONS: { key: ChartSerieFilter; label: string }[] = [
 ];
 
 const cardShadow = 'shadow-[0px_0px_10px_rgba(36,16,167,0.15)]';
+const iconStroke = 1.75;
+const iconBoxClass =
+    'flex shrink-0 items-center rounded-[2px] bg-[#F5F5FF] p-1 text-[#1B3D6D]';
 
 function formatMxn(amount: number): string {
     return `$${amount.toLocaleString('es-MX', {
@@ -215,15 +225,15 @@ export default function Dashboard() {
         <UserLayout>
             <Head title="Admin Dashboard" />
 
-            <div className="flex flex-col gap-5 bg-[#F5F6F7] px-3 py-3 font-['Inter'] md:gap-6 md:px-6 md:py-4 lg:px-8">
-                <div className="flex flex-col items-start gap-1 lg:flex-row lg:items-center lg:gap-5">
-                    <h1 className="text-[25px] font-semibold leading-tight text-[#1B3D6D]">
+            <div className="flex flex-col gap-6 bg-[#F5F6F7] px-3 pb-10 pt-3 font-['Inter',sans-serif] md:px-6 md:pt-4 lg:px-8">
+                <div className="flex w-full flex-col gap-1">
+                    <h1 className="text-[25px] font-semibold leading-normal text-[#1B3D6D]">
                         ¡Hola, Admin bienvenido!{' '}
                         <span className="text-[24px]">👋</span>
                     </h1>
-                    <span className="text-base font-normal text-[#7B7B7B] lg:shrink-0">
+                    <p className="text-lg font-normal leading-7 text-[#7B7B7B] md:text-base md:leading-normal">
                         Dale un vistazo a tu resumen
-                    </span>
+                    </p>
                 </div>
 
                 <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:gap-4">
@@ -231,302 +241,319 @@ export default function Dashboard() {
                         <Deferred
                             data="metricas"
                             fallback={
-                                <div className="h-[94px] w-full animate-pulse rounded bg-gray-200" />
+                                <div className="h-[94px] w-full animate-pulse rounded-[4px] bg-gray-200" />
                             }
                         >
                             <div
                                 ref={scrollContainerRef}
-                        onMouseDown={onMouseDown}
-                        onMouseLeave={onMouseLeave}
-                        onMouseUp={onMouseUp}
-                        onMouseMove={onMouseMove}
-                        className={`flex touch-pan-x snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] xl:grid xl:snap-none xl:grid-cols-5 xl:overflow-visible [&::-webkit-scrollbar]:hidden ${
-                            isDragging
-                                ? 'cursor-grabbing select-none'
-                                : 'cursor-grab select-none xl:cursor-auto xl:select-auto'
-                        }`}
-                    >
-                        <MetricCard
-                            icon={faUsers}
-                            title="Registrados"
-                            subtitle={clientesRegistradosSubtitle}
-                            value={metricas?.clientes_registrados ?? 0}
-                            growthPercent={
-                                metricas?.clientes_crecimiento_porcentaje
-                            }
-                            className="min-w-[260px] max-w-[300px] shrink-0 snap-start xl:min-w-0 xl:max-w-none xl:w-full xl:shrink"
-                        />
-                        <MetricCard
-                            icon={faFileLines}
-                            title="Suscripciones"
-                            subtitle={mesSubtitle}
-                            value={metricas?.suscripciones_del_mes ?? 0}
-                            iconClassName="bg-[rgba(27,61,109,0.1)] text-[#1B3D6D]"
-                            stats={[
-                                {
-                                    label: 'Activos',
-                                    value:
-                                        metricas?.suscripciones_activas_mes ??
-                                        0,
-                                    tone: 'success',
-                                    icon: 'up',
-                                },
-                                {
-                                    label: 'Bajas',
-                                    value:
-                                        metricas?.suscripciones_bajas_mes ?? 0,
-                                    tone: 'danger',
-                                    icon: 'down',
-                                },
-                            ]}
-                            className="min-w-[260px] max-w-[300px] shrink-0 snap-start xl:min-w-0 xl:max-w-none xl:w-full xl:shrink"
-                        />
-                        <MetricCard
-                            icon={faBox}
-                            title="Órdenes de día"
-                            subtitle={mesSubtitle}
-                            value={metricas?.ordenes_del_dia ?? 0}
-                            stats={[
-                                {
-                                    label: 'Completadas',
-                                    value:
-                                        metricas?.ordenes_completadas_dia ?? 0,
-                                    tone: 'success',
-                                    icon: 'check',
-                                },
-                                {
-                                    label: 'Rechazadas',
-                                    value:
-                                        metricas?.ordenes_rechazadas_dia ?? 0,
-                                    tone: 'danger',
-                                    icon: 'times',
-                                },
-                            ]}
-                            className="min-w-[260px] max-w-[300px] shrink-0 snap-start xl:min-w-0 xl:max-w-none xl:w-full xl:shrink"
-                        />
-                        <MetricCard
-                            icon={faScroll}
-                            title="Historias activas"
-                            value={metricas?.historias_activas ?? 0}
-                            className="min-w-[130px] max-w-[130px] shrink-0 snap-start xl:min-w-0 xl:max-w-none xl:w-full xl:shrink"
-                        />
-                        <MetricCard
-                            icon={faBagShopping}
-                            title="Productos activos"
-                            value={metricas?.productos_activos ?? 0}
-                            className="min-w-[130px] max-w-[130px] shrink-0 snap-start xl:min-w-0 xl:max-w-none xl:w-full xl:shrink"
-                        />
-                        <div
-                            className="w-2 shrink-0 xl:hidden"
-                            aria-hidden
-                        />
+                                onMouseDown={onMouseDown}
+                                onMouseLeave={onMouseLeave}
+                                onMouseUp={onMouseUp}
+                                onMouseMove={onMouseMove}
+                                className={`flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] xl:grid xl:snap-none xl:grid-cols-5 xl:gap-4 xl:overflow-visible [&::-webkit-scrollbar]:hidden ${
+                                    isDragging
+                                        ? 'cursor-grabbing select-none'
+                                        : 'cursor-grab select-none xl:cursor-auto xl:select-auto'
+                                }`}
+                            >
+                                <MetricCard
+                                    icon={Users}
+                                    title="Registrados"
+                                    subtitle={clientesRegistradosSubtitle}
+                                    value={metricas?.clientes_registrados ?? 0}
+                                    growthPercent={
+                                        metricas?.clientes_crecimiento_porcentaje
+                                    }
+                                />
+                                <MetricCard
+                                    icon={FileText}
+                                    title="Suscripciones"
+                                    subtitle={mesSubtitle}
+                                    value={metricas?.suscripciones_del_mes ?? 0}
+                                    iconClassName="bg-[rgba(27,61,109,0.1)] text-[#1B3D6D]"
+                                    stats={[
+                                        {
+                                            label: 'Activos',
+                                            value:
+                                                metricas?.suscripciones_activas_mes ??
+                                                0,
+                                            tone: 'success',
+                                            icon: 'up',
+                                        },
+                                        {
+                                            label: 'Bajas',
+                                            value:
+                                                metricas?.suscripciones_bajas_mes ??
+                                                0,
+                                            tone: 'danger',
+                                            icon: 'down',
+                                        },
+                                    ]}
+                                />
+                                <MetricCard
+                                    icon={Package}
+                                    title="Órdenes de día"
+                                    subtitle={mesSubtitle}
+                                    value={metricas?.ordenes_del_dia ?? 0}
+                                    stats={[
+                                        {
+                                            label: 'Completadas',
+                                            value:
+                                                metricas?.ordenes_completadas_dia ??
+                                                0,
+                                            tone: 'success',
+                                            icon: 'check',
+                                        },
+                                        {
+                                            label: 'Rechazadas',
+                                            value:
+                                                metricas?.ordenes_rechazadas_dia ??
+                                                0,
+                                            tone: 'danger',
+                                            icon: 'times',
+                                        },
+                                    ]}
+                                />
+                                <MetricCard
+                                    icon={ScrollText}
+                                    title="Historias activas"
+                                    value={metricas?.historias_activas ?? 0}
+                                    compact
+                                />
+                                <MetricCard
+                                    icon={ShoppingBag}
+                                    title="Productos activos"
+                                    value={metricas?.productos_activos ?? 0}
+                                    compact
+                                />
+                                <div
+                                    className="w-2 shrink-0 xl:hidden"
+                                    aria-hidden
+                                />
                             </div>
                         </Deferred>
 
                         <div
-                            className={`min-w-0 rounded bg-white p-4 ${cardShadow} md:p-4`}
+                            className={`min-w-0 rounded-[4px] bg-white p-3 ${cardShadow}`}
                         >
-                        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                            <h2 className="text-xl font-semibold text-[#7B7B7B]">
-                                Rendimientos de ventas
-                            </h2>
-                            <div className="flex flex-wrap gap-4">
-                                <label className="flex h-10 items-center gap-2.5 rounded-md border border-[#DFE4EA] bg-white px-5 py-3 text-[13px] text-[#1B3D6D]">
-                                    <FontAwesomeIcon
-                                        icon={faCalendarDays}
-                                        className="size-4 shrink-0"
-                                    />
-                                    <select
-                                        value={filters.periodo}
-                                        onChange={(e) =>
-                                            handlePeriodChange(e.target.value)
-                                        }
-                                        className="cursor-pointer appearance-none bg-transparent pr-5 outline-none"
-                                    >
-                                        <option value="semana">Semana</option>
-                                        <option value="mes">Mes</option>
-                                    </select>
-                                    <FontAwesomeIcon
-                                        icon={faChevronDown}
-                                        className="pointer-events-none -ml-4 size-4 shrink-0 text-[#1B3D6D]"
-                                    />
-                                </label>
-                                <div className="flex h-10 items-center gap-2.5 rounded-md border border-[#DFE4EA] bg-white px-5 py-3 text-[13px] text-[#1B3D6D]">
-                                    <span>{periodRangeLabel}</span>
-                                    <FontAwesomeIcon
-                                        icon={faChevronDown}
-                                        className="size-4 shrink-0 opacity-60"
-                                    />
+                            <div className="mb-4 flex flex-col gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className={iconBoxClass}>
+                                        <AlignJustify
+                                            className="size-6"
+                                            strokeWidth={iconStroke}
+                                        />
+                                    </div>
+                                    <h2 className="text-[20px] font-semibold text-[#7B7B7B]">
+                                        Rendimientos de ventas
+                                    </h2>
                                 </div>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col gap-6 md:flex-row">
-                            <div className="hidden w-[110px] shrink-0 flex-col rounded bg-white shadow-[0px_0px_2px_rgba(0,0,0,0.1)] md:flex">
-                                {CHART_FILTER_OPTIONS.map(({ key, label }) => (
-                                    <button
-                                        key={key}
-                                        type="button"
-                                        onClick={() => setChartSerieFilter(key)}
-                                        className={`px-2 py-2 text-left text-[13px] ${
-                                            chartSerieFilter === key
-                                                ? 'font-semibold text-[#1B3D6D]'
-                                                : 'font-normal text-[#7B7B7B] hover:text-[#373737]'
-                                        }`}
-                                    >
-                                        {label}
-                                    </button>
-                                ))}
-                            </div>
-
-                            <div className="min-w-0 flex-1">
-                                <div className="mb-4 flex flex-wrap gap-9 text-[13px]">
-                                    <div className="flex items-center gap-2">
-                                        <div className="size-3 rounded-sm bg-[#2C5629]" />
-                                        <span className="text-[#2C5629]">
-                                            Historias
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="size-3 rounded-sm bg-[#1B3D6D]" />
-                                        <span className="text-[#1B3D6D]">
-                                            Productos
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <div className="size-3 rounded-sm bg-[#7297BC]" />
-                                        <span className="text-[#7297BC]">
-                                            Cancelados
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <Deferred
-                                    data="ventasChart"
-                                    fallback={
-                                        <div className="h-[300px] w-full animate-pulse rounded bg-gray-100" />
-                                    }
-                                >
-                                    <div className="h-[280px] w-full min-w-0 md:h-[320px]">
-                                        <ResponsiveContainer
-                                            width="100%"
-                                            height="100%"
+                                <div className="flex flex-wrap gap-4">
+                                    <label className="flex h-10 items-center gap-2.5 rounded-[6px] border border-[#DFE4EA] bg-white px-4 py-3 text-[13px] text-[#1B3D6D]">
+                                        <CalendarDays
+                                            className="size-4 shrink-0"
+                                            strokeWidth={iconStroke}
+                                        />
+                                        <select
+                                            value={filters.periodo}
+                                            onChange={(e) =>
+                                                handlePeriodChange(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="cursor-pointer appearance-none bg-transparent pr-5 outline-none"
                                         >
-                                            <LineChart
-                                                data={ventasChart || []}
-                                                margin={{
-                                                    top: 5,
-                                                    right: 8,
-                                                    left: 0,
-                                                    bottom: 5,
-                                                }}
-                                            >
-                                                <CartesianGrid
-                                                    strokeDasharray="0"
-                                                    vertical={false}
-                                                    stroke="#E5E7EB"
-                                                />
-                                                <XAxis
-                                                    dataKey="name"
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{
-                                                        fontSize: 14,
-                                                        fill: '#7B7B7B',
-                                                        fontWeight: 700,
-                                                    }}
-                                                    dy={10}
-                                                />
-                                                <YAxis
-                                                    axisLine={false}
-                                                    tickLine={false}
-                                                    tick={{
-                                                        fontSize: 14,
-                                                        fill: '#373737',
-                                                    }}
-                                                    tickFormatter={(val) =>
-                                                        `$${val}`
-                                                    }
-                                                />
-                                                <Tooltip
-                                                    contentStyle={{
-                                                        borderRadius: '4px',
-                                                        border: 'none',
-                                                        backgroundColor:
-                                                            '#1B3D6D',
-                                                        color: '#fff',
-                                                        fontSize: '14px',
-                                                        padding: '5px 14px',
-                                                    }}
-                                                    itemStyle={{
-                                                        color: '#fff',
-                                                    }}
-                                                    formatter={(value) =>
-                                                        formatMxn(
-                                                            Number(value),
-                                                        )
-                                                    }
-                                                    cursor={{
-                                                        stroke: '#1B3D6D',
-                                                        strokeWidth: 1,
-                                                        strokeDasharray:
-                                                            '3 3',
-                                                    }}
-                                                />
-                                                {showHistoriasLine && (
-                                                    <Line
-                                                        type="monotone"
-                                                        dataKey="historias"
-                                                        stroke="#2C5629"
-                                                        strokeWidth={2.5}
-                                                        dot={false}
-                                                        strokeDasharray="4 4"
-                                                    />
-                                                )}
-                                                {showProductosLine && (
-                                                    <Line
-                                                        type="monotone"
-                                                        dataKey="productos"
-                                                        stroke="#1B3D6D"
-                                                        strokeWidth={2.5}
-                                                        dot={false}
-                                                    />
-                                                )}
-                                                {showCanceladosLine && (
-                                                    <Line
-                                                        type="monotone"
-                                                        dataKey="cancelados"
-                                                        stroke="#7297BC"
-                                                        strokeWidth={2.5}
-                                                        dot={false}
-                                                    />
-                                                )}
-                                            </LineChart>
-                                        </ResponsiveContainer>
+                                            <option value="semana">
+                                                Semana
+                                            </option>
+                                            <option value="mes">Mes</option>
+                                        </select>
+                                        <ChevronDown
+                                            className="pointer-events-none -ml-4 size-4 shrink-0 text-[#1B3D6D]"
+                                            strokeWidth={iconStroke}
+                                        />
+                                    </label>
+                                    <div className="flex h-10 flex-1 items-center justify-center gap-2.5 rounded-[6px] border border-[#DFE4EA] bg-white px-4 py-3 text-[13px] text-[#1B3D6D] md:flex-none">
+                                        <span>{periodRangeLabel}</span>
+                                        <ChevronDown
+                                            className="size-4 shrink-0 opacity-60"
+                                            strokeWidth={iconStroke}
+                                        />
                                     </div>
-                                </Deferred>
+                                </div>
+                            </div>
 
-                                <p className="mt-4 text-center text-[13px] font-semibold text-[#7B7B7B] md:text-left">
-                                    Promedio de los últimos 30 Días:{' '}
-                                    {formatMxn(chartPromedio)}
-                                </p>
+                            <div className="flex flex-col gap-4 md:flex-row md:gap-6">
+                                <div className="hidden w-[110px] shrink-0 flex-col rounded-[4px] bg-white shadow-[0px_0px_2px_rgba(0,0,0,0.1)] md:flex">
+                                    {CHART_FILTER_OPTIONS.map(
+                                        ({ key, label }) => (
+                                            <button
+                                                key={key}
+                                                type="button"
+                                                onClick={() =>
+                                                    setChartSerieFilter(key)
+                                                }
+                                                className={`px-2 py-2 text-left text-[13px] ${
+                                                    chartSerieFilter === key
+                                                        ? 'font-semibold text-[#1B3D6D]'
+                                                        : 'font-normal text-[#7B7B7B] hover:text-[#373737]'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        ),
+                                    )}
+                                </div>
+
+                                <div className="min-w-0 flex-1">
+                                    <div className="mb-4 flex flex-wrap gap-6 text-[13px]">
+                                        <div className="flex items-center gap-2">
+                                            <div className="size-3 rounded-[2px] bg-[#2C5629]" />
+                                            <span className="text-[#2C5629]">
+                                                Historias
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="size-3 rounded-[2px] bg-[#1B3D6D]" />
+                                            <span className="text-[#1B3D6D]">
+                                                Productos
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="size-3 rounded-[2px] bg-[#7297BC]" />
+                                            <span className="text-[#7297BC]">
+                                                Cancelados
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <Deferred
+                                        data="ventasChart"
+                                        fallback={
+                                            <div className="h-[186px] w-full animate-pulse rounded bg-gray-100 md:h-[320px]" />
+                                        }
+                                    >
+                                        <div className="h-[186px] w-full min-w-0 md:h-[320px]">
+                                            <ResponsiveContainer
+                                                width="100%"
+                                                height="100%"
+                                            >
+                                                <LineChart
+                                                    data={ventasChart || []}
+                                                    margin={{
+                                                        top: 5,
+                                                        right: 8,
+                                                        left: 0,
+                                                        bottom: 5,
+                                                    }}
+                                                >
+                                                    <CartesianGrid
+                                                        strokeDasharray="0"
+                                                        vertical={false}
+                                                        stroke="#E5E7EB"
+                                                    />
+                                                    <XAxis
+                                                        dataKey="name"
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        tick={{
+                                                            fontSize: 14,
+                                                            fill: '#7B7B7B',
+                                                            fontWeight: 700,
+                                                        }}
+                                                        dy={10}
+                                                    />
+                                                    <YAxis
+                                                        axisLine={false}
+                                                        tickLine={false}
+                                                        tick={{
+                                                            fontSize: 14,
+                                                            fill: '#373737',
+                                                        }}
+                                                        tickFormatter={(val) =>
+                                                            `$${val}`
+                                                        }
+                                                    />
+                                                    <Tooltip
+                                                        contentStyle={{
+                                                            borderRadius: '4px',
+                                                            border: 'none',
+                                                            backgroundColor:
+                                                                '#1B3D6D',
+                                                            color: '#fff',
+                                                            fontSize: '14px',
+                                                            padding:
+                                                                '5px 14px',
+                                                        }}
+                                                        itemStyle={{
+                                                            color: '#fff',
+                                                        }}
+                                                        formatter={(value) =>
+                                                            formatMxn(
+                                                                Number(value),
+                                                            )
+                                                        }
+                                                        cursor={{
+                                                            stroke: '#1B3D6D',
+                                                            strokeWidth: 1,
+                                                            strokeDasharray:
+                                                                '3 3',
+                                                        }}
+                                                    />
+                                                    {showHistoriasLine && (
+                                                        <Line
+                                                            type="monotone"
+                                                            dataKey="historias"
+                                                            stroke="#2C5629"
+                                                            strokeWidth={2.5}
+                                                            dot={false}
+                                                            strokeDasharray="4 4"
+                                                        />
+                                                    )}
+                                                    {showProductosLine && (
+                                                        <Line
+                                                            type="monotone"
+                                                            dataKey="productos"
+                                                            stroke="#1B3D6D"
+                                                            strokeWidth={2.5}
+                                                            dot={false}
+                                                        />
+                                                    )}
+                                                    {showCanceladosLine && (
+                                                        <Line
+                                                            type="monotone"
+                                                            dataKey="cancelados"
+                                                            stroke="#7297BC"
+                                                            strokeWidth={2.5}
+                                                            dot={false}
+                                                        />
+                                                    )}
+                                                </LineChart>
+                                            </ResponsiveContainer>
+                                        </div>
+                                    </Deferred>
+
+                                    <p className="mt-4 text-center text-[13px] font-semibold text-[#7B7B7B] md:text-left">
+                                        Promedio de los últimos 30 Días:{' '}
+                                        {formatMxn(chartPromedio)}
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     </div>
 
                     <div className="flex w-full min-w-0 flex-col gap-4 xl:w-[265px] xl:shrink-0">
                         <div
-                            className={`rounded bg-white p-3 ${cardShadow}`}
+                            className={`rounded-[4px] bg-white p-3 ${cardShadow}`}
                         >
                             <div className="mb-3 flex items-start justify-between gap-2">
-                                <h3 className="text-base font-semibold text-[#7B7B7B]">
+                                <h3 className="text-[16px] font-semibold text-[#7B7B7B]">
                                     Ventas totales
                                 </h3>
-                                <div className="rounded-sm bg-[#F5F5FF] p-1 text-[#1B3D6D]">
-                                    <FontAwesomeIcon
-                                        icon={faDollarSign}
+                                <div className={iconBoxClass}>
+                                    <DollarSign
                                         className="size-6"
+                                        strokeWidth={iconStroke}
                                     />
                                 </div>
                             </div>
@@ -553,7 +580,7 @@ export default function Dashboard() {
                                 <div className="flex flex-col gap-2 text-[13px]">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="size-3 rounded-sm bg-[#734B19]" />
+                                            <div className="size-3 rounded-[2px] bg-[#734B19]" />
                                             <span className="text-[#734B19]">
                                                 Historias
                                             </span>
@@ -564,7 +591,7 @@ export default function Dashboard() {
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="size-3 rounded-sm bg-[#1B3D6D]" />
+                                            <div className="size-3 rounded-[2px] bg-[#1B3D6D]" />
                                             <span className="text-[#1B3D6D]">
                                                 Productos
                                             </span>
@@ -578,16 +605,16 @@ export default function Dashboard() {
                         </div>
 
                         <div
-                            className={`flex flex-1 flex-col rounded bg-white p-3 ${cardShadow}`}
+                            className={`flex flex-1 flex-col rounded-[4px] bg-white p-3 ${cardShadow}`}
                         >
                             <div className="mb-4 flex items-center justify-between gap-2">
-                                <h3 className="text-base font-semibold text-[#7B7B7B]">
+                                <h3 className="text-[16px] font-semibold text-[#7B7B7B]">
                                     Historias activas
                                 </h3>
-                                <div className="rounded-sm bg-[#F5F5FF] p-1 text-[#1B3D6D]">
-                                    <FontAwesomeIcon
-                                        icon={faScroll}
+                                <div className={iconBoxClass}>
+                                    <ScrollText
                                         className="size-6"
+                                        strokeWidth={iconStroke}
                                     />
                                 </div>
                             </div>
@@ -601,7 +628,7 @@ export default function Dashboard() {
                                 {metricas?.suscripciones_por_historia
                                     ?.length ? (
                                     <>
-                                        <div className="relative mx-auto mb-4 flex h-[220px] w-full items-center justify-center border border-[#F2F2F2] p-4">
+                                        <div className="relative mx-auto mb-4 flex h-[220px] w-full items-center justify-center rounded-[2px] border border-[#F2F2F2] p-4">
                                             <ResponsiveContainer
                                                 width="100%"
                                                 height="100%"
@@ -633,17 +660,20 @@ export default function Dashboard() {
                                                     </Pie>
                                                 </PieChart>
                                             </ResponsiveContainer>
-                                            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                                                <span className="text-3xl font-semibold text-[#1B3D6D]">
-                                                    {metricas.suscripciones_activas_total}
+                                            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+                                                <span className="text-[36px] font-semibold leading-none text-[#1B3D6D]">
+                                                    {
+                                                        metricas.suscripciones_activas_total
+                                                    }
                                                 </span>
-                                                <span className="max-w-[90px] text-center text-[9px] leading-tight text-[#7B7B7B]">
+                                                <span className="max-w-[90px] text-center text-[9px] leading-normal text-[#7B7B7B]">
                                                     Total suscripciones
+                                                    activas
                                                 </span>
                                             </div>
                                         </div>
 
-                                        <div className="flex flex-col gap-2 rounded-b bg-[#FBFBFF] p-4 text-[13px]">
+                                        <div className="flex flex-col gap-2 rounded-b-[2px] bg-[#FBFBFF] p-4 text-[13px]">
                                             {metricas.suscripciones_por_historia.map(
                                                 (hist, i) => (
                                                     <div
@@ -652,7 +682,7 @@ export default function Dashboard() {
                                                     >
                                                         <div className="flex min-w-0 items-center gap-2">
                                                             <div
-                                                                className="size-4 shrink-0 rounded-sm"
+                                                                className="size-3 shrink-0 rounded-[2px]"
                                                                 style={{
                                                                     backgroundColor:
                                                                         DONUT_COLORS[

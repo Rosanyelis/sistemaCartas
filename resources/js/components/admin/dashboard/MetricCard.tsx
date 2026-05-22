@@ -1,11 +1,5 @@
-import { IconDefinition } from '@fortawesome/fontawesome-svg-core';
-import {
-    faArrowDown,
-    faArrowUp,
-    faCheck,
-    faTimes,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import type { LucideIcon } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, X } from 'lucide-react';
 import { ReactNode } from 'react';
 
 export type MetricStat = {
@@ -16,7 +10,7 @@ export type MetricStat = {
 };
 
 type MetricCardProps = {
-    icon: IconDefinition;
+    icon: LucideIcon;
     title: string;
     subtitle?: string;
     value?: number | string;
@@ -29,17 +23,19 @@ type MetricCardProps = {
 };
 
 export const metricCardClassName =
-    'flex shrink-0 snap-start flex-col gap-2 rounded bg-white p-3 shadow-[0px_0px_10px_rgba(36,16,167,0.15)] md:shrink md:p-3';
+    'flex shrink-0 snap-start flex-col gap-2 rounded-[4px] bg-white p-3 shadow-[0px_0px_10px_rgba(36,16,167,0.15)]';
 
 const statIconMap = {
-    up: faArrowUp,
-    down: faArrowDown,
-    check: faCheck,
-    times: faTimes,
+    up: ArrowUp,
+    down: ArrowDown,
+    check: Check,
+    times: X,
 } as const;
 
+const ICON_STROKE = 1.75;
+
 export default function MetricCard({
-    icon,
+    icon: IconComponent,
     title,
     subtitle,
     value,
@@ -52,13 +48,22 @@ export default function MetricCard({
 }: MetricCardProps) {
     return (
         <div
-            className={`${metricCardClassName} ${compact ? 'max-w-[130px] min-w-[130px]' : 'max-w-[300px] min-w-[260px] md:w-auto md:max-w-none md:min-w-0'} ${className}`}
+            className={`${metricCardClassName} ${
+                compact
+                    ? 'h-full min-h-[94px] min-w-[130px] max-w-[130px]'
+                    : 'h-[94px] min-w-[160px] max-w-[160px] xl:min-h-0 xl:min-w-0 xl:max-w-none xl:w-full'
+            } ${className}`}
         >
-            <div className="flex items-center gap-2">
+            <div
+                className={`flex gap-2 ${compact ? 'items-center justify-center' : 'items-center'}`}
+            >
                 <div
-                    className={`flex shrink-0 items-center rounded-sm p-1 ${iconClassName}`}
+                    className={`flex shrink-0 items-center rounded-[2px] p-1 ${iconClassName}`}
                 >
-                    <FontAwesomeIcon icon={icon} className="size-6" />
+                    <IconComponent
+                        className="size-6"
+                        strokeWidth={ICON_STROKE}
+                    />
                 </div>
                 <div className="min-w-0 flex-1">
                     <p className="text-[13px] font-semibold leading-none text-[#373737]">
@@ -72,45 +77,53 @@ export default function MetricCard({
                 </div>
             </div>
 
-            <div className="flex items-center gap-2 pl-[5px]">
+            <div
+                className={`flex items-center gap-2 pl-[5px] ${compact ? 'justify-center' : ''}`}
+            >
                 <span className="text-[25px] font-semibold leading-none text-[#A4A4A4]">
                     {value ?? 0}
                 </span>
 
                 {growthPercent !== undefined && growthPercent > 0 ? (
                     <div className="flex items-center gap-2">
-                        <span className="text-[13px] text-[#1DA534]">
+                        <span className="text-[13px] font-normal text-[#1DA534]">
                             {growthPercent.toFixed(2)}%
                         </span>
-                        <FontAwesomeIcon
-                            icon={faArrowUp}
+                        <ArrowUp
                             className="size-4 text-[#1DA534]"
+                            strokeWidth={ICON_STROKE}
                         />
                     </div>
                 ) : null}
 
                 {stats && stats.length > 0 ? (
-                    <div className="flex flex-col gap-0.5">
-                        {stats.map((stat) => (
-                            <div
-                                key={stat.label}
-                                className={`flex items-center gap-0.5 text-[8px] leading-none ${
-                                    stat.tone === 'success'
-                                        ? 'text-[#1DA534]'
-                                        : 'text-[#DF0707]'
-                                }`}
-                            >
-                                <span>
-                                    {stat.label}: {stat.value}
-                                </span>
-                                {stat.icon ? (
-                                    <FontAwesomeIcon
-                                        icon={statIconMap[stat.icon]}
-                                        className="inline-block shrink-0 text-[8px] leading-none [&_svg]:h-[1em] [&_svg]:w-[1em]"
-                                    />
-                                ) : null}
-                            </div>
-                        ))}
+                    <div className="flex flex-col">
+                        {stats.map((stat) => {
+                            const StatIcon = stat.icon
+                                ? statIconMap[stat.icon]
+                                : null;
+
+                            return (
+                                <div
+                                    key={stat.label}
+                                    className={`flex items-center gap-1 text-[8px] leading-none font-normal ${
+                                        stat.tone === 'success'
+                                            ? 'text-[#1DA534]'
+                                            : 'text-[#DF0707]'
+                                    }`}
+                                >
+                                    <span>
+                                        {stat.label}: {stat.value}
+                                    </span>
+                                    {StatIcon ? (
+                                        <StatIcon
+                                            className="size-3 shrink-0"
+                                            strokeWidth={ICON_STROKE}
+                                        />
+                                    ) : null}
+                                </div>
+                            );
+                        })}
                     </div>
                 ) : null}
             </div>
