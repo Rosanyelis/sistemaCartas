@@ -1,15 +1,12 @@
-import type { LucideIcon } from 'lucide-react';
+import { Store, User, UserPlus } from 'lucide-react';
 import {
-    BookOpen,
-    LayoutGrid,
-    PackageOpen,
-    ShoppingCart,
-    Store,
-    User,
-    UserPlus,
-    Users,
-    UsersRound,
-} from 'lucide-react';
+    AdminClientesIcon,
+    AdminHistoriasIcon,
+    AdminOrdenesIcon,
+    AdminPanelIcon,
+    AdminProductosIcon,
+    AdminSuscripcionesIcon,
+} from '@/components/panel/panel-admin-nav-icons';
 import { ShoppingCartPlusIcon } from '@/components/panel/panel-client-nav-icons';
 import type { IconComponent } from '@/components/ui/icon';
 import {
@@ -48,13 +45,13 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
     return [
         {
             name: 'Panel',
-            icon: LayoutGrid,
+            icon: AdminPanelIcon,
             href: adminDashboard.url(),
             active: currentUrl === d,
         },
         {
             name: 'Ordenes',
-            icon: ShoppingCart,
+            icon: AdminOrdenesIcon,
             href: ordenes.url(),
             active:
                 currentUrl.startsWith(o) ||
@@ -62,7 +59,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Suscripciones',
-            icon: Users,
+            icon: AdminSuscripcionesIcon,
             href: adminSuscripciones.url(),
             active:
                 currentUrl.startsWith(s) ||
@@ -70,7 +67,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Clientes',
-            icon: UsersRound,
+            icon: AdminClientesIcon,
             href: clientes.url(),
             active:
                 currentUrl.startsWith(c) ||
@@ -78,7 +75,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Historias',
-            icon: BookOpen,
+            icon: AdminHistoriasIcon,
             href: adminHistorias.url(),
             active:
                 currentUrl.startsWith(h) ||
@@ -86,7 +83,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Productos',
-            icon: PackageOpen,
+            icon: AdminProductosIcon,
             href: adminProductos.url(),
             active:
                 currentUrl.startsWith(p) ||

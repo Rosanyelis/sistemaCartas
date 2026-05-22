@@ -1,6 +1,6 @@
 import { faBars, faTriangleExclamation, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { LogOut, Power } from 'lucide-react';
+import { Power } from 'lucide-react';
 import { appFontLinks } from '@/components/AppFontLinks';
 import { FlashToasts } from '@/components/FlashToasts';
 import { Icon } from '@/components/ui/icon';
@@ -93,9 +93,7 @@ export default function PanelShell({
                                                     ? 'size-4'
                                                     : 'size-5'
                                             }
-                                            strokeWidth={
-                                                isAdmin ? undefined : 1.75
-                                            }
+                                            strokeWidth={1.75}
                                         />
                                     </span>
                                     <span
@@ -131,25 +129,13 @@ export default function PanelShell({
                             }`}
                         >
                             <span className="flex size-5 shrink-0 items-center justify-center">
-                                {isAdmin ? (
-                                    <LogOut
-                                        className={
-                                            isSidebarOpen
-                                                ? 'size-5'
-                                                : 'size-6'
-                                        }
-                                        strokeWidth={1.75}
-                                    />
-                                ) : (
-                                    <Power
-                                        className={
-                                            isSidebarOpen
-                                                ? 'size-4'
-                                                : 'size-5'
-                                        }
-                                        strokeWidth={1.75}
-                                    />
-                                )}
+                                <Icon
+                                    iconNode={Power}
+                                    className={
+                                        isSidebarOpen ? 'size-4' : 'size-5'
+                                    }
+                                    strokeWidth={1.75}
+                                />
                             </span>
                             <span
                                 className={`font-['Inter'] text-[16px] font-normal whitespace-nowrap transition-all duration-300 ${!isSidebarOpen ? 'pointer-events-none w-0 translate-x-4 opacity-0' : 'w-auto opacity-100'}`}
