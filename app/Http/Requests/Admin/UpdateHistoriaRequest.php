@@ -3,14 +3,17 @@
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\Concerns\PreparesHistoriaDetalleJson;
+use App\Http\Requests\Admin\Concerns\ValidatesGaleriaImageLimit;
 use App\Rules\MaxWords;
 use App\Support\HistoriaDetalleInclusionIcon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateHistoriaRequest extends FormRequest
 {
     use PreparesHistoriaDetalleJson;
+    use ValidatesGaleriaImageLimit;
 
     public function authorize(): bool
     {
@@ -83,6 +86,14 @@ class UpdateHistoriaRequest extends FormRequest
     }
 
     /**
+     * @return array<int, callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return $this->galeriaTotalCountValidators();
+    }
+
+    /**
      * @return array<string, string>
      */
     public function messages(): array
@@ -90,7 +101,7 @@ class UpdateHistoriaRequest extends FormRequest
         return [
             'nombre.required' => 'El nombre de la historia es obligatorio.',
             'codigo.unique' => 'Este código ya está en uso.',
-            'galeria.max' => 'Solo se permiten hasta 5 imágenes adicionales en la galería.',
+            'galeria.max' => self::GALERIA_IMAGENES_MAX_MESSAGE,
             'detalle.array' => 'El formato de «qué incluye cada envío» no es válido.',
             'detalle.max' => 'No se pueden añadir más de 20 ítems en «qué incluye cada envío».',
             'detalle.*.icon.required' => 'Cada ítem debe tener un icono.',

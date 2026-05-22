@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\Concerns\PreparesHistoriaDetalleJson;
+use App\Http\Requests\Admin\Concerns\ValidatesGaleriaImageLimit;
 use App\Http\Requests\Concerns\FlashesValidationError;
 use App\Rules\MaxWords;
 use App\Support\HistoriaDetalleInclusionIcon;
@@ -13,6 +14,7 @@ class StoreProductoRequest extends FormRequest
 {
     use FlashesValidationError;
     use PreparesHistoriaDetalleJson;
+    use ValidatesGaleriaImageLimit;
 
     public function authorize(): bool
     {
@@ -85,7 +87,7 @@ class StoreProductoRequest extends FormRequest
             'stock.required' => 'El stock es obligatorio.',
             'stock.min' => 'El stock no puede ser negativo.',
             'estado.required' => 'El estado es obligatorio.',
-            'galeria.max' => 'Solo se permiten hasta 5 imágenes adicionales en la galería.',
+            'galeria.max' => self::GALERIA_IMAGENES_MAX_MESSAGE,
             'detalle.array' => 'El formato de «qué incluye el envío / el producto» no es válido.',
             'detalle.max' => 'No se pueden añadir más de 20 ítems en esta sección.',
             'detalle.*.icon.required' => 'Cada ítem debe tener un icono.',

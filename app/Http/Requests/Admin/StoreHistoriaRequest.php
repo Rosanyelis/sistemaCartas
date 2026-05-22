@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\Concerns\PreparesHistoriaDetalleJson;
+use App\Http\Requests\Admin\Concerns\ValidatesGaleriaImageLimit;
 use App\Rules\MaxWords;
 use App\Support\HistoriaDetalleInclusionIcon;
 use Illuminate\Foundation\Http\FormRequest;
@@ -11,6 +12,7 @@ use Illuminate\Validation\Rule;
 class StoreHistoriaRequest extends FormRequest
 {
     use PreparesHistoriaDetalleJson;
+    use ValidatesGaleriaImageLimit;
 
     public function authorize(): bool
     {
@@ -93,7 +95,7 @@ class StoreHistoriaRequest extends FormRequest
             'estado.required' => 'El estado es obligatorio.',
             'destacada.required' => 'Indica si la historia es destacada o no.',
             'destacada.in' => 'El valor de destacada debe ser si o no.',
-            'galeria.max' => 'Solo se permiten hasta 5 imágenes adicionales en la galería.',
+            'galeria.max' => self::GALERIA_IMAGENES_MAX_MESSAGE,
             'detalle.array' => 'El formato de «qué incluye cada envío» no es válido.',
             'detalle.max' => 'No se pueden añadir más de 20 ítems en «qué incluye cada envío».',
             'detalle.*.icon.required' => 'Cada ítem debe tener un icono.',

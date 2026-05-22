@@ -4,7 +4,8 @@ import { useForm } from '@inertiajs/react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
 import { HISTORIA_DETALLE_INCLUSION_ICONS } from '@/constants/historia-detalle-inclusion-icons';
-import { MAX_IMAGENES_GALERIA, MAX_PALABRAS_TEXTO_LARGO } from './create-story/constants';
+import { pickGalleryFiles } from '@/components/admin/constants/media-limits';
+import { MAX_PALABRAS_TEXTO_LARGO } from './create-story/constants';
 import { buildHistoriaFormData } from './create-story/formDefaults';
 import { HistoriaDetalleInclusionsEditor } from './create-story/HistoriaDetalleInclusionsEditor';
 import { HistoriaMultimediaPanel } from './create-story/HistoriaMultimediaPanel';
@@ -47,6 +48,7 @@ export function CreateStoryModal({
     const [imgPreview, setImgPreview] = useState<string | null>(null);
     const [videoPreview, setVideoPreview] = useState<string | null>(null);
     const [galleryItems, setGalleryItems] = useState<GallerySlot[]>([]);
+    const [galeriaLimitMessage, setGaleriaLimitMessage] = useState<string | null>(null);
     /** Contenido inicial de los editores ricos solo tras hidratar en `useEffect` (evita flash vacío). */
     const [richEditors, setRichEditors] = useState<{
         seed: number;
@@ -73,6 +75,7 @@ export function CreateStoryModal({
                     preview: g.path,
                 })),
             );
+            setGaleriaLimitMessage(null);
             setRichEditors({
                 seed: Date.now(),
                 descripcion_larga: next.descripcion_larga,
@@ -82,6 +85,7 @@ export function CreateStoryModal({
             setImgPreview(null);
             setVideoPreview(null);
             setGalleryItems([]);
+            setGaleriaLimitMessage(null);
             const next = buildHistoriaFormData();
             setRichEditors({
                 seed: Date.now(),
@@ -123,9 +127,14 @@ export function CreateStoryModal({
     };
 
     const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        const availableSlots = MAX_IMAGENES_GALERIA - galleryItems.length;
-        const slice = files.slice(0, availableSlots);
+        const { files: slice, limitMessage } = pickGalleryFiles(
+            Array.from(e.target.files || []),
+            galleryItems.length,
+            { imagesOnly: true },
+        );
+
+        e.target.value = '';
+        setGaleriaLimitMessage(limitMessage);
 
         if (slice.length === 0) {
             return;
@@ -156,6 +165,7 @@ export function CreateStoryModal({
 
     const removeGalleryImage = (index: number) => {
         setGalleryItems((prev) => prev.filter((_, i) => i !== index));
+        setGaleriaLimitMessage(null);
     };
 
     const submitHistoria = () => {
@@ -499,6 +509,7 @@ export function CreateStoryModal({
                                     onVideoChange={(ev) => handleFileChange(ev, 'video')}
                                     onGalleryChange={handleGalleryChange}
                                     onRemoveGalleryImage={removeGalleryImage}
+                                    galeriaLimitMessage={galeriaLimitMessage}
                                     errors={{
                                         imagen: errors.imagen,
                                         video: errors.video,

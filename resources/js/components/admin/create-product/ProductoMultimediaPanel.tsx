@@ -1,7 +1,7 @@
 import { faImage, faPlus, faTimes } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { ChangeEvent, CSSProperties } from 'react';
-import { MAX_IMAGENES_GALERIA } from '@/components/admin/create-story/constants';
+import { MAX_IMAGENES_GALERIA } from '@/components/admin/constants/media-limits';
 
 const checkerboardBackground: CSSProperties = {
     backgroundImage:
@@ -27,6 +27,7 @@ export interface ProductoMultimediaPanelProps {
     onImageChange: (e: ChangeEvent<HTMLInputElement>) => void;
     onGalleryChange: (e: ChangeEvent<HTMLInputElement>) => void;
     onRemoveGalleryImage: (index: number) => void;
+    galeriaLimitMessage?: string | null;
     errors: ProductoMultimediaErrors;
     fieldIds: { imagen: string };
 }
@@ -45,9 +46,12 @@ export function ProductoMultimediaPanel({
     onImageChange,
     onGalleryChange,
     onRemoveGalleryImage,
+    galeriaLimitMessage,
     errors,
     fieldIds,
 }: ProductoMultimediaPanelProps) {
+    const galeriaMensaje = errors.galeria ?? galeriaLimitMessage ?? null;
+    const galeriaLlena = galeriaLength >= MAX_IMAGENES_GALERIA;
     const imageAreaStyle: CSSProperties | undefined = imgPreview ? undefined : checkerboardBackground;
 
     return (
@@ -106,16 +110,22 @@ export function ProductoMultimediaPanel({
                         />
                     ))}
 
-                    {galeriaLength < MAX_IMAGENES_GALERIA ? (
+                    {!galeriaLlena ? (
                         <label className="flex h-[68px] w-[68px] cursor-pointer items-center justify-center transition-transform hover:scale-105">
-                            <input type="file" className="hidden" multiple onChange={onGalleryChange} accept="image/*" />
+                            <input
+                                type="file"
+                                className="hidden"
+                                multiple
+                                onChange={onGalleryChange}
+                                accept="image/*"
+                            />
                             <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#1B3D6D] text-[#1B3D6D]">
                                 <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
                             </div>
                         </label>
                     ) : null}
                 </div>
-                {errors.galeria ? <span className="text-[11px] text-red-500">{errors.galeria}</span> : null}
+                {galeriaMensaje ? <span className="text-[11px] text-red-500">{galeriaMensaje}</span> : null}
             </div>
 
             <div className="mb-2 mt-6 flex flex-col gap-4">

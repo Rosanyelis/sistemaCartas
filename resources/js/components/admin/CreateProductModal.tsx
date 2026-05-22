@@ -5,7 +5,8 @@ import type { ChangeEvent, FormEvent, MouseEvent } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
 import { ProductoMultimediaPanel } from '@/components/admin/create-product/ProductoMultimediaPanel';
-import { MAX_IMAGENES_GALERIA, MAX_PALABRAS_TEXTO_LARGO } from '@/components/admin/create-story/constants';
+import { pickGalleryFiles } from '@/components/admin/constants/media-limits';
+import { MAX_PALABRAS_TEXTO_LARGO } from '@/components/admin/create-story/constants';
 import { normalizeDetalleInclusiones } from '@/components/admin/create-story/formDefaults';
 import { HistoriaDetalleInclusionsEditor } from '@/components/admin/create-story/HistoriaDetalleInclusionsEditor';
 import { LimitedWordRichEditor } from '@/components/admin/create-story/LimitedWordRichEditor';
@@ -129,6 +130,7 @@ export function CreateProductModal({
     const [imgPreview, setImgPreview] = useState<string | null>(null);
     const [stockInput, setStockInput] = useState('0');
     const [galleryItems, setGalleryItems] = useState<GallerySlot[]>([]);
+    const [galeriaLimitMessage, setGaleriaLimitMessage] = useState<string | null>(null);
     const [richEditors, setRichEditors] = useState<{
         seed: number;
         descripcion_larga: string;
@@ -225,6 +227,7 @@ export function CreateProductModal({
             setImgPreview(null);
             setStockInput('0');
             setGalleryItems([]);
+            setGaleriaLimitMessage(null);
             setLoadError(null);
             setLoadingProduct(false);
             setRichEditors({
@@ -287,6 +290,7 @@ export function CreateProductModal({
                         preview: g.path,
                     })),
                 );
+                setGaleriaLimitMessage(null);
                 setRichEditors({
                     seed: Date.now(),
                     descripcion_larga: payload.descripcion_larga,
@@ -322,6 +326,7 @@ export function CreateProductModal({
             setImgPreview(null);
             setStockInput('0');
             setGalleryItems([]);
+            setGaleriaLimitMessage(null);
             setRichEditors(null);
         }
 
@@ -346,9 +351,14 @@ export function CreateProductModal({
     };
 
     const handleGalleryChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const files = Array.from(e.target.files || []);
-        const availableSlots = MAX_IMAGENES_GALERIA - galleryItems.length;
-        const slice = files.slice(0, availableSlots);
+        const { files: slice, limitMessage } = pickGalleryFiles(
+            Array.from(e.target.files || []),
+            galleryItems.length,
+            { imagesOnly: true },
+        );
+
+        e.target.value = '';
+        setGaleriaLimitMessage(limitMessage);
 
         if (slice.length === 0) {
             return;
@@ -383,6 +393,7 @@ export function CreateProductModal({
 
     const removeGalleryImage = (index: number) => {
         setGalleryItems((prev) => prev.filter((_, i) => i !== index));
+        setGaleriaLimitMessage(null);
     };
 
     const submitProduct = () => {
@@ -782,6 +793,7 @@ export function CreateProductModal({
                                     onImageChange={handleImageChange}
                                     onGalleryChange={handleGalleryChange}
                                     onRemoveGalleryImage={removeGalleryImage}
+                                    galeriaLimitMessage={galeriaLimitMessage}
                                     errors={{
                                         imagen: errors.imagen,
                                         galeria: errors.galeria,

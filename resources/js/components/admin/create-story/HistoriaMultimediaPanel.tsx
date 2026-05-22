@@ -1,7 +1,7 @@
 import { faImage, faPlus, faTimes, faVideo } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { ChangeEvent, CSSProperties } from 'react';
-import { MAX_IMAGENES_GALERIA } from './constants';
+import { MAX_IMAGENES_GALERIA } from '@/components/admin/constants/media-limits';
 
 const checkerboardBackground: CSSProperties = {
     backgroundImage:
@@ -35,6 +35,7 @@ interface HistoriaMultimediaPanelProps {
     onVideoChange: (e: ChangeEvent<HTMLInputElement>) => void;
     onGalleryChange: (e: ChangeEvent<HTMLInputElement>) => void;
     onRemoveGalleryImage: (index: number) => void;
+    galeriaLimitMessage?: string | null;
     errors: MultimediaErrors;
     fieldIds: { imagen: string; video: string };
 }
@@ -56,9 +57,12 @@ export function HistoriaMultimediaPanel({
     onVideoChange,
     onGalleryChange,
     onRemoveGalleryImage,
+    galeriaLimitMessage,
     errors,
     fieldIds,
 }: HistoriaMultimediaPanelProps) {
+    const galeriaMensaje = errors.galeria ?? galeriaLimitMessage ?? null;
+    const galeriaLlena = galeriaLength >= MAX_IMAGENES_GALERIA;
     const imageAreaStyle: CSSProperties | undefined = imgPreview ? undefined : checkerboardBackground;
 
     return (
@@ -122,23 +126,29 @@ export function HistoriaMultimediaPanel({
                         </div>
                     ))}
 
-                    {Array.from({ length: Math.max(0, 3 - galeriaLength) }).map((_, i) => (
+                    {Array.from({ length: Math.max(0, MAX_IMAGENES_GALERIA - galeriaLength) }).map((_, i) => (
                         <div
                             key={`placeholder-${i}`}
                             className="h-[68px] w-[68px] rounded-[6px] border border-dashed border-[#DFE4EA] bg-[#F9FAFB]"
                         />
                     ))}
 
-                    {galeriaLength < MAX_IMAGENES_GALERIA && (
+                    {!galeriaLlena ? (
                         <label className="flex h-[68px] w-[68px] cursor-pointer items-center justify-center transition-transform hover:scale-105">
-                            <input type="file" className="hidden" multiple onChange={onGalleryChange} accept="image/*" />
+                            <input
+                                type="file"
+                                className="hidden"
+                                multiple
+                                onChange={onGalleryChange}
+                                accept="image/*"
+                            />
                             <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#1B3D6D] text-[#1B3D6D]">
                                 <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
                             </div>
                         </label>
-                    )}
+                    ) : null}
                 </div>
-                {errors.galeria && <span className="text-[11px] text-red-500">{errors.galeria}</span>}
+                {galeriaMensaje ? <span className="text-[11px] text-red-500">{galeriaMensaje}</span> : null}
             </div>
 
             <div className="mt-4 flex flex-col gap-2">

@@ -3,16 +3,19 @@
 namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\Concerns\PreparesHistoriaDetalleJson;
+use App\Http\Requests\Admin\Concerns\ValidatesGaleriaImageLimit;
 use App\Http\Requests\Concerns\FlashesValidationError;
 use App\Rules\MaxWords;
 use App\Support\HistoriaDetalleInclusionIcon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class UpdateProductoRequest extends FormRequest
 {
     use FlashesValidationError;
     use PreparesHistoriaDetalleJson;
+    use ValidatesGaleriaImageLimit;
 
     public function authorize(): bool
     {
@@ -80,6 +83,14 @@ class UpdateProductoRequest extends FormRequest
     }
 
     /**
+     * @return array<int, callable(Validator): void>
+     */
+    public function after(): array
+    {
+        return $this->galeriaTotalCountValidators();
+    }
+
+    /**
      * @return array<string, string>
      */
     public function messages(): array
@@ -89,7 +100,7 @@ class UpdateProductoRequest extends FormRequest
             'producto_categoria_id.required' => 'La categoría es obligatoria.',
             'producto_categoria_id.exists' => 'La categoría seleccionada no es válida.',
             'producto_subcategoria_id.exists' => 'La subcategoría no corresponde a la categoría elegida.',
-            'galeria.max' => 'Solo se permiten hasta 5 imágenes adicionales en la galería.',
+            'galeria.max' => self::GALERIA_IMAGENES_MAX_MESSAGE,
             'detalle.array' => 'El formato de «qué incluye el envío / el producto» no es válido.',
             'detalle.max' => 'No se pueden añadir más de 20 ítems en esta sección.',
             'detalle.*.icon.required' => 'Cada ítem debe tener un icono.',
