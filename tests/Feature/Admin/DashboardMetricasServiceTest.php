@@ -104,6 +104,19 @@ test('ventas chart mes incluye meses del año actual hasta el mes presente', fun
     Carbon::setTestNow();
 });
 
+test('ventas chart semana usa etiquetas de dia en español', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-05-21 12:00:00'));
+
+    $chart = app(DashboardMetricasService::class)->ventasChart('semana');
+    $nombres = collect($chart)->pluck('name')->all();
+
+    expect($nombres)->toHaveCount(7)
+        ->and($nombres)->toContain('Jue')
+        ->and(array_diff($nombres, ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']))->toBe([]);
+
+    Carbon::setTestNow();
+});
+
 test('ventas chart mes en diciembre devuelve doce puntos del mismo año', function (): void {
     Carbon::setTestNow(Carbon::parse('2026-12-15 12:00:00'));
 
@@ -244,6 +257,58 @@ test('ventas chart mes refleja suscripciones de historias en el bucket del mes',
 
     expect($mesActual)->not->toBeNull()
         ->and($mesActual['historias'])->toBe(20.00);
+
+    Carbon::setTestNow();
+});
+
+test('ventas chart mes suma suscripciones y compras de historias en serie historias', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
+
+    $historia = Historia::factory()->create([
+        'slug' => 'historia-chart-combo',
+        'estado' => 'activo',
+        'precio_suscripcion' => 10.00,
+    ]);
+    $user = User::factory()->create(['role' => 'cliente']);
+    $suscripcion = Suscripcion::factory()
+        ->for($historia)
+        ->for($user)
+        ->activa()
+        ->create();
+
+    PasarelaEvento::query()->create([
+        'suscripcion_id' => $suscripcion->id,
+        'paypal_event_id' => 'evt-chart-combo-sub',
+        'event_type' => 'PAYMENT.SALE.COMPLETED',
+        'estado' => PasarelaEvento::ESTADO_COMPLETADO,
+        'payload' => [],
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $order = StoreOrder::query()->create([
+        'paypal_order_id' => 'PAYPAL-ORDER-CHART-HISTORIA',
+        'status' => StoreOrder::STATUS_PAID,
+        'currency' => 'USD',
+        'total' => 15.00,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => $historia->slug,
+        'product_name' => $historia->nombre,
+        'quantity' => 1,
+        'unit_price' => 15.00,
+        'line_total' => 15.00,
+    ]);
+
+    $chart = app(DashboardMetricasService::class)->ventasChart('mes');
+    $mesActual = collect($chart)->last();
+
+    expect($mesActual)->not->toBeNull()
+        ->and($mesActual['historias'])->toBe(25.00);
 
     Carbon::setTestNow();
 });

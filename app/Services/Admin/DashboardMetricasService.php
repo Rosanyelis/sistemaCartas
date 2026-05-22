@@ -21,6 +21,11 @@ class DashboardMetricasService
         'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
     ];
 
+    /** @var list<string> Índice = Carbon::dayOfWeek (0 = domingo). */
+    private const DIAS_ABREV_ES = [
+        'Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb',
+    ];
+
     public function clientesRegistrados(): int
     {
         return User::query()->clientes()->count();
@@ -320,7 +325,14 @@ class DashboardMetricasService
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * Serie temporal para «Rendimientos de ventas».
+     *
+     * - historias: cobros netos de suscripciones a historias (PayPal/PasarelaEvento) más
+     *   compras de ítems cuyo slug corresponde a una historia activa (órdenes pagadas).
+     * - productos: compras de productos del catálogo (slug de producto activo, sin historia).
+     * - cancelados: total de órdenes no pagadas en el periodo.
+     *
+     * @return array<int, array{name: string, historias: float, productos: float, cancelados: float}>
      */
     public function ventasChart(string $periodo = 'mes'): array
     {
@@ -335,21 +347,18 @@ class DashboardMetricasService
                     $q->whereDate('created_at', $date->toDateString());
                 };
 
-                $historias = $this->sumSuscripcionesHistoriasNetasBetween(
-                    $date->copy()->startOfDay(),
-                    $date->copy()->endOfDay(),
-                );
-                $productos = $this->sumPaidProductoLineTotals($orderForDay);
-                $cancelados = (float) StoreOrder::query()
-                    ->where('status', '!=', StoreOrder::STATUS_PAID)
-                    ->whereDate('created_at', $date->toDateString())
-                    ->sum('total');
-
                 $data[] = [
-                    'name' => $date->format('D'),
-                    'historias' => $historias,
-                    'productos' => $productos,
-                    'cancelados' => $cancelados,
+                    'name' => self::DIAS_ABREV_ES[$date->dayOfWeek],
+                    'historias' => $this->ventasHistoriasEnPeriodo(
+                        $date->copy()->startOfDay(),
+                        $date->copy()->endOfDay(),
+                        $orderForDay,
+                    ),
+                    'productos' => $this->sumPaidProductoLineTotals($orderForDay),
+                    'cancelados' => (float) StoreOrder::query()
+                        ->where('status', '!=', StoreOrder::STATUS_PAID)
+                        ->whereDate('created_at', $date->toDateString())
+                        ->sum('total'),
                 ];
             }
         } else {
@@ -361,26 +370,38 @@ class DashboardMetricasService
                         ->whereYear('created_at', $date->year);
                 };
 
-                $historias = $this->sumSuscripcionesHistoriasNetasBetween(
-                    $date->copy()->startOfMonth(),
-                    $date->copy()->endOfMonth(),
-                );
-                $productos = $this->sumPaidProductoLineTotals($orderForMonth);
-                $cancelados = (float) StoreOrder::query()
-                    ->where('status', '!=', StoreOrder::STATUS_PAID)
-                    ->whereMonth('created_at', $date->month)
-                    ->whereYear('created_at', $date->year)
-                    ->sum('total');
-
                 $data[] = [
                     'name' => self::MESES_ABREV_ES[$month - 1],
-                    'historias' => $historias,
-                    'productos' => $productos,
-                    'cancelados' => $cancelados,
+                    'historias' => $this->ventasHistoriasEnPeriodo(
+                        $date->copy()->startOfMonth(),
+                        $date->copy()->endOfMonth(),
+                        $orderForMonth,
+                    ),
+                    'productos' => $this->sumPaidProductoLineTotals($orderForMonth),
+                    'cancelados' => (float) StoreOrder::query()
+                        ->where('status', '!=', StoreOrder::STATUS_PAID)
+                        ->whereMonth('created_at', $date->month)
+                        ->whereYear('created_at', $date->year)
+                        ->sum('total'),
                 ];
             }
         }
 
         return $data;
+    }
+
+    /**
+     * Ventas atribuibles a historias en un bucket (suscripciones + compras one-shot de historia).
+     */
+    protected function ventasHistoriasEnPeriodo(
+        Carbon $start,
+        Carbon $end,
+        callable $orderDateConstraint,
+    ): float {
+        return round(
+            $this->sumSuscripcionesHistoriasNetasBetween($start, $end)
+            + $this->sumPaidHistoriaLineTotals($orderDateConstraint),
+            2,
+        );
     }
 }

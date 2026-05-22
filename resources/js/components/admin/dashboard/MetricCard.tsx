@@ -23,7 +23,7 @@ type MetricCardProps = {
 };
 
 export const metricCardClassName =
-    'flex shrink-0 snap-start flex-col gap-2 rounded-[4px] bg-white p-3 shadow-[0px_0px_10px_rgba(36,16,167,0.15)]';
+    'flex min-h-[94px] w-full min-w-0 flex-col gap-2 rounded-[4px] bg-white p-3 shadow-[0px_0px_10px_rgba(36,16,167,0.15)] max-lg:snap-start max-lg:shrink-0';
 
 const statIconMap = {
     up: ArrowUp,
@@ -50,8 +50,8 @@ export default function MetricCard({
         <div
             className={`${metricCardClassName} ${
                 compact
-                    ? 'h-full min-h-[94px] min-w-[130px] max-w-[130px]'
-                    : 'h-[94px] min-w-[160px] max-w-[160px] xl:min-h-0 xl:min-w-0 xl:max-w-none xl:w-full'
+                    ? 'max-lg:min-w-[130px] max-lg:max-w-[130px]'
+                    : 'max-lg:min-w-[160px] max-lg:max-w-[160px]'
             } ${className}`}
         >
             <div

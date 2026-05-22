@@ -250,18 +250,19 @@ export default function Dashboard() {
                                 <div className="h-[94px] w-full animate-pulse rounded-[4px] bg-gray-200" />
                             }
                         >
-                            <div
-                                ref={scrollContainerRef}
-                                onMouseDown={onMouseDown}
-                                onMouseLeave={onMouseLeave}
-                                onMouseUp={onMouseUp}
-                                onMouseMove={onMouseMove}
-                                className={`flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] xl:grid xl:snap-none xl:grid-cols-5 xl:gap-4 xl:overflow-visible [&::-webkit-scrollbar]:hidden ${
-                                    isDragging
-                                        ? 'cursor-grabbing select-none'
-                                        : 'cursor-grab select-none xl:cursor-auto xl:select-auto'
-                                }`}
-                            >
+                            <div className="@container/metrics min-w-0 w-full">
+                                <div
+                                    ref={scrollContainerRef}
+                                    onMouseDown={onMouseDown}
+                                    onMouseLeave={onMouseLeave}
+                                    onMouseUp={onMouseUp}
+                                    onMouseMove={onMouseMove}
+                                    className={`gap-3 max-lg:flex max-lg:touch-pan-x max-lg:snap-x max-lg:snap-mandatory max-lg:overflow-x-auto max-lg:overscroll-x-contain max-lg:pb-1 max-lg:[-ms-overflow-style:none] max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-2 lg:overflow-visible @3xl/metrics:grid-cols-3 @5xl/metrics:grid-cols-4 @7xl/metrics:grid-cols-5 ${
+                                        isDragging
+                                            ? 'max-lg:cursor-grabbing max-lg:select-none'
+                                            : 'max-lg:cursor-grab max-lg:select-none lg:cursor-auto lg:select-auto'
+                                    }`}
+                                >
                                 <MetricCard
                                     icon={Users}
                                     title="Registrados"
@@ -333,9 +334,10 @@ export default function Dashboard() {
                                     compact
                                 />
                                 <div
-                                    className="w-2 shrink-0 xl:hidden"
+                                    className="w-2 shrink-0 lg:hidden"
                                     aria-hidden
                                 />
+                                </div>
                             </div>
                         </Deferred>
 
@@ -474,8 +476,10 @@ export default function Dashboard() {
                                                         dataKey="name"
                                                         axisLine={false}
                                                         tickLine={false}
+                                                        interval={0}
+                                                        minTickGap={4}
                                                         tick={{
-                                                            fontSize: 14,
+                                                            fontSize: 12,
                                                             fill: '#7B7B7B',
                                                             fontWeight: 700,
                                                         }}
@@ -506,11 +510,41 @@ export default function Dashboard() {
                                                         itemStyle={{
                                                             color: '#fff',
                                                         }}
-                                                        formatter={(value) =>
-                                                            formatMxn(
-                                                                Number(value),
-                                                            )
-                                                        }
+                                                        labelFormatter={(
+                                                            label,
+                                                        ) => String(label)}
+                                                        formatter={(
+                                                            value,
+                                                            name,
+                                                        ) => {
+                                                            const seriesLabels: Record<
+                                                                string,
+                                                                string
+                                                            > = {
+                                                                historias:
+                                                                    'Historias',
+                                                                productos:
+                                                                    'Productos',
+                                                                cancelados:
+                                                                    'Cancelados',
+                                                            };
+
+                                                            return [
+                                                                formatMxn(
+                                                                    Number(
+                                                                        value,
+                                                                    ),
+                                                                ),
+                                                                seriesLabels[
+                                                                    String(
+                                                                        name,
+                                                                    )
+                                                                ] ??
+                                                                    String(
+                                                                        name,
+                                                                    ),
+                                                            ];
+                                                        }}
                                                         cursor={{
                                                             stroke: '#1B3D6D',
                                                             strokeWidth: 1,
