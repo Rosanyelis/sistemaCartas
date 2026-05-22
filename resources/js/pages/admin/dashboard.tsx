@@ -1,5 +1,7 @@
 import React, { useMemo, useRef, useState } from 'react';
-import MetricCard from '@/components/admin/dashboard/MetricCard';
+import MetricCard, {
+    metricCardsGridDesktopClass,
+} from '@/components/admin/dashboard/MetricCard';
 import UserLayout from '@/layouts/user-layout';
 import { Head, Deferred, usePage, router } from '@inertiajs/react';
 import {
@@ -232,18 +234,18 @@ export default function Dashboard() {
             <Head title="Admin Dashboard" />
 
             <div className="flex flex-col gap-6 bg-[#F5F6F7] px-3 pb-10 pt-3 font-['Inter',sans-serif] md:px-6 md:pt-4 lg:px-8">
-                <div className="flex w-full flex-col gap-1">
+                <div className="flex w-full flex-col gap-1 lg:flex-row lg:items-center lg:gap-5">
                     <h1 className="text-[25px] font-semibold leading-normal text-[#1B3D6D]">
                         ¡Hola, Admin bienvenido!{' '}
                         <span className="text-[24px]">👋</span>
                     </h1>
-                    <p className="text-lg font-normal leading-7 text-[#7B7B7B] md:text-base md:leading-normal">
+                    <p className="text-lg font-normal leading-7 text-[#7B7B7B] lg:text-base lg:leading-[22px]">
                         Dale un vistazo a tu resumen
                     </p>
                 </div>
 
                 <div className="flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:gap-4">
-                    <div className="flex min-w-0 flex-1 flex-col gap-4">
+                    <div className="flex min-w-0 flex-1 flex-col gap-6">
                         <Deferred
                             data="metricas"
                             fallback={
@@ -257,10 +259,10 @@ export default function Dashboard() {
                                     onMouseLeave={onMouseLeave}
                                     onMouseUp={onMouseUp}
                                     onMouseMove={onMouseMove}
-                                    className={`flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:gap-4 lg:flex-nowrap [&::-webkit-scrollbar]:hidden ${
+                                    className={`max-lg:flex max-lg:touch-pan-x max-lg:snap-x max-lg:snap-mandatory max-lg:gap-3 max-lg:overflow-x-auto max-lg:overscroll-x-contain max-lg:pb-1 max-lg:[-ms-overflow-style:none] max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden ${metricCardsGridDesktopClass} ${
                                         isDragging
-                                            ? 'cursor-grabbing select-none'
-                                            : 'cursor-grab select-none'
+                                            ? 'max-lg:cursor-grabbing max-lg:select-none'
+                                            : 'max-lg:cursor-grab max-lg:select-none'
                                     }`}
                                 >
                                 <MetricCard
@@ -334,7 +336,7 @@ export default function Dashboard() {
                                     compact
                                 />
                                 <div
-                                    className="w-2 shrink-0"
+                                    className="w-2 shrink-0 lg:hidden"
                                     aria-hidden
                                 />
                                 </div>
@@ -342,56 +344,61 @@ export default function Dashboard() {
                         </Deferred>
 
                         <div
-                            className={`min-w-0 rounded-[4px] bg-white p-3 ${cardShadow}`}
+                            className={`min-w-0 rounded-[4px] bg-white p-4 ${cardShadow}`}
                         >
-                            <div className="mb-4 flex flex-col gap-3">
-                                <div className="flex items-center gap-3">
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <button
-                                                type="button"
-                                                className={`${iconBoxClass} cursor-pointer transition-opacity hover:opacity-80`}
-                                                aria-haspopup="menu"
-                                                aria-label="Filtrar series del gráfico"
-                                            >
-                                                <AlignJustify
-                                                    className="size-6"
-                                                    strokeWidth={iconStroke}
-                                                />
-                                            </button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent
-                                            align="start"
-                                            className="min-w-[148px] rounded-[4px] border-0 bg-white p-2 shadow-[0px_0px_10px_rgba(36,16,167,0.15)]"
-                                        >
-                                            {CHART_FILTER_OPTIONS.map(
-                                                ({ key, label }) => (
-                                                    <DropdownMenuItem
-                                                        key={key}
-                                                        onSelect={() =>
-                                                            setChartSerieFilter(
-                                                                key,
-                                                            )
-                                                        }
-                                                        className={`cursor-pointer rounded-[2px] px-3 py-2.5 text-[13px] focus:bg-[#F5F5FF] ${
-                                                            chartSerieFilter ===
-                                                            key
-                                                                ? 'font-semibold text-[#1B3D6D]'
-                                                                : 'font-normal text-[#7B7B7B]'
-                                                        }`}
+                            <div className="mb-4 flex flex-col gap-4">
+                                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="lg:hidden">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <button
+                                                        type="button"
+                                                        className={`${iconBoxClass} cursor-pointer transition-opacity hover:opacity-80`}
+                                                        aria-haspopup="menu"
+                                                        aria-label="Filtrar series del gráfico"
                                                     >
-                                                        {label}
-                                                    </DropdownMenuItem>
-                                                ),
-                                            )}
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
-                                    <h2 className="text-[20px] font-semibold text-[#7B7B7B]">
-                                        Rendimientos de ventas
-                                    </h2>
-                                </div>
-                                <div className="flex flex-wrap gap-4">
-                                    <label className="flex h-10 items-center gap-2.5 rounded-[6px] border border-[#DFE4EA] bg-white px-4 py-3 text-[13px] text-[#1B3D6D]">
+                                                        <AlignJustify
+                                                            className="size-6"
+                                                            strokeWidth={
+                                                                iconStroke
+                                                            }
+                                                        />
+                                                    </button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent
+                                                    align="start"
+                                                    className="min-w-[148px] rounded-[4px] border-0 bg-white p-2 shadow-[0px_0px_10px_rgba(36,16,167,0.15)]"
+                                                >
+                                                    {CHART_FILTER_OPTIONS.map(
+                                                        ({ key, label }) => (
+                                                            <DropdownMenuItem
+                                                                key={key}
+                                                                onSelect={() =>
+                                                                    setChartSerieFilter(
+                                                                        key,
+                                                                    )
+                                                                }
+                                                                className={`cursor-pointer rounded-[2px] px-3 py-2.5 text-[13px] focus:bg-[#F5F5FF] ${
+                                                                    chartSerieFilter ===
+                                                                    key
+                                                                        ? 'font-semibold text-[#1B3D6D]'
+                                                                        : 'font-normal text-[#7B7B7B]'
+                                                                }`}
+                                                            >
+                                                                {label}
+                                                            </DropdownMenuItem>
+                                                        ),
+                                                    )}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
+                                        <h2 className="text-[20px] font-semibold text-[#7B7B7B]">
+                                            Rendimientos de ventas
+                                        </h2>
+                                    </div>
+                                    <div className="flex flex-wrap gap-4">
+                                    <label className="flex h-10 items-center gap-2.5 rounded-[6px] border border-[#DFE4EA] bg-white px-5 py-3 text-[13px] text-[#1B3D6D]">
                                         <CalendarDays
                                             className="size-4 shrink-0"
                                             strokeWidth={iconStroke}
@@ -415,18 +422,41 @@ export default function Dashboard() {
                                             strokeWidth={iconStroke}
                                         />
                                     </label>
-                                    <div className="flex h-10 flex-1 items-center justify-center gap-2.5 rounded-[6px] border border-[#DFE4EA] bg-white px-4 py-3 text-[13px] text-[#1B3D6D] md:flex-none">
+                                    <div className="flex h-10 flex-1 items-center justify-center gap-2.5 rounded-[6px] border border-[#DFE4EA] bg-white px-5 py-3 text-[13px] text-[#1B3D6D] lg:flex-none">
                                         <span>{periodRangeLabel}</span>
                                         <ChevronDown
                                             className="size-4 shrink-0 opacity-60"
                                             strokeWidth={iconStroke}
                                         />
                                     </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="min-w-0">
-                                <div className="mb-4 flex flex-wrap gap-6 text-[13px]">
+                            <div className="flex min-w-0 flex-col gap-6 lg:flex-row">
+                                <div className="hidden w-[110px] shrink-0 flex-col rounded-[4px] bg-white shadow-[0px_0px_2px_rgba(0,0,0,0.1)] lg:flex">
+                                    {CHART_FILTER_OPTIONS.map(
+                                        ({ key, label }) => (
+                                            <button
+                                                key={key}
+                                                type="button"
+                                                onClick={() =>
+                                                    setChartSerieFilter(key)
+                                                }
+                                                className={`px-2 py-2 text-left text-[13px] ${
+                                                    chartSerieFilter === key
+                                                        ? 'font-semibold text-[#1B3D6D]'
+                                                        : 'font-normal text-[#7B7B7B] hover:text-[#373737]'
+                                                }`}
+                                            >
+                                                {label}
+                                            </button>
+                                        ),
+                                    )}
+                                </div>
+
+                                <div className="min-w-0 flex-1">
+                                <div className="mb-4 flex flex-wrap gap-6 text-[13px] lg:gap-9">
                                     <div className="flex items-center gap-2">
                                         <div className="size-3 rounded-[2px] bg-[#2C5629]" />
                                         <span className="text-[#2C5629]">
@@ -585,10 +615,11 @@ export default function Dashboard() {
                                         </div>
                                     </Deferred>
 
-                                <p className="mt-4 text-center text-[13px] font-semibold text-[#7B7B7B] md:text-left">
+                                <p className="mt-4 text-center text-[13px] font-semibold text-[#7B7B7B] lg:text-left">
                                     Promedio de los últimos 30 Días:{' '}
                                     {formatMxn(chartPromedio)}
                                 </p>
+                                </div>
                             </div>
                         </div>
                     </div>

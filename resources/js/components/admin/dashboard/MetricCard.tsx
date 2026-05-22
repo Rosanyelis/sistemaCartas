@@ -22,8 +22,9 @@ type MetricCardProps = {
     compact?: boolean;
 };
 
+/** Estilos base Figma 15550:1692 — móvil sin prefijo lg: */
 export const metricCardClassName =
-    'flex shrink-0 snap-start flex-col gap-2 rounded-[4px] bg-white p-3 shadow-[0px_0px_10px_rgba(36,16,167,0.15)]';
+    'flex min-h-[94px] shrink-0 snap-start flex-col gap-2 rounded-[4px] bg-white p-3 shadow-[0px_0px_10px_rgba(36,16,167,0.15)]';
 
 const statIconMap = {
     up: ArrowUp,
@@ -33,6 +34,10 @@ const statIconMap = {
 } as const;
 
 const ICON_STROKE = 1.75;
+
+/** Proporción estándar/compacta Figma: 160px vs 130px → ~1.23fr : 1fr */
+export const metricCardsGridDesktopClass =
+    'lg:grid lg:w-full lg:grid-cols-[minmax(0,1.23fr)_minmax(0,1.23fr)_minmax(0,1.23fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-4 lg:overflow-visible';
 
 export default function MetricCard({
     icon: IconComponent,
@@ -50,8 +55,8 @@ export default function MetricCard({
         <div
             className={`${metricCardClassName} ${
                 compact
-                    ? 'h-full min-h-[94px] min-w-[130px] max-w-[130px]'
-                    : 'h-[94px] min-w-[160px] max-w-[160px] xl:min-h-0 xl:min-w-0 xl:max-w-none xl:w-full'
+                    ? 'min-w-[130px] max-w-[130px] lg:h-[94px] lg:min-w-0 lg:max-w-none lg:w-full'
+                    : 'min-w-[160px] max-w-[160px] lg:h-[94px] lg:min-w-0 lg:max-w-none lg:w-full'
             } ${className}`}
         >
             <div
