@@ -6,9 +6,12 @@ import {
     ShoppingCart,
     Store,
     User,
+    UserPlus,
     Users,
     UsersRound,
 } from 'lucide-react';
+import { ShoppingCartPlusIcon } from '@/components/panel/panel-client-nav-icons';
+import type { IconComponent } from '@/components/ui/icon';
 import {
     clientes,
     clients as adminClientsLegacy,
@@ -26,7 +29,7 @@ import { orders, profile, subscriptions } from '@/routes/user';
 
 export type PanelNavItem = {
     name: string;
-    icon: LucideIcon;
+    icon: IconComponent;
     href: string;
     active: boolean;
 };
@@ -109,13 +112,13 @@ export function getClientePanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Ordenes',
-            icon: ShoppingCart,
+            icon: ShoppingCartPlusIcon,
             href: orders.url(),
             active: currentUrl.startsWith(ou),
         },
         {
             name: 'Suscripciones',
-            icon: Users,
+            icon: UserPlus,
             href: subscriptions.url(),
             active: currentUrl.startsWith(su),
         },

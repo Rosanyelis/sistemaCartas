@@ -1,7 +1,9 @@
-import type { LucideIcon } from 'lucide-react';
+import type { ComponentType } from 'react';
+
+export type IconComponent = ComponentType<{ className?: string }>;
 
 interface IconProps {
-    iconNode?: LucideIcon | null;
+    iconNode?: IconComponent | null;
     className?: string;
 }
 
