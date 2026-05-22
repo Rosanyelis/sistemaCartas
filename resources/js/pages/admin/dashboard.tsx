@@ -250,17 +250,17 @@ export default function Dashboard() {
                                 <div className="h-[94px] w-full animate-pulse rounded-[4px] bg-gray-200" />
                             }
                         >
-                            <div className="@container/metrics min-w-0 w-full">
+                            <div className="min-w-0 w-full">
                                 <div
                                     ref={scrollContainerRef}
                                     onMouseDown={onMouseDown}
                                     onMouseLeave={onMouseLeave}
                                     onMouseUp={onMouseUp}
                                     onMouseMove={onMouseMove}
-                                    className={`gap-3 max-lg:flex max-lg:touch-pan-x max-lg:snap-x max-lg:snap-mandatory max-lg:overflow-x-auto max-lg:overscroll-x-contain max-lg:pb-1 max-lg:[-ms-overflow-style:none] max-lg:[scrollbar-width:none] max-lg:[&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-2 lg:overflow-visible @3xl/metrics:grid-cols-3 @5xl/metrics:grid-cols-4 @7xl/metrics:grid-cols-5 ${
+                                    className={`flex touch-pan-x snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-1 [-ms-overflow-style:none] [scrollbar-width:none] lg:gap-4 lg:flex-nowrap [&::-webkit-scrollbar]:hidden ${
                                         isDragging
-                                            ? 'max-lg:cursor-grabbing max-lg:select-none'
-                                            : 'max-lg:cursor-grab max-lg:select-none lg:cursor-auto lg:select-auto'
+                                            ? 'cursor-grabbing select-none'
+                                            : 'cursor-grab select-none'
                                     }`}
                                 >
                                 <MetricCard
@@ -334,7 +334,7 @@ export default function Dashboard() {
                                     compact
                                 />
                                 <div
-                                    className="w-2 shrink-0 lg:hidden"
+                                    className="w-2 shrink-0"
                                     aria-hidden
                                 />
                                 </div>

@@ -22,8 +22,15 @@ type MetricCardProps = {
     compact?: boolean;
 };
 
+/** Tamaños Figma nodo 15553:7798 — estándar 160×94, compacta 130×94. */
+export const metricCardStandardDesktopClass =
+    'lg:h-[94px] lg:w-[160px] lg:min-w-[160px] lg:max-w-[160px] lg:shrink-0';
+
+export const metricCardCompactDesktopClass =
+    'lg:h-[94px] lg:w-[130px] lg:min-w-[130px] lg:max-w-[130px] lg:shrink-0';
+
 export const metricCardClassName =
-    'flex min-h-[94px] w-full min-w-0 flex-col gap-2 rounded-[4px] bg-white p-3 shadow-[0px_0px_10px_rgba(36,16,167,0.15)] max-lg:snap-start max-lg:shrink-0';
+    'flex min-h-[94px] flex-col gap-2 rounded-[4px] bg-white p-3 shadow-[0px_0px_10px_rgba(36,16,167,0.15)] max-lg:snap-start max-lg:shrink-0';
 
 const statIconMap = {
     up: ArrowUp,
@@ -50,8 +57,8 @@ export default function MetricCard({
         <div
             className={`${metricCardClassName} ${
                 compact
-                    ? 'max-lg:min-w-[130px] max-lg:max-w-[130px]'
-                    : 'max-lg:min-w-[160px] max-lg:max-w-[160px]'
+                    ? `max-lg:min-w-[130px] max-lg:max-w-[130px] ${metricCardCompactDesktopClass}`
+                    : `max-lg:min-w-[160px] max-lg:max-w-[160px] ${metricCardStandardDesktopClass}`
             } ${className}`}
         >
             <div
