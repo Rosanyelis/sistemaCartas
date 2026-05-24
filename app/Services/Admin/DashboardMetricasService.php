@@ -73,13 +73,11 @@ class DashboardMetricasService
         $total = $this->clientesRegistrados();
         $nuevos = $this->clientesNuevosMes();
 
-        if ($total <= $nuevos || $nuevos === 0) {
+        if ($total === 0) {
             return 0.0;
         }
 
-        $anteriores = $total - $nuevos;
-
-        return round(($nuevos / $anteriores) * 100, 2);
+        return round(($nuevos / $total) * 100, 2);
     }
 
     public function ordenesDelDia(): int
@@ -354,15 +352,16 @@ class DashboardMetricasService
 
         [$searchStart, $searchEnd] = $this->resolveChartSearchWindow($desde, $hasta);
         $firstMonth = $this->primerMesConDatosEnPeriodo($searchStart, $searchEnd);
-        $lastMonth = $this->ultimoMesConDatosEnPeriodo($searchStart, $searchEnd);
 
-        if ($firstMonth === null || $lastMonth === null) {
+        if ($firstMonth === null) {
             return [];
         }
 
+        $endMonth = $this->resolveMonthlyChartEndMonth($firstMonth, $searchEnd);
+
         return $this->buildMonthlyChartBetween(
             $firstMonth->copy()->startOfMonth(),
-            $lastMonth->copy()->startOfMonth(),
+            $endMonth,
         );
     }
 
@@ -397,16 +396,25 @@ class DashboardMetricasService
 
         [$searchStart, $searchEnd] = $this->resolveChartSearchWindow($desde, $hasta);
         $firstMonth = $this->primerMesConDatosEnPeriodo($searchStart, $searchEnd);
-        $lastMonth = $this->ultimoMesConDatosEnPeriodo($searchStart, $searchEnd);
 
-        if ($firstMonth === null || $lastMonth === null) {
+        if ($firstMonth === null) {
             return null;
         }
 
+        $endMonth = $this->resolveMonthlyChartEndMonth($firstMonth, $searchEnd);
+
         return [
             'desde' => $firstMonth->copy()->startOfMonth()->toDateString(),
-            'hasta' => $lastMonth->copy()->endOfMonth()->toDateString(),
+            'hasta' => $endMonth->copy()->endOfMonth()->toDateString(),
         ];
+    }
+
+    protected function resolveMonthlyChartEndMonth(Carbon $firstMonth, Carbon $searchEnd): Carbon
+    {
+        $december = Carbon::create($firstMonth->year, 12, 1)->startOfMonth();
+        $searchEndMonth = $searchEnd->copy()->startOfMonth();
+
+        return $december->lte($searchEndMonth) ? $december : $searchEndMonth;
     }
 
     /**

@@ -1,4 +1,4 @@
-import type { LucideIcon } from 'lucide-react';
+import type { IconComponent } from '@/components/ui/icon';
 import { ArrowDown, ArrowUp, Check, X } from 'lucide-react';
 import { ReactNode } from 'react';
 
@@ -10,7 +10,7 @@ export type MetricStat = {
 };
 
 type MetricCardProps = {
-    icon: LucideIcon;
+    icon: IconComponent;
     title: string;
     subtitle?: string;
     value?: number | string;
@@ -34,10 +34,6 @@ const statIconMap = {
 } as const;
 
 const ICON_STROKE = 1.75;
-
-/** Proporción estándar/compacta Figma: 160px vs 130px → ~1.23fr : 1fr */
-export const metricCardsGridDesktopClass =
-    'lg:grid lg:w-full lg:grid-cols-[minmax(0,1.23fr)_minmax(0,1.23fr)_minmax(0,1.23fr)_minmax(0,1fr)_minmax(0,1fr)] lg:gap-4 lg:overflow-visible';
 
 export default function MetricCard({
     icon: IconComponent,
@@ -65,10 +61,7 @@ export default function MetricCard({
                 <div
                     className={`flex shrink-0 items-center rounded-[2px] p-1 ${iconClassName}`}
                 >
-                    <IconComponent
-                        className="size-6"
-                        strokeWidth={ICON_STROKE}
-                    />
+                    <IconComponent className="size-6" />
                 </div>
                 <div className="min-w-0 flex-1">
                     <p className="text-[13px] font-semibold leading-none text-[#373737]">
@@ -89,15 +82,28 @@ export default function MetricCard({
                     {value ?? 0}
                 </span>
 
-                {growthPercent !== undefined && growthPercent > 0 ? (
+                {growthPercent !== undefined ? (
                     <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-normal text-[#1DA534]">
+                        <span
+                            className={`text-[13px] font-normal leading-none ${
+                                growthPercent < 0
+                                    ? 'text-[#DF0707]'
+                                    : 'text-[#1DA534]'
+                            }`}
+                        >
                             {growthPercent.toFixed(2)}%
                         </span>
-                        <ArrowUp
-                            className="size-4 text-[#1DA534]"
-                            strokeWidth={ICON_STROKE}
-                        />
+                        {growthPercent < 0 ? (
+                            <ArrowDown
+                                className="size-4 text-[#DF0707]"
+                                strokeWidth={ICON_STROKE}
+                            />
+                        ) : (
+                            <ArrowUp
+                                className="size-4 text-[#1DA534]"
+                                strokeWidth={ICON_STROKE}
+                            />
+                        )}
                     </div>
                 ) : null}
 
@@ -111,7 +117,7 @@ export default function MetricCard({
                             return (
                                 <div
                                     key={stat.label}
-                                    className={`flex items-center gap-1 text-[8px] leading-none font-normal ${
+                                    className={`flex items-center gap-1 text-[8px] leading-none font-normal lg:gap-1 ${
                                         stat.tone === 'success'
                                             ? 'text-[#1DA534]'
                                             : 'text-[#DF0707]'

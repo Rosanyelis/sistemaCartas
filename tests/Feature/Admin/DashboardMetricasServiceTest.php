@@ -112,7 +112,7 @@ test('ventas chart mes sin datos en el año devuelve arreglo vacio', function ()
     Carbon::setTestNow();
 });
 
-test('ventas chart mes con datos solo en el mes actual devuelve un punto', function (): void {
+test('ventas chart mes con datos solo en mayo extiende hasta diciembre con ceros', function (): void {
     Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
 
     $producto = Producto::factory()->create([
@@ -120,28 +120,14 @@ test('ventas chart mes con datos solo en el mes actual devuelve un punto', funct
         'estado' => 'activo',
     ]);
 
-    $order = StoreOrder::query()->create([
-        'paypal_order_id' => 'PAYPAL-CHART-UN-MES',
-        'status' => StoreOrder::STATUS_PAID,
-        'currency' => 'USD',
-        'total' => 10.00,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-
-    StoreOrderItem::query()->create([
-        'store_order_id' => $order->id,
-        'product_slug' => $producto->slug,
-        'product_name' => $producto->nombre,
-        'quantity' => 1,
-        'unit_price' => 10.00,
-        'line_total' => 10.00,
-    ]);
+    crearOrdenPagadaEnMes($producto, 2026, 5, 'PAYPAL-CHART-UN-MES');
 
     $chart = app(DashboardMetricasService::class)->ventasChart('mes');
+    $nombres = collect($chart)->pluck('name')->all();
 
-    expect($chart)->toHaveCount(1)
-        ->and(collect($chart)->pluck('name')->all())->toBe(['May']);
+    expect($nombres)->toBe(['May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'])
+        ->and(collect($chart)->firstWhere('name', 'May')['productos'])->toBe(10.0)
+        ->and(collect($chart)->firstWhere('name', 'Jun')['productos'])->toBe(0.0);
 
     Carbon::setTestNow();
 });
@@ -160,7 +146,11 @@ test('ventas chart mes con datos de marzo a mayo incluye abril en cero', functio
 
     $chart = app(DashboardMetricasService::class)->ventasChart('mes');
 
-    expect(collect($chart)->pluck('name')->all())->toBe(['Mar', 'Abr', 'May'])
+    $nombres = collect($chart)->pluck('name')->all();
+
+    expect($nombres)->toHaveCount(10)
+        ->and($nombres[0])->toBe('Mar')
+        ->and($nombres[9])->toBe('Dic')
         ->and(collect($chart)->firstWhere('name', 'Abr')['productos'])->toBe(0.0);
 
     Carbon::setTestNow();
@@ -188,7 +178,7 @@ test('ventas chart mes con datos de marzo a diciembre recorre hasta diciembre', 
     Carbon::setTestNow();
 });
 
-test('ventas chart mes con datos solo de mayo a agosto no extiende a diciembre', function (): void {
+test('ventas chart mes con datos de mayo a agosto extiende hasta diciembre', function (): void {
     Carbon::setTestNow(Carbon::parse('2026-12-15 12:00:00'));
 
     $producto = Producto::factory()->create([
@@ -201,8 +191,10 @@ test('ventas chart mes con datos solo de mayo a agosto no extiende a diciembre',
     }
 
     $chart = app(DashboardMetricasService::class)->ventasChart('mes');
+    $nombres = collect($chart)->pluck('name')->all();
 
-    expect(collect($chart)->pluck('name')->all())->toBe(['May', 'Jun', 'Jul', 'Ago']);
+    expect($nombres)->toBe(['May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'])
+        ->and(collect($chart)->firstWhere('name', 'Sep')['productos'])->toBe(0.0);
 
     Carbon::setTestNow();
 });
@@ -224,7 +216,30 @@ test('ventas chart con rango de fechas solo incluye meses con datos dentro del r
 
     $chart = app(DashboardMetricasService::class)->ventasChart('mes', $desde, $hasta);
 
-    expect(collect($chart)->pluck('name')->all())->toBe(['Feb', 'Mar', 'Abr']);
+    expect(collect($chart)->pluck('name')->all())->toBe([
+        'Feb',
+        'Mar',
+        'Abr',
+        'May',
+        'Jun',
+    ]);
+
+    Carbon::setTestNow();
+});
+
+test('clientes crecimiento porcentaje es nuevos sobre total registrados', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
+
+    User::factory()->count(3)->create([
+        'role' => 'cliente',
+        'created_at' => Carbon::parse('2025-01-10'),
+    ]);
+    User::factory()->create([
+        'role' => 'cliente',
+        'created_at' => now(),
+    ]);
+
+    expect(app(DashboardMetricasService::class)->clientesCrecimientoPorcentaje())->toBe(25.0);
 
     Carbon::setTestNow();
 });
@@ -363,10 +378,10 @@ test('ventas chart mes refleja suscripciones de historias en el bucket del mes',
 
     $service = app(DashboardMetricasService::class);
     $chart = $service->ventasChart('mes');
-    $mesActual = collect($chart)->last();
+    $mayo = collect($chart)->firstWhere('name', 'May');
 
-    expect($mesActual)->not->toBeNull()
-        ->and($mesActual['historias'])->toBe(20.00);
+    expect($mayo)->not->toBeNull()
+        ->and($mayo['historias'])->toBe(20.00);
 
     Carbon::setTestNow();
 });
@@ -415,10 +430,10 @@ test('ventas chart mes suma suscripciones y compras de historias en serie histor
     ]);
 
     $chart = app(DashboardMetricasService::class)->ventasChart('mes');
-    $mesActual = collect($chart)->last();
+    $mayo = collect($chart)->firstWhere('name', 'May');
 
-    expect($mesActual)->not->toBeNull()
-        ->and($mesActual['historias'])->toBe(25.00);
+    expect($mayo)->not->toBeNull()
+        ->and($mayo['historias'])->toBe(25.00);
 
     Carbon::setTestNow();
 });
@@ -451,11 +466,11 @@ test('ventas chart mes deja historias en cero con solo compra de producto', func
 
     $service = app(DashboardMetricasService::class);
     $chart = $service->ventasChart('mes');
-    $mesActual = collect($chart)->last();
+    $mayo = collect($chart)->firstWhere('name', 'May');
 
-    expect($mesActual)->not->toBeNull()
-        ->and($mesActual['historias'])->toBe(0.0)
-        ->and($mesActual['productos'])->toBe(25.00);
+    expect($mayo)->not->toBeNull()
+        ->and($mayo['historias'])->toBe(0.0)
+        ->and($mayo['productos'])->toBe(25.00);
 
     Carbon::setTestNow();
 });
