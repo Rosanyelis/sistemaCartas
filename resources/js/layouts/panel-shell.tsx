@@ -1,9 +1,8 @@
 import { faBars, faTriangleExclamation, faUser } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Power } from 'lucide-react';
 import { appFontLinks } from '@/components/AppFontLinks';
 import { FlashToasts } from '@/components/FlashToasts';
-import { Icon } from '@/components/ui/icon';
+import { PanelSidebar } from '@/components/panel/PanelSidebar';
 import type { PanelNavItem } from '@/config/panel-nav';
 import type { User } from '@/types/auth';
 import { Head, Link, router } from '@inertiajs/react';
@@ -51,108 +50,11 @@ export default function PanelShell({
                     className="fixed inset-0 z-40 bg-black/50 transition-opacity md:hidden"
                 />
             )}
-            <aside
-                className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-brand-blue transition-all duration-300 ${
-                    isSidebarOpen
-                        ? 'w-[245px] translate-x-0 shadow-[0px_0px_25px_rgba(0,0,0,0.3)]'
-                        : 'w-[245px] -translate-x-full md:w-[72px] md:translate-x-0 md:shadow-none'
-                }`}
-            >
-                <div
-                    className={`flex h-full flex-col py-6 transition-all duration-300 ${isSidebarOpen ? 'px-5' : 'px-3'}`}
-                >
-                    <div
-                        className={`mb-8 flex justify-center transition-all duration-300 ${isSidebarOpen ? 'opacity-100' : 'pointer-events-none h-0 scale-50 opacity-0'}`}
-                    >
-                        <Link href="/">
-                            <img
-                                src="/images/logo-principal.png"
-                                alt="Logo"
-                                className="h-[58px] w-[110px] object-contain brightness-0 invert"
-                            />
-                        </Link>
-                    </div>
-
-                    <nav className="flex flex-1 flex-col">
-                        <div className="flex-1 space-y-2">
-                            {navItems.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    className={`flex items-center rounded-[4px] transition-all duration-200 ${isSidebarOpen ? 'gap-3 px-3.5 py-2.5' : 'justify-center px-0 py-3'} ${
-                                        item.active
-                                            ? 'bg-[rgba(245,245,255,0.85)] text-[#1B3D6D] shadow-sm'
-                                            : `text-white/90 ${isAdmin ? 'hover:bg-[rgba(255,255,255,0.08)]' : 'hover:bg-white/8'}`
-                                    }`}
-                                >
-                                    <span className="flex size-5 shrink-0 items-center justify-center">
-                                        <Icon
-                                            iconNode={item.icon}
-                                            className={
-                                                isSidebarOpen
-                                                    ? 'size-4'
-                                                    : 'size-5'
-                                            }
-                                            strokeWidth={1.75}
-                                        />
-                                    </span>
-                                    <span
-                                        className={`font-['Inter'] text-[14px] font-medium whitespace-nowrap transition-all duration-300 ${!isSidebarOpen ? 'pointer-events-none w-0 translate-x-4 opacity-0' : 'w-auto opacity-100'}`}
-                                    >
-                                        {item.name}
-                                    </span>
-                                </Link>
-                            ))}
-                        </div>
-
-                        <div
-                            className={
-                                isAdmin
-                                    ? 'my-6 h-[0.5px] bg-[#F2F2F2] opacity-50'
-                                    : 'my-6 h-[0.5px] bg-white/50'
-                            }
-                        />
-
-                        <button
-                            type="button"
-                            onClick={() => setIsLogoutModalOpen(true)}
-                            className={`flex w-full items-center rounded-[4px] text-left transition-all duration-200 ${
-                                isSidebarOpen
-                                    ? isAdmin
-                                        ? 'gap-4 px-4 py-3'
-                                        : 'gap-3 px-3.5 py-2.5'
-                                    : 'justify-center px-0 py-4'
-                            } ${
-                                isAdmin
-                                    ? 'text-white hover:bg-[rgba(255,255,255,0.1)]'
-                                    : 'text-white/90 hover:bg-white/8'
-                            }`}
-                        >
-                            <span className="flex size-5 shrink-0 items-center justify-center">
-                                <Icon
-                                    iconNode={Power}
-                                    className={
-                                        isSidebarOpen ? 'size-4' : 'size-5'
-                                    }
-                                    strokeWidth={1.75}
-                                />
-                            </span>
-                            <span
-                                className={`font-['Inter'] text-[16px] font-normal whitespace-nowrap transition-all duration-300 ${!isSidebarOpen ? 'pointer-events-none w-0 translate-x-4 opacity-0' : 'w-auto opacity-100'}`}
-                            >
-                                Cerrar sesión
-                            </span>
-                        </button>
-                    </nav>
-
-                    <div
-                        className={`space-y-1 text-center font-['Inter'] text-[8.5px] text-white transition-all duration-300 ${isAdmin ? 'mt-auto pt-6' : 'mt-4 pt-4'} ${!isSidebarOpen ? 'pointer-events-none scale-75 opacity-0' : 'opacity-100'}`}
-                    >
-                        <p>© Historias por correo</p>
-                        <p>Todos los derechos reservados</p>
-                    </div>
-                </div>
-            </aside>
+            <PanelSidebar
+                items={navItems}
+                isOpen={isSidebarOpen}
+                onLogoutClick={() => setIsLogoutModalOpen(true)}
+            />
             <div
                 className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ${isSidebarOpen ? 'md:ml-[245px]' : 'ml-0 md:ml-[72px]'}`}
             >

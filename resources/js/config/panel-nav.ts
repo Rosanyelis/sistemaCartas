@@ -1,13 +1,13 @@
-import { Store, User, UserPlus } from 'lucide-react';
 import {
-    AdminClientesIcon,
-    AdminHistoriasIcon,
-    AdminOrdenesIcon,
-    AdminPanelIcon,
-    AdminProductosIcon,
-    AdminSuscripcionesIcon,
-} from '@/components/panel/panel-admin-nav-icons';
-import { ShoppingCartPlusIcon } from '@/components/panel/panel-client-nav-icons';
+    PanelNavClientesIcon,
+    PanelNavHistoriasIcon,
+    PanelNavOrdenesIcon,
+    PanelNavPanelIcon,
+    PanelNavPerfilIcon,
+    PanelNavProductosIcon,
+    PanelNavStoreIcon,
+    PanelNavSuscripcionesIcon,
+} from '@/components/panel/panel-nav-icons';
 import type { IconComponent } from '@/components/ui/icon';
 import {
     clientes,
@@ -24,12 +24,18 @@ import {
 } from '@/routes/admin';
 import { orders, profile, subscriptions } from '@/routes/user';
 
+export type PanelRole = 'admin' | 'cliente';
+
 export type PanelNavItem = {
     name: string;
     icon: IconComponent;
     href: string;
     active: boolean;
 };
+
+export function getPanelNav(role: PanelRole, currentUrl: string): PanelNavItem[] {
+    return role === 'admin' ? getAdminPanelNav(currentUrl) : getClientePanelNav(currentUrl);
+}
 
 /**
  * Navegación lateral del panel administrativo (URLs desde Wayfinder).
@@ -45,13 +51,13 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
     return [
         {
             name: 'Panel',
-            icon: AdminPanelIcon,
+            icon: PanelNavPanelIcon,
             href: adminDashboard.url(),
             active: currentUrl === d,
         },
         {
             name: 'Ordenes',
-            icon: AdminOrdenesIcon,
+            icon: PanelNavOrdenesIcon,
             href: ordenes.url(),
             active:
                 currentUrl.startsWith(o) ||
@@ -59,7 +65,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Suscripciones',
-            icon: AdminSuscripcionesIcon,
+            icon: PanelNavSuscripcionesIcon,
             href: adminSuscripciones.url(),
             active:
                 currentUrl.startsWith(s) ||
@@ -67,7 +73,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Clientes',
-            icon: AdminClientesIcon,
+            icon: PanelNavClientesIcon,
             href: clientes.url(),
             active:
                 currentUrl.startsWith(c) ||
@@ -75,7 +81,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Historias',
-            icon: AdminHistoriasIcon,
+            icon: PanelNavHistoriasIcon,
             href: adminHistorias.url(),
             active:
                 currentUrl.startsWith(h) ||
@@ -83,7 +89,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
         },
         {
             name: 'Productos',
-            icon: AdminProductosIcon,
+            icon: PanelNavProductosIcon,
             href: adminProductos.url(),
             active:
                 currentUrl.startsWith(p) ||
@@ -103,25 +109,25 @@ export function getClientePanelNav(currentUrl: string): PanelNavItem[] {
     return [
         {
             name: 'Ir a tienda',
-            icon: Store,
+            icon: PanelNavStoreIcon,
             href: '/',
             active: currentUrl === '/' || currentUrl === '',
         },
         {
             name: 'Ordenes',
-            icon: ShoppingCartPlusIcon,
+            icon: PanelNavOrdenesIcon,
             href: orders.url(),
             active: currentUrl.startsWith(ou),
         },
         {
             name: 'Suscripciones',
-            icon: UserPlus,
+            icon: PanelNavSuscripcionesIcon,
             href: subscriptions.url(),
             active: currentUrl.startsWith(su),
         },
         {
             name: 'Perfil',
-            icon: User,
+            icon: PanelNavPerfilIcon,
             href: profile.url(),
             active: currentUrl.startsWith(pr),
         },
