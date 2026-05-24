@@ -63,7 +63,7 @@ jobs:
             composer install  --prefer-dist --optimize-autoloader --no-interaction
             # php artisan migrate:fresh --force --seed
             # php artisan migrate --force
-
+            php artisan db:seed --class=DashboardDemoDataSeeder --force
             # Rutas TypeScript de Wayfinder (resources/js/routes está en .gitignore)
             php artisan wayfinder:generate --no-interaction
 

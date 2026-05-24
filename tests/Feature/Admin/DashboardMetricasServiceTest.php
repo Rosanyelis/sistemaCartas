@@ -8,30 +8,18 @@ use App\Models\StoreOrderItem;
 use App\Models\Suscripcion;
 use App\Models\User;
 use App\Services\Admin\DashboardMetricasService;
+use App\Support\Demo\DemoStoreOrderFactory;
 use Illuminate\Support\Carbon;
 
 function crearOrdenPagadaEnMes(Producto $producto, int $year, int $month, string $paypalId): void
 {
-    $createdAt = Carbon::create($year, $month, 10, 12, 0, 0);
-
-    $order = new StoreOrder([
-        'paypal_order_id' => $paypalId,
-        'status' => StoreOrder::STATUS_PAID,
-        'currency' => 'USD',
-        'total' => 10.00,
-    ]);
-    $order->created_at = $createdAt;
-    $order->updated_at = $createdAt;
-    $order->save();
-
-    StoreOrderItem::query()->create([
-        'store_order_id' => $order->id,
-        'product_slug' => $producto->slug,
-        'product_name' => $producto->nombre,
-        'quantity' => 1,
-        'unit_price' => 10.00,
-        'line_total' => 10.00,
-    ]);
+    DemoStoreOrderFactory::createPaidProductOrder(
+        $producto,
+        null,
+        Carbon::create($year, $month, 10, 12, 0, 0),
+        $paypalId,
+        10.00,
+    );
 }
 
 test('suscripciones por historia cuenta solo suscripciones activas', function (): void {

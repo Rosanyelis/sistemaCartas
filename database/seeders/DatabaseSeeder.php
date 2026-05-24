@@ -30,5 +30,9 @@ class DatabaseSeeder extends Seeder
         $this->call(HistoriasSeeder::class);
         $this->call(ProductoGaleriasSeeder::class);
         $this->call(HistoriaGaleriasSeeder::class);
+
+        // Solo desarrollo: datos demo del dashboard (mayo u otro mes configurable).
+        // $this->call(DashboardDemoDataSeeder::class);
+        // php artisan demo:seed-dashboard
     }
 }
