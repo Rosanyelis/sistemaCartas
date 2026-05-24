@@ -10,6 +10,30 @@ use App\Models\User;
 use App\Services\Admin\DashboardMetricasService;
 use Illuminate\Support\Carbon;
 
+function crearOrdenPagadaEnMes(Producto $producto, int $year, int $month, string $paypalId): void
+{
+    $createdAt = Carbon::create($year, $month, 10, 12, 0, 0);
+
+    $order = new StoreOrder([
+        'paypal_order_id' => $paypalId,
+        'status' => StoreOrder::STATUS_PAID,
+        'currency' => 'USD',
+        'total' => 10.00,
+    ]);
+    $order->created_at = $createdAt;
+    $order->updated_at = $createdAt;
+    $order->save();
+
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => $producto->slug,
+        'product_name' => $producto->nombre,
+        'quantity' => 1,
+        'unit_price' => 10.00,
+        'line_total' => 10.00,
+    ]);
+}
+
 test('suscripciones por historia cuenta solo suscripciones activas', function (): void {
     $historia = Historia::factory()->create([
         'slug' => 'historia-metricas-dash',
@@ -90,16 +114,129 @@ test('ventas chart devuelve siete puntos para semana', function (): void {
     expect($service->ventasChart('semana'))->toHaveCount(7);
 });
 
-test('ventas chart mes incluye meses del año actual hasta el mes presente', function (): void {
+test('ventas chart mes sin datos en el año devuelve arreglo vacio', function (): void {
     Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
 
-    $service = app(DashboardMetricasService::class);
-    $chart = $service->ventasChart('mes');
+    $chart = app(DashboardMetricasService::class)->ventasChart('mes');
 
-    expect($chart)->toHaveCount(5)
-        ->and(collect($chart)->pluck('name')->all())->toBe([
-            'Ene', 'Feb', 'Mar', 'Abr', 'May',
-        ]);
+    expect($chart)->toBe([]);
+
+    Carbon::setTestNow();
+});
+
+test('ventas chart mes con datos solo en el mes actual devuelve un punto', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
+
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-chart-un-mes',
+        'estado' => 'activo',
+    ]);
+
+    $order = StoreOrder::query()->create([
+        'paypal_order_id' => 'PAYPAL-CHART-UN-MES',
+        'status' => StoreOrder::STATUS_PAID,
+        'currency' => 'USD',
+        'total' => 10.00,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    StoreOrderItem::query()->create([
+        'store_order_id' => $order->id,
+        'product_slug' => $producto->slug,
+        'product_name' => $producto->nombre,
+        'quantity' => 1,
+        'unit_price' => 10.00,
+        'line_total' => 10.00,
+    ]);
+
+    $chart = app(DashboardMetricasService::class)->ventasChart('mes');
+
+    expect($chart)->toHaveCount(1)
+        ->and(collect($chart)->pluck('name')->all())->toBe(['May']);
+
+    Carbon::setTestNow();
+});
+
+test('ventas chart mes con datos de marzo a mayo incluye abril en cero', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-05-15 12:00:00'));
+
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-chart-mar-may',
+        'estado' => 'activo',
+    ]);
+
+    foreach ([3, 5] as $month) {
+        crearOrdenPagadaEnMes($producto, 2026, $month, 'PAYPAL-CHART-'.$month);
+    }
+
+    $chart = app(DashboardMetricasService::class)->ventasChart('mes');
+
+    expect(collect($chart)->pluck('name')->all())->toBe(['Mar', 'Abr', 'May'])
+        ->and(collect($chart)->firstWhere('name', 'Abr')['productos'])->toBe(0.0);
+
+    Carbon::setTestNow();
+});
+
+test('ventas chart mes con datos de marzo a diciembre recorre hasta diciembre', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-12-15 12:00:00'));
+
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-chart-mar-dic',
+        'estado' => 'activo',
+    ]);
+
+    foreach ([3, 12] as $month) {
+        crearOrdenPagadaEnMes($producto, 2026, $month, 'PAYPAL-CHART-MD-'.$month);
+    }
+
+    $chart = app(DashboardMetricasService::class)->ventasChart('mes');
+    $nombres = collect($chart)->pluck('name')->all();
+
+    expect($nombres)->toHaveCount(10)
+        ->and($nombres[0])->toBe('Mar')
+        ->and($nombres[9])->toBe('Dic');
+
+    Carbon::setTestNow();
+});
+
+test('ventas chart mes con datos solo de mayo a agosto no extiende a diciembre', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-12-15 12:00:00'));
+
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-chart-may-ago',
+        'estado' => 'activo',
+    ]);
+
+    foreach ([5, 8] as $month) {
+        crearOrdenPagadaEnMes($producto, 2026, $month, 'PAYPAL-CHART-MA-'.$month);
+    }
+
+    $chart = app(DashboardMetricasService::class)->ventasChart('mes');
+
+    expect(collect($chart)->pluck('name')->all())->toBe(['May', 'Jun', 'Jul', 'Ago']);
+
+    Carbon::setTestNow();
+});
+
+test('ventas chart con rango de fechas solo incluye meses con datos dentro del rango', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-06-15 12:00:00'));
+
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-chart-rango',
+        'estado' => 'activo',
+    ]);
+
+    foreach ([2, 4] as $month) {
+        crearOrdenPagadaEnMes($producto, 2026, $month, 'PAYPAL-CHART-RANGO-'.$month);
+    }
+
+    $desde = Carbon::parse('2026-01-01')->startOfDay();
+    $hasta = Carbon::parse('2026-06-30')->endOfDay();
+
+    $chart = app(DashboardMetricasService::class)->ventasChart('mes', $desde, $hasta);
+
+    expect(collect($chart)->pluck('name')->all())->toBe(['Feb', 'Mar', 'Abr']);
 
     Carbon::setTestNow();
 });
@@ -113,21 +250,6 @@ test('ventas chart semana usa etiquetas de dia en español', function (): void {
     expect($nombres)->toHaveCount(7)
         ->and($nombres)->toContain('Jue')
         ->and(array_diff($nombres, ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']))->toBe([]);
-
-    Carbon::setTestNow();
-});
-
-test('ventas chart mes en diciembre devuelve doce puntos del mismo año', function (): void {
-    Carbon::setTestNow(Carbon::parse('2026-12-15 12:00:00'));
-
-    $service = app(DashboardMetricasService::class);
-    $chart = $service->ventasChart('mes');
-
-    expect($chart)->toHaveCount(12)
-        ->and(collect($chart)->pluck('name')->all())->toBe([
-            'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-            'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
-        ]);
 
     Carbon::setTestNow();
 });

@@ -12,6 +12,8 @@ use App\Models\User;
 use App\Support\HistoriaSuscripcionPrecio;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class DashboardMetricasService
 {
@@ -334,60 +336,274 @@ class DashboardMetricasService
      *
      * @return array<int, array{name: string, historias: float, productos: float, cancelados: float}>
      */
-    public function ventasChart(string $periodo = 'mes'): array
-    {
-        $data = [];
-        $now = Carbon::now();
+    public function ventasChart(
+        string $periodo = 'mes',
+        ?Carbon $desde = null,
+        ?Carbon $hasta = null,
+    ): array {
+        if ($periodo === 'semana' && $desde === null && $hasta === null) {
+            return $this->buildWeeklyChart();
+        }
 
-        if ($periodo === 'semana') {
-            for ($i = 6; $i >= 0; $i--) {
-                $date = $now->copy()->subDays($i);
-
-                $orderForDay = function (Builder $q) use ($date): void {
-                    $q->whereDate('created_at', $date->toDateString());
-                };
-
-                $data[] = [
-                    'name' => self::DIAS_ABREV_ES[$date->dayOfWeek],
-                    'historias' => $this->ventasHistoriasEnPeriodo(
-                        $date->copy()->startOfDay(),
-                        $date->copy()->endOfDay(),
-                        $orderForDay,
-                    ),
-                    'productos' => $this->sumPaidProductoLineTotals($orderForDay),
-                    'cancelados' => (float) StoreOrder::query()
-                        ->where('status', '!=', StoreOrder::STATUS_PAID)
-                        ->whereDate('created_at', $date->toDateString())
-                        ->sum('total'),
-                ];
+        if ($periodo === 'semana' && $desde !== null && $hasta !== null) {
+            $days = $desde->copy()->startOfDay()->diffInDays($hasta->copy()->endOfDay()) + 1;
+            if ($days <= 7) {
+                return $this->buildDailyChartBetween($desde, $hasta);
             }
-        } else {
-            for ($month = 1; $month <= $now->month; $month++) {
-                $date = $now->copy()->month($month)->startOfMonth();
+        }
 
-                $orderForMonth = function (Builder $q) use ($date): void {
-                    $q->whereMonth('created_at', $date->month)
-                        ->whereYear('created_at', $date->year);
-                };
+        [$searchStart, $searchEnd] = $this->resolveChartSearchWindow($desde, $hasta);
+        $firstMonth = $this->primerMesConDatosEnPeriodo($searchStart, $searchEnd);
+        $lastMonth = $this->ultimoMesConDatosEnPeriodo($searchStart, $searchEnd);
 
-                $data[] = [
-                    'name' => self::MESES_ABREV_ES[$month - 1],
-                    'historias' => $this->ventasHistoriasEnPeriodo(
-                        $date->copy()->startOfMonth(),
-                        $date->copy()->endOfMonth(),
-                        $orderForMonth,
-                    ),
-                    'productos' => $this->sumPaidProductoLineTotals($orderForMonth),
-                    'cancelados' => (float) StoreOrder::query()
-                        ->where('status', '!=', StoreOrder::STATUS_PAID)
-                        ->whereMonth('created_at', $date->month)
-                        ->whereYear('created_at', $date->year)
-                        ->sum('total'),
+        if ($firstMonth === null || $lastMonth === null) {
+            return [];
+        }
+
+        return $this->buildMonthlyChartBetween(
+            $firstMonth->copy()->startOfMonth(),
+            $lastMonth->copy()->startOfMonth(),
+        );
+    }
+
+    /**
+     * Rango efectivo del eje del gráfico (para etiqueta en UI).
+     *
+     * @return array{desde: string, hasta: string}|null
+     */
+    public function ventasChartAxisRange(
+        string $periodo = 'mes',
+        ?Carbon $desde = null,
+        ?Carbon $hasta = null,
+    ): ?array {
+        if ($periodo === 'semana' && $desde === null && $hasta === null) {
+            $now = Carbon::now();
+
+            return [
+                'desde' => $now->copy()->subDays(6)->toDateString(),
+                'hasta' => $now->toDateString(),
+            ];
+        }
+
+        if ($periodo === 'semana' && $desde !== null && $hasta !== null) {
+            $days = $desde->copy()->startOfDay()->diffInDays($hasta->copy()->endOfDay()) + 1;
+            if ($days <= 7) {
+                return [
+                    'desde' => $desde->toDateString(),
+                    'hasta' => $hasta->toDateString(),
                 ];
             }
         }
 
+        [$searchStart, $searchEnd] = $this->resolveChartSearchWindow($desde, $hasta);
+        $firstMonth = $this->primerMesConDatosEnPeriodo($searchStart, $searchEnd);
+        $lastMonth = $this->ultimoMesConDatosEnPeriodo($searchStart, $searchEnd);
+
+        if ($firstMonth === null || $lastMonth === null) {
+            return null;
+        }
+
+        return [
+            'desde' => $firstMonth->copy()->startOfMonth()->toDateString(),
+            'hasta' => $lastMonth->copy()->endOfMonth()->toDateString(),
+        ];
+    }
+
+    /**
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    protected function resolveChartSearchWindow(
+        ?Carbon $desde,
+        ?Carbon $hasta,
+    ): array {
+        if ($desde !== null && $hasta !== null) {
+            return [$desde->copy()->startOfDay(), $hasta->copy()->endOfDay()];
+        }
+
+        $now = Carbon::now();
+
+        return [$now->copy()->startOfYear(), $now->copy()->endOfYear()];
+    }
+
+    protected function primerMesConDatosEnPeriodo(Carbon $inicio, Carbon $fin): ?Carbon
+    {
+        $meses = $this->mesesConDatosEntre($inicio, $fin);
+
+        return $meses->first();
+    }
+
+    protected function ultimoMesConDatosEnPeriodo(Carbon $inicio, Carbon $fin): ?Carbon
+    {
+        $meses = $this->mesesConDatosEntre($inicio, $fin);
+
+        return $meses->last();
+    }
+
+    /**
+     * @return Collection<int, Carbon>
+     */
+    protected function mesesConDatosEntre(Carbon $inicio, Carbon $fin): Collection
+    {
+        $inicio = $inicio->copy()->startOfDay();
+        $fin = $fin->copy()->endOfDay();
+
+        $keys = [];
+
+        foreach ($this->distinctYearMonthRows(
+            StoreOrder::query()->whereBetween('created_at', [$inicio, $fin]),
+        ) as $row) {
+            $keys[$row['year'].'-'.$row['month']] = true;
+        }
+
+        foreach ($this->distinctYearMonthRows(
+            PasarelaEvento::query()
+                ->where('estado', PasarelaEvento::ESTADO_COMPLETADO)
+                ->whereNotNull('suscripcion_id')
+                ->whereBetween('created_at', [$inicio, $fin])
+                ->whereIn('event_type', [
+                    'PAYMENT.SALE.COMPLETED',
+                    'BILLING.SUBSCRIPTION.ACTIVATED',
+                ]),
+        ) as $row) {
+            $keys[$row['year'].'-'.$row['month']] = true;
+        }
+
+        foreach ($this->distinctYearMonthRows(
+            Suscripcion::query()->whereBetween('created_at', [$inicio, $fin]),
+        ) as $row) {
+            $keys[$row['year'].'-'.$row['month']] = true;
+        }
+
+        return collect(array_keys($keys))
+            ->map(function (string $key): Carbon {
+                [$year, $month] = explode('-', $key);
+
+                return Carbon::create((int) $year, (int) $month, 1)->startOfMonth();
+            })
+            ->sort()
+            ->values();
+    }
+
+    /**
+     * @param  Builder<Model>  $query
+     * @return list<array{year: int, month: int}>
+     */
+    protected function distinctYearMonthRows(Builder $query): array
+    {
+        $connection = $query->getModel()->getConnection();
+        $column = $query->getModel()->getTable().'.created_at';
+
+        if ($connection->getDriverName() === 'sqlite') {
+            $rows = $query
+                ->selectRaw("CAST(strftime('%Y', {$column}) AS INTEGER) as chart_year, CAST(strftime('%m', {$column}) AS INTEGER) as chart_month")
+                ->distinct()
+                ->get();
+        } else {
+            $rows = $query
+                ->selectRaw("YEAR({$column}) as chart_year, MONTH({$column}) as chart_month")
+                ->distinct()
+                ->get();
+        }
+
+        return $rows
+            ->map(fn ($row): array => [
+                'year' => (int) $row->chart_year,
+                'month' => (int) $row->chart_month,
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array<int, array{name: string, historias: float, productos: float, cancelados: float}>
+     */
+    protected function buildMonthlyChartBetween(Carbon $startMonth, Carbon $endMonth): array
+    {
+        $data = [];
+        $current = $startMonth->copy()->startOfMonth();
+        $end = $endMonth->copy()->startOfMonth();
+
+        while ($current->lte($end)) {
+            $orderForMonth = function (Builder $q) use ($current): void {
+                $q->whereMonth('created_at', $current->month)
+                    ->whereYear('created_at', $current->year);
+            };
+
+            $data[] = [
+                'name' => self::MESES_ABREV_ES[$current->month - 1],
+                'historias' => $this->ventasHistoriasEnPeriodo(
+                    $current->copy()->startOfMonth(),
+                    $current->copy()->endOfMonth(),
+                    $orderForMonth,
+                ),
+                'productos' => $this->sumPaidProductoLineTotals($orderForMonth),
+                'cancelados' => (float) StoreOrder::query()
+                    ->where('status', '!=', StoreOrder::STATUS_PAID)
+                    ->whereMonth('created_at', $current->month)
+                    ->whereYear('created_at', $current->year)
+                    ->sum('total'),
+            ];
+
+            $current->addMonth();
+        }
+
         return $data;
+    }
+
+    /**
+     * @return array<int, array{name: string, historias: float, productos: float, cancelados: float}>
+     */
+    protected function buildWeeklyChart(): array
+    {
+        $data = [];
+        $now = Carbon::now();
+
+        for ($i = 6; $i >= 0; $i--) {
+            $date = $now->copy()->subDays($i);
+            $data[] = $this->buildChartPointForDay($date);
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array<int, array{name: string, historias: float, productos: float, cancelados: float}>
+     */
+    protected function buildDailyChartBetween(Carbon $desde, Carbon $hasta): array
+    {
+        $data = [];
+        $current = $desde->copy()->startOfDay();
+        $end = $hasta->copy()->startOfDay();
+
+        while ($current->lte($end)) {
+            $data[] = $this->buildChartPointForDay($current);
+            $current->addDay();
+        }
+
+        return $data;
+    }
+
+    /**
+     * @return array{name: string, historias: float, productos: float, cancelados: float}
+     */
+    protected function buildChartPointForDay(Carbon $date): array
+    {
+        $orderForDay = function (Builder $q) use ($date): void {
+            $q->whereDate('created_at', $date->toDateString());
+        };
+
+        return [
+            'name' => self::DIAS_ABREV_ES[$date->dayOfWeek],
+            'historias' => $this->ventasHistoriasEnPeriodo(
+                $date->copy()->startOfDay(),
+                $date->copy()->endOfDay(),
+                $orderForDay,
+            ),
+            'productos' => $this->sumPaidProductoLineTotals($orderForDay),
+            'cancelados' => (float) StoreOrder::query()
+                ->where('status', '!=', StoreOrder::STATUS_PAID)
+                ->whereDate('created_at', $date->toDateString())
+                ->sum('total'),
+        ];
     }
 
     /**

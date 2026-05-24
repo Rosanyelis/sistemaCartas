@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import MetricCard, {
     metricCardsGridDesktopClass,
 } from '@/components/admin/dashboard/MetricCard';
@@ -65,6 +65,10 @@ interface PageProps extends BasePageProps {
     }[];
     filters: {
         periodo: string;
+        fecha_desde?: string | null;
+        fecha_hasta?: string | null;
+        chart_desde?: string | null;
+        chart_hasta?: string | null;
     };
 }
 
@@ -98,25 +102,40 @@ function formatMxn(amount: number): string {
     })} MX`;
 }
 
-function formatPeriodRange(periodo: string): string {
-    const now = new Date();
-    const format = (date: Date) =>
-        date.toLocaleDateString('es-MX', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        });
+function formatIsoDate(iso: string): string {
+    return new Date(`${iso}T12:00:00`).toLocaleDateString('es-MX', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    });
+}
 
-    if (periodo === 'semana') {
+function formatChartRangeLabel(filters: PageProps['filters']): string {
+    if (filters.chart_desde && filters.chart_hasta) {
+        return `${formatIsoDate(filters.chart_desde)} - ${formatIsoDate(filters.chart_hasta)}`;
+    }
+
+    if (filters.fecha_desde && filters.fecha_hasta) {
+        return `${formatIsoDate(filters.fecha_desde)} - ${formatIsoDate(filters.fecha_hasta)}`;
+    }
+
+    if (filters.periodo === 'semana') {
+        const now = new Date();
         const start = new Date(now);
         start.setDate(now.getDate() - 6);
 
-        return `${format(start)} - ${format(now)}`;
+        return `${start.toLocaleDateString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        })} - ${now.toLocaleDateString('es-MX', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        })}`;
     }
 
-    const start = new Date(now.getFullYear(), 0, 1);
-
-    return `${format(start)} - ${format(now)}`;
+    return 'Sin datos';
 }
 
 export default function Dashboard() {
@@ -129,9 +148,17 @@ export default function Dashboard() {
     const [chartSerieFilter, setChartSerieFilter] =
         useState<ChartSerieFilter>('todos');
 
+    const [fechaDesde, setFechaDesde] = useState(filters.fecha_desde ?? '');
+    const [fechaHasta, setFechaHasta] = useState(filters.fecha_hasta ?? '');
+
+    useEffect(() => {
+        setFechaDesde(filters.fecha_desde ?? '');
+        setFechaHasta(filters.fecha_hasta ?? '');
+    }, [filters.fecha_desde, filters.fecha_hasta]);
+
     const periodRangeLabel = useMemo(
-        () => formatPeriodRange(filters.periodo),
-        [filters.periodo],
+        () => formatChartRangeLabel(filters),
+        [filters],
     );
 
     const ventasHistoriasMes = useMemo(() => {
@@ -216,6 +243,34 @@ export default function Dashboard() {
     const handlePeriodChange = (period: string) => {
         router.get(
             adminDashboard.url({ query: { periodo: period } }),
+            {},
+            { preserveState: true, preserveScroll: true },
+        );
+    };
+
+    const handleDateRangeApply = () => {
+        if (!fechaDesde || !fechaHasta) {
+            return;
+        }
+
+        router.get(
+            adminDashboard.url({
+                query: {
+                    periodo: filters.periodo,
+                    fecha_desde: fechaDesde,
+                    fecha_hasta: fechaHasta,
+                },
+            }),
+            {},
+            { preserveState: true, preserveScroll: true },
+        );
+    };
+
+    const handleDateRangeClear = () => {
+        setFechaDesde('');
+        setFechaHasta('');
+        router.get(
+            adminDashboard.url({ query: { periodo: filters.periodo } }),
             {},
             { preserveState: true, preserveScroll: true },
         );
@@ -422,13 +477,50 @@ export default function Dashboard() {
                                             strokeWidth={iconStroke}
                                         />
                                     </label>
-                                    <div className="flex h-10 flex-1 items-center justify-center gap-2.5 rounded-[6px] border border-[#DFE4EA] bg-white px-5 py-3 text-[13px] text-[#1B3D6D] lg:flex-none">
-                                        <span>{periodRangeLabel}</span>
-                                        <ChevronDown
-                                            className="size-4 shrink-0 opacity-60"
-                                            strokeWidth={iconStroke}
+                                    <div className="flex h-10 flex-1 flex-wrap items-center gap-2 rounded-[6px] border border-[#DFE4EA] bg-white px-3 py-2 text-[13px] text-[#1B3D6D] lg:flex-none lg:px-4">
+                                        <input
+                                            type="date"
+                                            value={fechaDesde}
+                                            onChange={(e) =>
+                                                setFechaDesde(e.target.value)
+                                            }
+                                            className="min-w-0 flex-1 cursor-pointer bg-transparent outline-none"
+                                            aria-label="Fecha desde"
                                         />
+                                        <span className="text-[#7B7B7B]">—</span>
+                                        <input
+                                            type="date"
+                                            value={fechaHasta}
+                                            onChange={(e) =>
+                                                setFechaHasta(e.target.value)
+                                            }
+                                            className="min-w-0 flex-1 cursor-pointer bg-transparent outline-none"
+                                            aria-label="Fecha hasta"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleDateRangeApply}
+                                            disabled={
+                                                !fechaDesde || !fechaHasta
+                                            }
+                                            className="rounded-[4px] bg-[#1B3D6D] px-2 py-1 text-[11px] font-semibold text-white disabled:opacity-40"
+                                        >
+                                            Aplicar
+                                        </button>
+                                        {(filters.fecha_desde ||
+                                            filters.fecha_hasta) && (
+                                            <button
+                                                type="button"
+                                                onClick={handleDateRangeClear}
+                                                className="text-[11px] text-[#7B7B7B] underline"
+                                            >
+                                                Limpiar
+                                            </button>
+                                        )}
                                     </div>
+                                    <p className="w-full text-[12px] text-[#7B7B7B] lg:w-auto">
+                                        Eje: {periodRangeLabel}
+                                    </p>
                                     </div>
                                 </div>
                             </div>
@@ -483,7 +575,12 @@ export default function Dashboard() {
                                             <div className="h-[186px] w-full animate-pulse rounded bg-gray-100 md:h-[320px]" />
                                         }
                                     >
-                                        <div className="h-[186px] w-full min-w-0 md:h-[320px]">
+                                        <div className="relative h-[186px] w-full min-w-0 md:h-[320px]">
+                                            {!ventasChart?.length ? (
+                                                <div className="absolute inset-0 z-10 flex items-center justify-center text-[14px] font-medium text-[#7B7B7B]">
+                                                    Sin datos en el periodo
+                                                </div>
+                                            ) : null}
                                             <ResponsiveContainer
                                                 width="100%"
                                                 height="100%"
