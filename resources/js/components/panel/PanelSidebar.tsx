@@ -92,7 +92,7 @@ export function PanelSidebar({ items, isOpen, onLogoutClick }: PanelSidebarProps
                 </nav>
 
                 <div
-                    className={`mt-6 w-full text-center font-['Inter'] text-[8.5px] leading-normal text-white transition-all duration-300 ${
+                    className={`mt-6 hidden w-full text-center font-['Inter'] text-[8.5px] leading-normal text-white transition-all duration-300 md:block ${
                         isOpen ? 'opacity-100' : 'pointer-events-none scale-75 opacity-0'
                     }`}
                 >
