@@ -7,6 +7,7 @@ import { Head, router } from '@inertiajs/react';
 import { useState, useEffect, useRef } from 'react';
 import UserLayout from '@/layouts/user-layout';
 import { orders } from '@/routes/user';
+import ListPagination from '@/components/panel/ListPagination';
 import type {
     PedidoLineaCliente,
     PedidoLineaEstadoColor,
@@ -197,13 +198,13 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
         <UserLayout title="Mis Órdenes">
             <Head title="Mis órdenes" />
             <div className="flex w-full flex-col gap-5 font-['Inter',sans-serif]">
-                <div className="mb-2 flex flex-col gap-1.5 px-1 md:mb-0 md:px-0">
-                    <h1 className="font-['Inter'] text-[24px] leading-tight font-bold text-[#1B3D6D] md:text-[28px]">
-                        Mis órdenes
+            <div className="flex w-full flex-col gap-1 lg:flex-row lg:items-center lg:gap-5">
+                    <h1 className="text-[25px] font-semibold leading-normal text-[#1B3D6D]">
+                        ¡Hola, {auth.user.name.split(' ')[0]} bienvenido!{' '}
+                        <span className="text-[24px]">👋</span>
                     </h1>
-                    <p className="font-['Inter'] text-[12px] font-normal text-[#1B3D6D] md:text-[14px]">
-                        Compras registradas (detalle por producto). ¡Hola,{' '}
-                        {auth.user.name.split(' ')[0]}!
+                    <p className="text-lg font-normal leading-7 text-[#7B7B7B] lg:text-[16px] lg:leading-[22px]">
+                        Estas son tus órdenes del día...
                     </p>
                 </div>
 
@@ -305,13 +306,6 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
                             </div>
                         </div>
                     </div>
-
-                    <p className="mb-2 text-[11px] text-[#9CA3AF]">
-                        <span className="font-semibold text-[#7B7B7B]">
-                            Precio
-                        </span>
-                        : total de la línea (incl. cantidad).
-                    </p>
 
                     <div className="hidden overflow-x-auto md:block">
                         <table className="w-full border-collapse">
@@ -442,70 +436,15 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
                         )}
                     </div>
 
-                    {last_page > 0 && total > 0 ? (
-                        <div className="mt-auto flex flex-col items-center justify-between gap-4 bg-white pt-6 md:flex-row">
-                            <p className="w-full text-center text-[14px] font-medium text-[#7B7B7B] md:w-auto md:text-left md:text-[13px] md:font-semibold">
-                                {from != null && to != null
-                                    ? `Mostrando ${from} a ${to} de ${total} registros`
-                                    : 'Sin registros'}
-                            </p>
-                            {last_page > 1 ? (
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            goToPage(
-                                                Math.max(1, current_page - 1),
-                                            )
-                                        }
-                                        disabled={current_page === 1}
-                                        className="flex size-8 items-center justify-center rounded text-[#637381] hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent"
-                                    >
-                                        <FontAwesomeIcon
-                                            icon={faChevronDown}
-                                            className="size-3 rotate-90"
-                                        />
-                                    </button>
-
-                                    {Array.from(
-                                        { length: last_page },
-                                        (_, i) => i + 1,
-                                    ).map((page) => (
-                                        <button
-                                            key={page}
-                                            type="button"
-                                            onClick={() => goToPage(page)}
-                                            className={`flex size-8 items-center justify-center rounded text-[13px] transition-colors ${current_page === page ? 'bg-[#1B3D6D] text-white' : 'text-[#637381] hover:bg-gray-100'}`}
-                                        >
-                                            {page}
-                                        </button>
-                                    ))}
-
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            goToPage(
-                                                Math.min(
-                                                    last_page,
-                                                    current_page + 1,
-                                                ),
-                                            )
-                                        }
-                                        disabled={
-                                            current_page === last_page ||
-                                            last_page === 0
-                                        }
-                                        className="flex size-8 items-center justify-center rounded text-[#637381] hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent"
-                                    >
-                                        <FontAwesomeIcon
-                                            icon={faChevronDown}
-                                            className="size-3 -rotate-90"
-                                        />
-                                    </button>
-                                </div>
-                            ) : null}
-                        </div>
-                    ) : null}
+                    <ListPagination
+                        currentPage={current_page}
+                        lastPage={last_page}
+                        from={from}
+                        to={to}
+                        total={total}
+                        onPageChange={goToPage}
+                        variant="cliente"
+                    />
                 </div>
             </div>
         </UserLayout>

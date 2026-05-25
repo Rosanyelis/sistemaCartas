@@ -4,9 +4,9 @@ import {
     faSort,
     faFilter,
     faFileExcel,
-    faChevronRight,
-    faChevronLeft,
 } from '@fortawesome/free-solid-svg-icons';
+import ListPagination from '@/components/panel/ListPagination';
+import type { PaginatedData } from '@/types/pagination';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, router } from '@inertiajs/react';
 import { useState, useCallback } from 'react';
@@ -38,14 +38,7 @@ interface StoreOrder {
     created_at: string;
 }
 
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    from: number | null;
-    to: number | null;
+interface PaginatedOrdenes<T> extends PaginatedData<T> {
     links: Array<{ url: string | null; label: string; active: boolean }>;
 }
 
@@ -55,7 +48,7 @@ interface AdminOrdersProps {
             name: string;
         };
     };
-    ordenes: PaginatedData<StoreOrder>;
+    ordenes: PaginatedOrdenes<StoreOrder>;
     filters: {
         search?: string;
         start_date?: string;
@@ -278,55 +271,16 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                         </table>
                     </div>
 
-                    {/* Pagination */}
-                    <div className="flex flex-col items-center justify-between border-t border-[#F2F2F2] px-6 py-4 sm:flex-row">
-                        <span className="mb-4 text-[13px] font-medium text-[#7B7B7B] sm:mb-0">
-                            {from && to ? `Mostrando ${from} a ${to} de ${total} registros` : 'Sin registros'}
-                        </span>
-                        
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() => goToPage(current_page - 1)}
-                                disabled={current_page === 1}
-                                className={`flex h-7 w-7 items-center justify-center ${current_page === 1 ? 'text-[#D1D5DB] cursor-not-allowed' : 'text-[#A0A0A0] hover:text-[#1B3D6D]'}`}
-                            >
-                                <FontAwesomeIcon icon={faChevronLeft} className="size-3" />
-                            </button>
-                            
-                            {Array.from({ length: last_page }, (_, i) => i + 1).map(page => {
-                                if (
-                                    page === 1 ||
-                                    page === last_page ||
-                                    (page >= current_page - 1 && page <= current_page + 1)
-                                ) {
-                                    return (
-                                        <button
-                                            key={page}
-                                            onClick={() => goToPage(page)}
-                                            className={`flex h-7 w-7 items-center justify-center rounded-[2px] text-[13px] ${
-                                                current_page === page
-                                                    ? 'bg-[#1B3D6D] font-semibold text-white shadow-sm'
-                                                    : 'text-[#7B7B7B] hover:bg-[#F2F2F2]'
-                                            }`}
-                                        >
-                                            {page}
-                                        </button>
-                                    );
-                                } else if (page === current_page - 2 || page === current_page + 2) {
-                                    return <span key={page} className="flex h-7 w-7 items-end justify-center text-[13px] text-[#7B7B7B] pb-1">...</span>;
-                                }
-                                return null;
-                            })}
-
-                            <button
-                                onClick={() => goToPage(current_page + 1)}
-                                disabled={current_page === last_page}
-                                className={`flex h-7 w-7 items-center justify-center rounded-[2px] ml-1 ${current_page === last_page ? 'text-[#D1D5DB] cursor-not-allowed' : 'bg-[#F2F2F2] text-[#7B7B7B] hover:bg-[#E5E5E5]'}`}
-                            >
-                                <FontAwesomeIcon icon={faChevronRight} className="size-3" />
-                            </button>
-                        </div>
-                    </div>
+                    <ListPagination
+                        currentPage={current_page}
+                        lastPage={last_page}
+                        from={from}
+                        to={to}
+                        total={total}
+                        onPageChange={goToPage}
+                        variant="admin"
+                        className="border-[#F2F2F2] px-6 py-4 sm:flex-row"
+                    />
                 </div>
             </div>
         </UserLayout>

@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Head, router } from '@inertiajs/react';
 import UserLayout from '@/layouts/user-layout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSearch, faFilter, faChevronDown, faChevronLeft, faChevronRight, faFileExcel, faPlus, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import { faSearch, faFilter, faChevronDown, faFileExcel, faPlus, faEllipsisV } from '@fortawesome/free-solid-svg-icons';
+import ListPagination from '@/components/panel/ListPagination';
+import type { PaginatedData } from '@/types/pagination';
 import { CreateProductModal } from '@/components/admin/CreateProductModal';
 import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 import { ProductoTaxonomyManageModal, type TaxonomyKind } from '@/components/admin/ProductoTaxonomyManageModal';
@@ -28,16 +30,6 @@ interface Product {
     precio: string;
     stock: number;
     estado: string;
-}
-
-interface PaginatedData<T> {
-    data: T[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    from: number | null;
-    to: number | null;
 }
 
 type CategoriaRow = { id: number; nombre: string };
@@ -425,49 +417,16 @@ export default function Products({ productos, categorias, filters }: Props) {
                         </div>
                     </div>
 
-                    {/* Shared Pagination */}
-                    <div className="flex flex-col md:flex-row items-center justify-center md:justify-between border-t border-transparent md:border-[#F3F4F6] md:px-5 py-4 md:py-4 bg-transparent md:bg-white gap-4 md:gap-0 mt-2 md:mt-0">
-                        <div className="text-[13px] font-bold md:font-normal text-[#9CA3AF] md:text-[#7B7B7B]">
-                            <span className="hidden md:inline">
-                                {from && to ? (
-                                    <>Mostrando <span className="text-[#111827] font-semibold">{from}</span> a <span className="text-[#111827] font-semibold">{to}</span> de <span className="text-[#111827] font-semibold">{total}</span> registros</>
-                                ) : 'Sin registros'}
-                            </span>
-                            <span className="md:hidden">
-                                {from ? `Mostrando ${from} de ${total} registros` : 'Sin registros'}
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <button 
-                                onClick={() => goToPage(current_page - 1)}
-                                disabled={current_page === 1}
-                                className={`flex items-center justify-center size-8 rounded-md transition-colors ${current_page === 1 ? 'text-[#D1D5DB] cursor-not-allowed' : 'hover:bg-gray-100 text-[#7B7B7B]'}`}
-                            >
-                                <FontAwesomeIcon icon={faChevronLeft} className="text-xs" />
-                            </button>
-                            
-                            {Array.from({ length: last_page }, (_, i) => i + 1).map(page => {
-                                if (page === 1 || page === last_page || (page >= current_page - 1 && page <= current_page + 1)) {
-                                    return (
-                                        <button key={page} onClick={() => goToPage(page)} className={`flex items-center justify-center size-8 rounded-md transition-colors ${current_page === page ? 'bg-[#1B3D6D] text-white font-semibold' : 'hover:bg-gray-100 text-[#7B7B7B]'}`}>
-                                            {page}
-                                        </button>
-                                    );
-                                } else if (page === current_page - 2 || page === current_page + 2) {
-                                    return <span key={page} className="px-1 text-[#A0A0A0]">...</span>;
-                                }
-                                return null;
-                            })}
-
-                            <button 
-                                onClick={() => goToPage(current_page + 1)}
-                                disabled={current_page === last_page}
-                                className={`flex items-center justify-center size-8 rounded-md transition-colors ${current_page === last_page ? 'text-[#D1D5DB] cursor-not-allowed' : 'hover:bg-gray-100 text-[#7B7B7B]'}`}
-                            >
-                                <FontAwesomeIcon icon={faChevronRight} className="text-xs" />
-                            </button>
-                        </div>
-                    </div>
+                    <ListPagination
+                        currentPage={current_page}
+                        lastPage={last_page}
+                        from={from}
+                        to={to}
+                        total={total}
+                        onPageChange={goToPage}
+                        variant="admin"
+                        className="mt-2 justify-center bg-transparent md:mt-0 md:justify-between md:bg-white md:py-4"
+                    />
                 </div>
             </div>
 

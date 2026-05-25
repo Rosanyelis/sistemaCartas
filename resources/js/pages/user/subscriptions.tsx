@@ -1,7 +1,5 @@
 import {
     faChevronDown,
-    faChevronLeft,
-    faChevronRight,
     faMagnifyingGlass,
     faFilter,
     faCircleExclamation,
@@ -9,8 +7,9 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, router, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import UserLayout from '@/layouts/user-layout';
+import ListPagination from '@/components/panel/ListPagination';
 import SuscripcionController from '@/actions/App/Http/Controllers/User/SuscripcionController';
 
 interface Suscripcion {
@@ -66,8 +65,18 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
         });
     }, [suscripciones, searchTerm, startDate, endDate]);
 
-    // Pagination logic
-    const totalPages = Math.ceil(filteredSuscripciones.length / itemsPerPage);
+    const filteredTotal = filteredSuscripciones.length;
+    const clientLastPage = Math.max(
+        1,
+        Math.ceil(filteredTotal / itemsPerPage),
+    );
+
+    useEffect(() => {
+        if (currentPage > clientLastPage) {
+            setCurrentPage(clientLastPage);
+        }
+    }, [currentPage, clientLastPage]);
+
     const paginatedSuscripciones = useMemo(() => {
         const startIndex = (currentPage - 1) * itemsPerPage;
         return filteredSuscripciones.slice(
@@ -75,6 +84,13 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
             startIndex + itemsPerPage,
         );
     }, [filteredSuscripciones, currentPage]);
+
+    const paginationFrom =
+        filteredTotal === 0 ? null : (currentPage - 1) * itemsPerPage + 1;
+    const paginationTo =
+        filteredTotal === 0
+            ? null
+            : Math.min(currentPage * itemsPerPage, filteredTotal);
 
     const formatDateDisplay = (dateStr: string) => {
         if (!dateStr || dateStr.trim() === '') {
@@ -499,86 +515,16 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                         )}
                     </div>
 
-                    {/* Pagination */}
-                    <div className="mt-auto flex flex-col items-center justify-between gap-6 border-t border-[#F2F2F2] bg-white pt-8 pb-4 md:flex-row md:border-none md:pt-6 md:pb-0">
-                        <p className="w-full text-center font-['Inter'] text-[14px] font-medium text-[#7B7B7B] md:w-auto md:text-left md:text-[13px] md:font-semibold">
-                            Mostrando {paginatedSuscripciones.length} de{' '}
-                            {filteredSuscripciones.length} registros
-                        </p>
-                        <div className="flex items-center gap-1">
-                            <button
-                                onClick={() =>
-                                    setCurrentPage((prev) =>
-                                        Math.max(prev - 1, 1),
-                                    )
-                                }
-                                disabled={currentPage === 1}
-                                className="flex size-9 items-center justify-center rounded-[6px] text-[#637381] hover:bg-gray-100 disabled:opacity-30 md:size-8"
-                            >
-                                <FontAwesomeIcon
-                                    icon={faChevronLeft}
-                                    className="size-3"
-                                />
-                            </button>
-                            
-                            {/* Pagination items logic */}
-                            {(() => {
-                                const pages = [];
-                                if (totalPages <= 7) {
-                                    for (let i = 1; i <= totalPages; i++) pages.push(i);
-                                } else {
-                                    if (currentPage <= 4) {
-                                        for (let i = 1; i <= 5; i++) pages.push(i);
-                                        pages.push('...');
-                                        pages.push(totalPages);
-                                    } else if (currentPage >= totalPages - 3) {
-                                        pages.push(1);
-                                        pages.push('...');
-                                        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
-                                    } else {
-                                        pages.push(1);
-                                        pages.push('...');
-                                        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-                                        pages.push('...');
-                                        pages.push(totalPages);
-                                    }
-                                }
-                                return pages.map((page, idx) => (
-                                    typeof page === 'number' ? (
-                                        <button
-                                            key={idx}
-                                            onClick={() => setCurrentPage(page)}
-                                            className={`flex size-9 items-center justify-center rounded-[4px] text-[13px] font-bold transition-colors md:size-8 ${currentPage === page ? 'bg-[#1B3D6D] text-white' : 'text-[#637381] hover:bg-gray-100'}`}
-                                        >
-                                            {page}
-                                        </button>
-                                    ) : (
-                                        <span key={idx} className="flex size-9 items-center justify-center text-[13px] text-[#637381] md:size-8">
-                                            {page}
-                                        </span>
-                                    )
-                                ));
-                            })()}
-
-                            <button
-                                onClick={() =>
-                                    setCurrentPage((prev) =>
-                                        Math.min(prev + 1, totalPages),
-                                    )
-                                }
-                                disabled={
-                                    currentPage === totalPages ||
-                                    totalPages === 0
-                                }
-                                className="flex size-9 items-center justify-center rounded-[6px] text-[#637381] hover:bg-gray-100 disabled:opacity-30 md:size-8"
-                            >
-                                <FontAwesomeIcon
-                                    icon={faChevronRight}
-                                    className="size-3"
-                                />
-                            </button>
-                        </div>
-                    </div>
+                    <ListPagination
+                        currentPage={currentPage}
+                        lastPage={clientLastPage}
+                        from={paginationFrom}
+                        to={paginationTo}
+                        total={filteredTotal}
+                        onPageChange={setCurrentPage}
+                        variant="cliente"
+                        className="gap-6 border-t border-[#F2F2F2] pt-8 pb-4 md:border-none md:pt-6 md:pb-0"
+                    />
                 </div>
             </div>
 
