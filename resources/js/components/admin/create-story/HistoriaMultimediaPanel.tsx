@@ -153,7 +153,7 @@ export function HistoriaMultimediaPanel({
 
             <div className="mt-4 flex flex-col gap-2">
                 <label htmlFor={fieldIds.video} className="text-[13px] font-semibold text-[#1B3D6D]">
-                    Video<span className="text-red-500">*</span>
+                    Video (MP4 o MOV, máx. 2 MB)<span className="text-red-500">*</span>
                 </label>
                 <div className="flex h-40 w-full items-center justify-center overflow-hidden rounded-md border-2 border-dashed border-[#DFE4EA] bg-[#F9FAFB]">
                     {videoPreview ? (
@@ -167,7 +167,7 @@ export function HistoriaMultimediaPanel({
                     id={fieldIds.video}
                     className="hidden"
                     onChange={onVideoChange}
-                    accept="video/*"
+                    accept="video/mp4,video/quicktime,.mp4,.mov"
                 />
                 <label
                     htmlFor={fieldIds.video}

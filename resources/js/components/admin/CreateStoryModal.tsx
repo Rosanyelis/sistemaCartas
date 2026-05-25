@@ -4,7 +4,14 @@ import { useForm } from '@inertiajs/react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
 import { HISTORIA_DETALLE_INCLUSION_ICONS } from '@/constants/historia-detalle-inclusion-icons';
-import { pickGalleryFiles } from '@/components/admin/constants/media-limits';
+import {
+    MAX_IMAGEN_BYTES,
+    MAX_VIDEO_BYTES,
+    MENSAJE_MAX_IMAGEN,
+    MENSAJE_MAX_VIDEO,
+    pickGalleryFiles,
+    validateMediaFileSize,
+} from '@/components/admin/constants/media-limits';
 import { MAX_PALABRAS_TEXTO_LARGO } from './create-story/constants';
 import { buildHistoriaFormData } from './create-story/formDefaults';
 import { HistoriaDetalleInclusionsEditor } from './create-story/HistoriaDetalleInclusionsEditor';
@@ -49,6 +56,8 @@ export function CreateStoryModal({
     const [videoPreview, setVideoPreview] = useState<string | null>(null);
     const [galleryItems, setGalleryItems] = useState<GallerySlot[]>([]);
     const [galeriaLimitMessage, setGaleriaLimitMessage] = useState<string | null>(null);
+    const [videoClientError, setVideoClientError] = useState<string | null>(null);
+    const [imagenClientError, setImagenClientError] = useState<string | null>(null);
     /** Contenido inicial de los editores ricos solo tras hidratar en `useEffect` (evita flash vacío). */
     const [richEditors, setRichEditors] = useState<{
         seed: number;
@@ -76,6 +85,9 @@ export function CreateStoryModal({
                 })),
             );
             setGaleriaLimitMessage(null);
+            setVideoClientError(null);
+            setImagenClientError(null);
+            setImagenClientError(null);
             setRichEditors({
                 seed: Date.now(),
                 descripcion_larga: next.descripcion_larga,
@@ -86,6 +98,9 @@ export function CreateStoryModal({
             setVideoPreview(null);
             setGalleryItems([]);
             setGaleriaLimitMessage(null);
+            setVideoClientError(null);
+            setImagenClientError(null);
+            setImagenClientError(null);
             const next = buildHistoriaFormData();
             setRichEditors({
                 seed: Date.now(),
@@ -109,9 +124,39 @@ export function CreateStoryModal({
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'imagen' | 'video') => {
         const file = e.target.files?.[0];
+        e.target.value = '';
 
         if (!file) {
             return;
+        }
+
+        if (field === 'imagen') {
+            const sizeError = validateMediaFileSize(
+                file,
+                MAX_IMAGEN_BYTES,
+                MENSAJE_MAX_IMAGEN,
+            );
+            if (sizeError) {
+                setImagenClientError(sizeError);
+                return;
+            }
+            setImagenClientError(null);
+        } else {
+            const allowedTypes = ['video/mp4', 'video/quicktime'];
+            if (!allowedTypes.includes(file.type)) {
+                setVideoClientError('El video debe ser MP4 o MOV.');
+                return;
+            }
+            const sizeError = validateMediaFileSize(
+                file,
+                MAX_VIDEO_BYTES,
+                MENSAJE_MAX_VIDEO,
+            );
+            if (sizeError) {
+                setVideoClientError(sizeError);
+                return;
+            }
+            setVideoClientError(null);
         }
 
         setData(field, file);
@@ -511,8 +556,8 @@ export function CreateStoryModal({
                                     onRemoveGalleryImage={removeGalleryImage}
                                     galeriaLimitMessage={galeriaLimitMessage}
                                     errors={{
-                                        imagen: errors.imagen,
-                                        video: errors.video,
+                                        imagen: imagenClientError ?? errors.imagen,
+                                        video: videoClientError ?? errors.video,
                                         galeria: errors.galeria,
                                         estado: errors.estado,
                                         destacada: errors.destacada,

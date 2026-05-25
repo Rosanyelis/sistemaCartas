@@ -62,7 +62,7 @@ class UpdateHistoriaRequest extends FormRequest
             'impuesto' => ['nullable', 'numeric', 'min:0'],
             'codigo' => ['required', 'string', 'max:50', 'unique:historias,codigo,'.$this->route('historia')->id],
             'imagen' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime', 'max:20480'],
+            'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime', 'max:2048'],
             'peso' => ['nullable', 'string', 'max:50'],
             'dimensiones' => ['nullable', 'string', 'max:50'],
             'estado' => ['required', 'in:activo,pausado'],
@@ -111,6 +111,9 @@ class UpdateHistoriaRequest extends FormRequest
             'detalle.*.description.max' => 'La descripción de cada ítem no puede superar 500 caracteres.',
             'destacada.required' => 'Indica si la historia es destacada o no.',
             'destacada.in' => 'El valor de destacada debe ser si o no.',
+            'video.max' => 'El video no puede superar 2 MB.',
+            'video.mimetypes' => 'El video debe ser MP4 o MOV.',
+            'video.file' => 'El archivo de video no es válido.',
         ];
     }
 }

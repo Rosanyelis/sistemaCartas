@@ -61,7 +61,7 @@ class StoreHistoriaRequest extends FormRequest
             'impuesto' => ['nullable', 'numeric', 'min:0'],
             'codigo' => ['required', 'string', 'max:50', 'unique:historias,codigo'],
             'imagen' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime', 'max:20480'],
+            'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime', 'max:2048'],
             'peso' => ['nullable', 'string', 'max:50'],
             'dimensiones' => ['nullable', 'string', 'max:50'],
             'estado' => ['required', 'in:activo,pausado'],
@@ -103,6 +103,9 @@ class StoreHistoriaRequest extends FormRequest
             'detalle.*.title.required' => 'Cada ítem debe tener un título.',
             'detalle.*.title.max' => 'El título de cada ítem no puede superar 255 caracteres.',
             'detalle.*.description.max' => 'La descripción de cada ítem no puede superar 500 caracteres.',
+            'video.max' => 'El video no puede superar 2 MB.',
+            'video.mimetypes' => 'El video debe ser MP4 o MOV.',
+            'video.file' => 'El archivo de video no es válido.',
         ];
     }
 }
