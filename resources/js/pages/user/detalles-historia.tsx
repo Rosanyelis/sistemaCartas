@@ -2,9 +2,14 @@ import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { PageProps } from '@inertiajs/core';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ShieldCheck, Package, CalendarX, Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Check, ShieldCheck, Package, CalendarX, Quote } from 'lucide-react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import CartConflictModal from '@/components/tienda/CartConflictModal';
+import {
+    HistoriaHeroMedia,
+    type MediaItem,
+} from '@/components/tienda/HistoriaHeroMedia';
+import { HistoriaTrustpilotReviews } from '@/components/tienda/HistoriaTrustpilotReviews';
 import ClienteLayout from '@/layouts/cliente-layout';
 import { useCart } from '@/contexts/cart-context';
 import { HISTORIA_SUSCRIPCION_SUBTITLE } from '@/types/cart-line';
@@ -62,13 +67,6 @@ function posterThumbUrl(h: HistoriaPublicaDetalle): string {
     return src && src !== '' ? src : STORY_COVER_FALLBACK;
 }
 
-export type MediaItem = {
-    url: string;
-    type: 'image' | 'video';
-    /** Siempre válida para `<img>` (vídeo → imagen principal o fallback). */
-    thumbUrl: string;
-};
-
 function buildMediaFromHistoria(h: HistoriaPublicaDetalle): MediaItem[] {
     const out: MediaItem[] = [];
     const videoPoster = posterThumbUrl(h);
@@ -106,131 +104,6 @@ function buildMediaFromHistoria(h: HistoriaPublicaDetalle): MediaItem[] {
     return out;
 }
 
-function HistoriaHeroMedia({
-    media,
-    tituloHistoria,
-}: {
-    media: MediaItem[];
-    tituloHistoria: string;
-}) {
-    const [activeThumbnailIndex, setActiveThumbnailIndex] = useState(0);
-    const [heroVideoPlaying, setHeroVideoPlaying] = useState(false);
-    const videoRef = useRef<HTMLVideoElement>(null);
-
-    const idx = Math.min(activeThumbnailIndex, Math.max(0, media.length - 1));
-    const active = media[idx];
-    const altPrincipal =
-        active.type === 'video'
-            ? `Vista previa del vídeo — ${tituloHistoria}`
-            : `Imagen — ${tituloHistoria}`;
-
-    const selectThumbnail = useCallback((i: number): void => {
-        videoRef.current?.pause();
-        setActiveThumbnailIndex(i);
-        setHeroVideoPlaying(false);
-    }, []);
-
-    useEffect(() => {
-        if (!heroVideoPlaying || active.type !== 'video') {
-            return;
-        }
-
-        const el = videoRef.current;
-
-        if (!el) {
-            return;
-        }
-
-        el.play().catch(() => {});
-
-        return () => {
-            el.pause();
-        };
-    }, [heroVideoPlaying, active.type, active.url]);
-
-    return (
-        <div className="flex w-full flex-col gap-4 lg:w-[600px]">
-            <div className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[2px] bg-[#242424] shadow-[0px_3px_8px_rgba(0,0,0,0.15)] lg:aspect-[600/462]">
-                {active.type === 'image' ? (
-                    <img
-                        src={active.thumbUrl}
-                        alt={altPrincipal}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                ) : null}
-
-                {active.type === 'video' && !heroVideoPlaying ? (
-                    <>
-                        <img
-                            src={active.thumbUrl}
-                            alt={altPrincipal}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        <button
-                            type="button"
-                            aria-label="Reproducir vídeo"
-                            onClick={() => setHeroVideoPlaying(true)}
-                            className="absolute inset-0 z-10 flex cursor-pointer items-center justify-center bg-black/20 opacity-100 transition-opacity group-hover:bg-black/40"
-                        >
-                            <span
-                                aria-hidden
-                                className="pointer-events-none flex h-[75px] w-[75px] items-center justify-center rounded-full border-[2.5px] border-white bg-transparent text-white backdrop-blur-[2px] transition-transform duration-300 group-hover:scale-110 lg:h-[95px] lg:w-[95px]"
-                            >
-                                <span
-                                    aria-hidden
-                                    className="ml-1 flex h-0 w-0 border-t-[12px] border-b-[12px] border-l-20 border-t-transparent border-b-transparent border-l-white lg:border-t-[15px] lg:border-b-[15px] lg:border-l-[25px]"
-                                />
-                            </span>
-                        </button>
-                    </>
-                ) : null}
-
-                {active.type === 'video' && heroVideoPlaying ? (
-                    <video
-                        ref={videoRef}
-                        key={active.url}
-                        src={active.url}
-                        poster={active.thumbUrl}
-                        controls
-                        playsInline
-                        className="absolute inset-0 z-20 h-full w-full object-cover"
-                    />
-                ) : null}
-            </div>
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide lg:justify-between lg:overflow-visible lg:pb-0">
-                {media.map((item, i) => {
-                    const altMini =
-                        item.type === 'video'
-                            ? `Miniatura de vídeo (${i + 1} de ${media.length}) — ${tituloHistoria}`
-                            : `Miniatura de imagen (${i + 1} de ${media.length}) — ${tituloHistoria}`;
-
-                    return (
-                        <button
-                            key={i}
-                            type="button"
-                            onClick={() => selectThumbnail(i)}
-                            className={`relative h-[80px] w-[80px] min-w-[80px] shrink-0 overflow-hidden rounded-[2px] transition duration-300 lg:h-[110px] lg:w-full lg:min-w-[110px] lg:flex-1 ${idx === i ? 'ring-2 ring-[#1B3D6D] ring-offset-2' : 'opacity-60 hover:opacity-100'}`}
-                        >
-                            <img
-                                src={item.thumbUrl}
-                                alt={altMini}
-                                className="h-full w-full object-cover"
-                            />
-                            {item.type === 'video' && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                                    <div className="flex h-6 w-6 items-center justify-center rounded-full border border-white/80 bg-black/20 text-white backdrop-blur-[1px]">
-                                        <div className="ml-0.5 h-0 w-0 border-t-[4px] border-b-[4px] border-l-[6px] border-t-transparent border-b-transparent border-l-white"></div>
-                                    </div>
-                                </div>
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
-        </div>
-    );
-}
-
 export default function DetalleHistoria({
     historia: historiaProp,
 }: DetalleHistoriaPageProps) {
@@ -240,37 +113,6 @@ export default function DetalleHistoria({
     const media = useMemo(() => buildMediaFromHistoria(historia), [historia]);
 
     const [isExpanded, setIsExpanded] = useState(false);
-
-    const reviews = [
-        {
-            name: 'Sabo Masties',
-            date: 'Hace 3 horas',
-            rating: 5,
-            text: 'Lorem ipsum dolor sit amet consectetur. Tortor nec sit nunc auctor etiam magna et...',
-            avatar: '/images/person_holding_letter.png', // Placeholder
-        },
-        {
-            name: 'Rosa Mendoza',
-            date: 'Hace 3 horas',
-            rating: 5,
-            text: 'Lorem ipsum dolor sit amet consectetur. Tortor nec sit nunc auctor etiam magna et...',
-            avatar: '/images/person_holding_letter.png',
-        },
-        {
-            name: 'Joel Leat',
-            date: 'Hace 3 horas',
-            rating: 5,
-            text: 'Lorem ipsum dolor sit amet consectetur. Tortor nec sit nunc auctor etiam magna et...',
-            avatar: '/images/person_holding_letter.png',
-        },
-        {
-            name: 'Sofia G.',
-            date: 'Hace 3 horas',
-            rating: 5,
-            text: 'Lorem ipsum dolor sit amet consectetur. Tortor nec sit nunc auctor etiam magna et...',
-            avatar: '/images/person_holding_letter.png',
-        },
-    ];
 
     const incluyeCadaEnvio = useMemo(() => {
         const raw = historia.detalle;
@@ -425,21 +267,22 @@ export default function DetalleHistoria({
                                 te pediremos confirmación para reemplazarlos.
                             </p>
 
-                            {/* Verification Lines */}
-                            <div className="flex flex-wrap gap-x-8 gap-y-2">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-8">
                                 <div className="flex items-center gap-2">
-                                    <ShieldCheck
-                                        size={20}
-                                        className="text-[#1B3D6D]"
+                                    <Check
+                                        size={18}
+                                        strokeWidth={2.5}
+                                        className="shrink-0 text-[#1B3D6D]"
                                     />
                                     <span className="font-['Inter',sans-serif] text-[13px] font-normal text-[#1B3D6D]">
                                         Cancelable en cualquier momento
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Package
-                                        size={20}
-                                        className="text-[#1B3D6D]"
+                                    <Check
+                                        size={18}
+                                        strokeWidth={2.5}
+                                        className="shrink-0 text-[#1B3D6D]"
                                     />
                                     <span className="font-['Inter',sans-serif] text-[13px] font-normal text-[#1B3D6D]">
                                         Sin permanencia
@@ -490,40 +333,50 @@ export default function DetalleHistoria({
                     </section>
 
                     {/* 2. Sinopsis de la historia Section */}
-                    <section className="flex flex-col gap-10 border-b-[0.5px] border-[#F2F2F2] px-4 py-12 lg:items-center lg:gap-11 lg:px-[72px] lg:py-[70px]">
-                        <div className="flex w-full flex-col items-start gap-2">
+                    <section className="flex flex-col gap-10 border-b-[0.5px] border-[#F2F2F2] px-4 py-12 lg:gap-11 lg:px-[72px] lg:py-[70px]">
+                        <div className="mx-auto flex w-full max-w-[1208px] flex-col items-start gap-2">
                             <h2 className="font-['Playfair_Display',serif] text-[32px] font-semibold text-[#1B3D6D] lg:text-[39px]">
                                 Sinopsis de la historia
                             </h2>
-                            <div className="h-1 w-[250px] rounded-full bg-[#1B3D6D] lg:w-[250px]"></div>
+                            <div className="h-1 w-[250px] rounded-full bg-[#1B3D6D]" />
                         </div>
 
-                        <div className="flex w-full max-w-[1208px] flex-col items-center gap-8">
-                            <div className="flex w-full items-start gap-4 lg:gap-10">
+                        <div className="mx-auto flex w-full max-w-[1208px] flex-col items-center gap-8">
+                            <div className="relative flex w-full items-start gap-4 lg:gap-10">
                                 <Quote
                                     size={32}
                                     className="shrink-0 text-[#1B3D6D] lg:mt-2 lg:size-[44px]"
+                                    aria-hidden
                                 />
                                 <div
-                                    className={`relative flex flex-col gap-6 overflow-hidden transition-all duration-500 font-['Inter',sans-serif] ${!isExpanded ? 'max-h-[220px]' : 'max-h-[3000px]'}`}
+                                    className={`relative min-w-0 flex-1 overflow-hidden transition-all duration-500 font-['Inter',sans-serif] ${!isExpanded ? 'max-h-[220px] lg:max-h-[280px]' : 'max-h-[3000px]'}`}
                                 >
+                                    {!isExpanded ? (
+                                        <div
+                                            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-16 bg-gradient-to-t from-white to-transparent"
+                                            aria-hidden
+                                        />
+                                    ) : null}
                                     <div
                                         className="prose prose-neutral max-w-none text-[15px] font-normal leading-relaxed text-[#7B7B7B] lg:text-[20px] lg:leading-[28px]"
-                                        dangerouslySetInnerHTML={{ __html: historia.descripcion_larga }}
+                                        dangerouslySetInnerHTML={{
+                                            __html: historia.descripcion_larga,
+                                        }}
                                     />
-
-                                    <div className="flex justify-end">
+                                    <div className="mt-6 flex justify-end">
                                         <Quote
                                             size={32}
                                             className="rotate-180 text-[#1B3D6D] lg:size-[44px]"
+                                            aria-hidden
                                         />
                                     </div>
                                 </div>
                             </div>
 
                             <button
+                                type="button"
                                 onClick={() => setIsExpanded(!isExpanded)}
-                                className="mt-4 flex items-center gap-3 text-[#1B3D6D] transition-colors hover:opacity-80"
+                                className="flex items-center gap-3 text-[#1B3D6D] transition-colors hover:opacity-80"
                             >
                                 <span className="font-['Inter',sans-serif] text-[16px] font-bold text-[#1E3E6C]">
                                     {isExpanded ? 'Ver menos' : 'Leer más'}
@@ -536,97 +389,7 @@ export default function DetalleHistoria({
                         </div>
                     </section>
 
-                    {/* 3. Trustpilot Reviews Section */}
-                    <section className="flex flex-col items-center gap-11 border-b-[0.5px] border-[#F2F2F2] px-3 py-16 lg:px-[72px] lg:py-[70px]">
-                        <div className="flex w-full flex-col items-center justify-between gap-6 md:flex-row">
-                            <div className="flex flex-col gap-2">
-                                <h3 className="font-['Poppins',sans-serif] text-[24px] font-semibold text-[#1B3D6D]">
-                                    Our customers&apos; Trustpilot reviews
-                                </h3>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex gap-1 text-[#FFC800]">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star
-                                                key={i}
-                                                size={20}
-                                                fill="currentColor"
-                                            />
-                                        ))}
-                                    </div>
-                                    <span className="font-['Inter',sans-serif] text-[16px] font-semibold text-[#1B3D6D]">
-                                        4.9 average rating
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3 rounded-[16px] bg-white px-4 py-3 shadow-[0px_2px_4px_rgba(0,0,0,0.075)]">
-                                <div className="flex h-[34px] w-[34px] items-center justify-center rounded-[4px] bg-[#1DA534] text-white">
-                                    <Star size={20} fill="currentColor" />
-                                </div>
-                                <span className="font-['Poppins',sans-serif] text-[24px] font-medium text-[#373737]">
-                                    Trustpilot
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Reviews Carousel/Grid */}
-                        <div className="flex w-full gap-6 overflow-x-auto pb-4 scrollbar-hide md:grid md:grid-cols-2 md:overflow-visible lg:grid-cols-4 lg:pb-0">
-                            {reviews.map((review, i) => (
-                                <div
-                                    key={i}
-                                    className="flex w-[85vw] shrink-0 flex-col gap-4 rounded-[24px] border border-[#F2F2F2] bg-white p-4 shadow-[0px_0px_4px_rgba(0,0,0,0.1)] transition-transform md:w-full hover:-translate-y-1"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <img
-                                            src={review.avatar}
-                                            alt={review.name}
-                                            className="h-[52px] w-[52px] rounded-full object-cover"
-                                        />
-                                        <div className="flex flex-col">
-                                            <span className="font-['Inter',sans-serif] text-[16px] font-semibold text-[#1B3D6D]">
-                                                {review.name}
-                                            </span>
-                                            <span className="font-['Poppins',sans-serif] text-[13px] text-[#7B7B7B]">
-                                                {review.date}
-                                            </span>
-                                        </div>
-                                        <div className="ml-auto flex h-[34px] w-[34px] items-center justify-center rounded-[4px] bg-[#1DA534] text-white">
-                                            <Star
-                                                size={16}
-                                                fill="currentColor"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-1 text-[#FFC800]">
-                                        {[...Array(5)].map((_, j) => (
-                                            <Star
-                                                key={j}
-                                                size={16}
-                                                fill="currentColor"
-                                            />
-                                        ))}
-                                    </div>
-                                    <p className="font-['Inter',sans-serif] text-[15px] leading-[22px] text-[#7B7B7B] lg:text-[16px]">
-                                        {review.text}
-                                    </p>
-                                    <button className="flex items-center text-[#1B3D6D] transition hover:opacity-70">
-                                        <span className="font-['Inter',sans-serif] text-[14px] font-bold">
-                                            Leer más
-                                        </span>
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Navigation Arrows for Reviews */}
-                        <div className="flex gap-12">
-                            <button className="flex h-[60px] w-[60px] items-center justify-center rounded-full border border-[#1B3D6D] text-[#1B3D6D] transition hover:bg-[#1B3D6D] hover:text-white">
-                                <ChevronLeft size={40} />
-                            </button>
-                            <button className="flex h-[60px] w-[60px] items-center justify-center rounded-full border border-[#1B3D6D] text-[#1B3D6D] transition hover:bg-[#1B3D6D] hover:text-white">
-                                <ChevronRight size={40} />
-                            </button>
-                        </div>
-                    </section>
+                    <HistoriaTrustpilotReviews />
 
                     {/* 4. Info Cards Section */}
                     <section className="flex flex-col items-center justify-center gap-12 border-b-[0.5px] border-[#F2F2F2] px-4 py-16 lg:flex-row lg:gap-11 lg:px-[72px] lg:py-[70px]">
