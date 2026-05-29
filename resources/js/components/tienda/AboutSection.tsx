@@ -1,3 +1,5 @@
+import { AboutFeatureIconBox } from '@/components/tienda/AboutFeatureIconBox';
+
 export default function AboutSection() {
     return (
         <section className="relative isolate flex w-full flex-col items-center justify-center overflow-hidden bg-white px-6 py-20 lg:h-[522px] lg:py-[70px]">
@@ -24,27 +26,11 @@ export default function AboutSection() {
 
                 {/* Contenido (3 Iconos) */}
                 <div className="z-[1] flex w-full flex-col items-start justify-center gap-12 lg:h-[240px] lg:flex-row lg:items-center lg:gap-[120px]">
-                    {/* Item 1 */}
                     <div className="mx-auto flex w-full flex-col items-center gap-[10px] md:w-[267px] lg:mx-0">
-                        <div
-                            className="relative flex h-[112px] w-[112px] items-center justify-center bg-[#1B3D6D] drop-shadow-[4px_4px_8px_rgba(255,255,255,0.2)]"
-                            style={{
-                                maskImage:
-                                    'radial-gradient(linear, transparent 4px, black 4.5px)',
-                                maskSize: '14px 14px',
-                                maskPosition: '-7px -7px',
-                                WebkitMaskImage:
-                                    'radial-gradient(linear, transparent 4px, black 4.5px)',
-                                WebkitMaskSize: '14px 14px',
-                                WebkitMaskPosition: '-7px -7px',
-                            }}
-                        >
-                            <img
-                                src="/images/Icono_pergamino-01 3.png"
-                                alt=""
-                                className="h-auto w-[68px] object-contain"
-                            />
-                        </div>
+                        <AboutFeatureIconBox
+                            iconSrc="/images/Icono_pergamino-01 3.png"
+                            iconSize="scroll"
+                        />
                         <div className="flex w-full flex-col items-center gap-[4px]">
                             <h3 className="text-center font-['Playfair_Display',serif] text-[22px] leading-tight font-bold text-[#1B3D6D] md:text-[25px] md:leading-[33px]">
                                 Historias ambientadas antes de 1970
@@ -56,27 +42,11 @@ export default function AboutSection() {
                         </div>
                     </div>
 
-                    {/* Item 2 */}
                     <div className="mx-auto flex w-full flex-col items-center gap-[10px] md:w-[267px] lg:mx-0">
-                        <div
-                            className="relative flex h-[112px] w-[112px] items-center justify-center bg-[#1B3D6D] drop-shadow-[4px_4px_8px_rgba(255,255,255,0.2)]"
-                            style={{
-                                maskImage:
-                                    'radial-gradient(linear, transparent 4px, black 4.5px)',
-                                maskSize: '14px 14px',
-                                maskPosition: '-7px -7px',
-                                WebkitMaskImage:
-                                    'radial-gradient(linear, transparent 4px, black 4.5px)',
-                                WebkitMaskSize: '14px 14px',
-                                WebkitMaskPosition: '-7px -7px',
-                            }}
-                        >
-                            <img
-                                src="/images/Sobre_Icon-02 1.png"
-                                alt=""
-                                className="h-auto w-[76px] object-contain"
-                            />
-                        </div>
+                        <AboutFeatureIconBox
+                            iconSrc="/images/Sobre_Icon-02 1.png"
+                            iconClassName="h-auto w-[80px] object-contain object-center"
+                        />
                         <div className="flex w-full flex-col items-center gap-[4px]">
                             <h3 className="text-center font-['Playfair_Display',serif] text-[22px] leading-tight font-bold text-[#1B3D6D] md:text-[25px] md:leading-[33px]">
                                 Recíbelas físicamente en tu hogar
@@ -88,27 +58,11 @@ export default function AboutSection() {
                         </div>
                     </div>
 
-                    {/* Item 3 */}
                     <div className="mx-auto flex w-full flex-col items-center gap-[10px] md:w-[267px] lg:mx-0">
-                        <div
-                            className="relative flex h-[112px] w-[112px] items-center justify-center bg-[#1B3D6D] drop-shadow-[4px_4px_8px_rgba(255,255,255,0.2)]"
-                            style={{
-                                maskImage:
-                                    'radial-gradient(linear, transparent 4px, black 4.5px)',
-                                maskSize: '14px 14px',
-                                maskPosition: '-7px -7px',
-                                WebkitMaskImage:
-                                    'radial-gradient(linear, transparent 4px, black 4.5px)',
-                                WebkitMaskSize: '14px 14px',
-                                WebkitMaskPosition: '-7px -7px',
-                            }}
-                        >
-                            <img
-                                src="/images/Sobre_Abierto-03 2.png"
-                                alt=""
-                                className="h-[76px] w-[76px] object-contain"
-                            />
-                        </div>
+                        <AboutFeatureIconBox
+                            iconSrc="/images/Sobre_Abierto-03 2.png"
+                            iconSize="open"
+                        />
                         <div className="flex w-full flex-col items-center gap-[4px]">
                             <h3 className="text-center font-['Playfair_Display',serif] text-[22px] leading-tight font-bold text-[#1B3D6D] md:text-[25px] md:leading-[33px]">
                                 Nuevas entregas periódicas
