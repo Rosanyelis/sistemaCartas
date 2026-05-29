@@ -9,6 +9,8 @@ export type ProductosPaginator = {
     total: number;
     from: number | null;
     to: number | null;
+    prev_page_url?: string | null;
+    next_page_url?: string | null;
     links: Array<{
         url: string | null;
         label: string;

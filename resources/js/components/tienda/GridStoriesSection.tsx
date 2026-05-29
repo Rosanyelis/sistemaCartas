@@ -1,11 +1,15 @@
 import { Link } from '@inertiajs/react';
+import CatalogGridPagination from '@/components/tienda/CatalogGridPagination';
 import { show } from '@/routes/historias';
 import type { LaravelPaginator } from '@/types/historias-tienda';
 import type { Story } from '@/types/welcome';
 
-function stripHtmlTags(html: string): string {
-    return html.replace(/<[^>]*>/g, '').trim();
-}
+const HISTORIAS_INERTIA_ONLY = [
+    'historias',
+    'destacadas',
+    'categorias',
+    'filters',
+] as const;
 
 interface GridStoriesSectionProps {
     stories: Story[];
@@ -16,9 +20,6 @@ export default function GridStoriesSection({
     stories,
     pagination,
 }: GridStoriesSectionProps) {
-    const showPager =
-        pagination !== null && pagination.last_page > 1;
-
     return (
         <section className="flex w-full flex-col items-center justify-center bg-white px-6 py-20 lg:px-[72px] lg:pt-[70px] lg:pb-[100px]">
             <div className="flex w-full max-w-[1296px] flex-col items-center gap-[44px]">
@@ -67,99 +68,12 @@ export default function GridStoriesSection({
                     ))}
                 </div>
 
-                {showPager && pagination ? (
-                    <nav
-                        className="mt-[30px] flex w-full max-w-[640px] items-center justify-between gap-4 sm:gap-8"
-                        aria-label="Paginación de historias"
-                    >
-                        {pagination.prev_page_url ? (
-                            <Link
-                                href={pagination.prev_page_url}
-                                preserveScroll
-                                preserveState
-                                only={[
-                                    'historias',
-                                    'destacadas',
-                                    'categorias',
-                                    'filters',
-                                ]}
-                                className="flex shrink-0 items-center justify-center p-2 text-[#637381] transition-colors hover:text-[#1B3D6D]"
-                                aria-label="Página anterior"
-                            >
-                                <i className="fa-solid fa-chevron-left text-sm"></i>
-                            </Link>
-                        ) : (
-                            <span
-                                className="flex shrink-0 cursor-not-allowed items-center justify-center p-2 text-[#C4C4C4]"
-                                aria-hidden="true"
-                            >
-                                <i className="fa-solid fa-chevron-left text-sm"></i>
-                            </span>
-                        )}
-                        <div className="flex min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto scrollbar-hide font-['Inter',sans-serif] text-[15px] font-normal sm:gap-3 sm:text-[16px]">
-                            {pagination.links
-                                .filter((l) => {
-                                    const lab = l.label
-                                        .replace(/&laquo;|&raquo;/g, '')
-                                        .trim();
-
-                                    return lab !== 'Previous' && lab !== 'Next';
-                                })
-                                .map((link, idx) => {
-                                    const labelText = stripHtmlTags(link.label);
-
-                                    return link.url ? (
-                                        <Link
-                                            key={`${link.label}-${idx}`}
-                                            href={link.url}
-                                            preserveScroll
-                                            preserveState
-                                            only={[
-                                                'historias',
-                                                'destacadas',
-                                                'categorias',
-                                                'filters',
-                                            ]}
-                                            className={`flex h-10 min-w-[2.25rem] shrink-0 items-center justify-center rounded-lg px-2 transition-colors ${
-                                                link.active
-                                                    ? 'bg-[#1B3D6D] font-semibold text-white'
-                                                    : 'text-[#637381] hover:text-[#1B3D6D]'
-                                            }`}
-                                        >
-                                            {labelText}
-                                        </Link>
-                                    ) : (
-                                        <span
-                                            key={`${link.label}-${idx}`}
-                                            className="shrink-0 px-1.5 text-[#637381] select-none"
-                                        >
-                                            {labelText}
-                                        </span>
-                                    );
-                                })}
-                        </div>
-                        {pagination.next_page_url ? (
-                            <Link
-                                href={pagination.next_page_url}
-                                preserveScroll
-                                preserveState
-                                only={[
-                                    'historias',
-                                    'destacadas',
-                                    'categorias',
-                                    'filters',
-                                ]}
-                                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F3F4F6] text-[#1B3D6D] transition-colors hover:bg-[#E8EAED]"
-                                aria-label="Página siguiente"
-                            >
-                                <i className="fa-solid fa-chevron-right text-sm"></i>
-                            </Link>
-                        ) : (
-                            <span className="flex h-10 w-10 shrink-0 cursor-not-allowed items-center justify-center rounded-lg bg-[#F3F4F6] text-[#C4C4C4]">
-                                <i className="fa-solid fa-chevron-right text-sm"></i>
-                            </span>
-                        )}
-                    </nav>
+                {pagination ? (
+                    <CatalogGridPagination
+                        pagination={pagination}
+                        inertiaOnly={[...HISTORIAS_INERTIA_ONLY]}
+                        ariaLabel="Paginación de historias"
+                    />
                 ) : null}
             </div>
         </section>

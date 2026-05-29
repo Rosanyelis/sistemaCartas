@@ -1,19 +1,12 @@
 import { Link } from '@inertiajs/react';
 import { useRef, useState } from 'react';
 import CartConflictModal from '@/components/tienda/CartConflictModal';
+import CatalogGridPagination from '@/components/tienda/CatalogGridPagination';
 import { useCart } from '@/contexts/cart-context';
 import { show } from '@/routes/productos';
 import type { ProductosPaginator } from '@/types/producto-tienda';
 
-function decodePaginationLabel(label: string): string {
-    return label
-        .replace(/&laquo;/g, '«')
-        .replace(/&raquo;/g, '»')
-        .replace(/&hellip;/g, '…')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>');
-}
+const PRODUCTOS_INERTIA_ONLY = ['products', 'categorias', 'filters'] as const;
 
 interface GridProductsSectionProps {
     products: ProductosPaginator;
@@ -118,51 +111,11 @@ export default function GridProductsSection({
                     </div>
                 )}
 
-                {products.last_page > 1 && (
-                    <nav
-                        className="mt-[30px] flex w-full max-w-[640px] flex-row flex-wrap items-center justify-center gap-1 rounded-[3px] border border-[#F3F4F6] bg-white p-2 shadow-sm"
-                        aria-label="Paginación de productos"
-                    >
-                        {products.links.map((link, idx) => {
-                            const label = decodePaginationLabel(link.label);
-                            const isNumeric = /^\d+$/.test(label.trim());
-
-                            if (link.url === null) {
-                                return (
-                                    <span
-                                        key={`p-${idx}`}
-                                        className={`flex min-h-[38px] min-w-[38px] items-center justify-center rounded-[3px] px-2 font-['Inter',sans-serif] text-[14px] ${
-                                            link.active
-                                                ? 'bg-[#1B3D6D] font-semibold text-white'
-                                                : 'cursor-default text-[#9CA3AF]'
-                                        }`}
-                                        aria-current={
-                                            link.active ? 'page' : undefined
-                                        }
-                                    >
-                                        {label}
-                                    </span>
-                                );
-                            }
-
-                            return (
-                                <Link
-                                    key={`p-${idx}`}
-                                    href={link.url}
-                                    preserveScroll
-                                    preserveState
-                                    className={`flex min-h-[38px] min-w-[38px] items-center justify-center rounded-[3px] px-2 font-['Inter',sans-serif] text-[14px] transition hover:bg-[#F3F4F6] ${
-                                        link.active
-                                            ? 'bg-[#1B3D6D] font-semibold text-white hover:bg-[#1B3D6D]'
-                                            : 'text-[#637381] hover:text-[#1B3D6D]'
-                                    } ${isNumeric ? '' : 'px-3'}`}
-                                >
-                                    {label}
-                                </Link>
-                            );
-                        })}
-                    </nav>
-                )}
+                <CatalogGridPagination
+                    pagination={products}
+                    inertiaOnly={[...PRODUCTOS_INERTIA_ONLY]}
+                    ariaLabel="Paginación de productos"
+                />
             </div>
             <CartConflictModal
                 open={cartConflictOpen}
