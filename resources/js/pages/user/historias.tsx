@@ -48,6 +48,7 @@ export default function Historias() {
                 description="Nuestras historias son el regalo perfecto para los amantes de la lectura y las historias. Sorprende a esa persona especial y regálale una historia"
                 buttonText="Encontrar una historia para regalar"
                 buttonLink="/historias"
+                scrollToTopOnSamePage
             />
         </ClienteLayout>
     );

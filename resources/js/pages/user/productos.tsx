@@ -64,6 +64,7 @@ export default function Productos() {
                 description="Si ya regalaste una historia a ese ser especial, regálale un objeto que le permita revivir cada historia"
                 buttonText="Encontrar objeto para regalar"
                 buttonLink="/productos"
+                scrollToTopOnSamePage
             />
         </ClienteLayout>
     );

@@ -1,18 +1,39 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 
 interface CtaSectionProps {
     title: string;
     description?: string;
     buttonText: string;
     buttonLink: string;
+    /** Si true, en la misma ruta solo hace scroll al inicio (sin navegación Inertia). */
+    scrollToTopOnSamePage?: boolean;
 }
+
+function isSamePath(a: string, b: string): boolean {
+    const norm = (path: string) => {
+        const pathOnly = path.split('?')[0].split('#')[0];
+
+        return (pathOnly.endsWith('/') ? pathOnly.slice(0, -1) : pathOnly) || '/';
+    };
+
+    return norm(a) === norm(b);
+}
+
+const buttonClassName =
+    'group z-10 inline-flex h-[47px] w-full max-w-[310px] items-center justify-center rounded-[2px] border border-white bg-transparent px-[20px] py-[14px] transition duration-300 hover:bg-white';
+
+const buttonLabelClassName =
+    "font-['Inter',sans-serif] text-[14px] leading-[19px] font-semibold text-white transition group-hover:text-[#1B3D6D]";
 
 export default function CtaSection({
     title,
     description,
     buttonText,
     buttonLink,
+    scrollToTopOnSamePage = false,
 }: CtaSectionProps) {
+    const { url } = usePage();
+    const scrollToTop = scrollToTopOnSamePage && isSamePath(url, buttonLink);
     return (
         <section className="flex w-full flex-col items-center justify-center bg-[#FFFCF4] px-6 py-14 lg:py-[100px]">
             <div className="relative flex w-full max-w-[850px] flex-col items-center justify-center gap-[44px] overflow-hidden rounded-[2px] bg-[#1B3D6D] px-6 py-10 shadow-[0px_0px_16px_rgba(0,0,0,0.04)] md:px-[56px] md:py-[60px]">
@@ -113,15 +134,21 @@ export default function CtaSection({
                     )}
                 </div>
 
-                {/* Button */}
-                <Link
-                    href={buttonLink}
-                    className="group z-10 inline-flex h-[47px] w-full max-w-[310px] items-center justify-center rounded-[2px] border border-white bg-transparent px-[20px] py-[14px] transition duration-300 hover:bg-white"
-                >
-                    <span className="font-['Inter',sans-serif] text-[14px] leading-[19px] font-semibold text-white transition group-hover:text-[#1B3D6D]">
-                        {buttonText}
-                    </span>
-                </Link>
+                {scrollToTop ? (
+                    <button
+                        type="button"
+                        onClick={() =>
+                            window.scrollTo({ top: 0, behavior: 'smooth' })
+                        }
+                        className={buttonClassName}
+                    >
+                        <span className={buttonLabelClassName}>{buttonText}</span>
+                    </button>
+                ) : (
+                    <Link href={buttonLink} className={buttonClassName}>
+                        <span className={buttonLabelClassName}>{buttonText}</span>
+                    </Link>
+                )}
             </div>
         </section>
     );
