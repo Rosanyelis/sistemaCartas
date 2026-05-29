@@ -69,14 +69,10 @@ export default function PanelShell({
                         </button>
 
                         <div className="flex flex-1 items-center justify-center md:hidden">
-                            <span className="text-[12px] font-bold tracking-[0.05em] text-[#1B3D6D] uppercase">
-                                HISTORIAS POR CORREO
-                            </span>
                             <img
-                                src="/images/logo-principal.png"
-                                alt="Logo"
-                                className="ml-2 h-5 w-auto object-contain opacity-40 invert filter"
-                                style={{ filter: 'brightness(0) invert(0.8)' }}
+                                src="/images/logo-letras-sin-fondo.png"
+                                alt="Historias por Correo"
+                                className="h-6 w-auto max-w-[216px] object-contain"
                             />
                         </div>
 

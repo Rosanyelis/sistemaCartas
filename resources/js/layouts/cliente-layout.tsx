@@ -103,7 +103,7 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
             </Head>
             {/* Header / Navegación */}
             <header className="fixed top-0 z-[70] w-full border-b border-[#e8e4d9] bg-white shadow-[0px_0px_16px_rgba(0,0,0,0.04)]">
-                <div className="mx-auto flex h-[80px] max-w-8xl items-center justify-between px-8 ">
+                <div className="mx-auto flex h-[80px] max-w-8xl items-center justify-between px-4 ">
                     {/* Izquierda mobile: hamburger + texto marca */}
                     <div className="flex items-center gap-2 md:hidden">
                         <button
@@ -129,7 +129,11 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                             href="/"
                             className="font-['Playfair_Display',serif] text-[15px] leading-tight font-bold tracking-wide text-[#1B3D6D] uppercase"
                         >
-                            Historias por Correo
+                            <img
+                                src="/images/logo-letras-sin-fondo.png"
+                                alt="Historias por Correo"
+                                className="h-6 w-auto max-w-[216px] object-contain"
+                            />
                         </Link>
                     </div>
 

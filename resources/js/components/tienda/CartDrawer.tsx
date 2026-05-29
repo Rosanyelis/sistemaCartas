@@ -672,8 +672,7 @@ const CartDrawer: React.FC = () => {
                                                         strokeWidth={1.5}
                                                     />
                                                     <span className="font-['Inter',sans-serif] text-[12px] font-medium">
-                                                        Pago seguro con PayPal
-                                                        (sandbox en esta demo)
+                                                        Pago seguro
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-3 text-[#1B3D6D] opacity-80">
@@ -682,18 +681,7 @@ const CartDrawer: React.FC = () => {
                                                         strokeWidth={1.5}
                                                     />
                                                     <span className="font-['Inter',sans-serif] text-[12px] font-medium">
-                                                        Envío protegido (demo)
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center gap-3 text-[#1B3D6D] opacity-80">
-                                                    <History
-                                                        size={20}
-                                                        strokeWidth={1.5}
-                                                    />
-                                                    <span className="font-['Inter',sans-serif] text-[12px] font-medium">
-                                                        Devolución garantizada
-                                                        en 14 días (condiciones
-                                                        reales al lanzar)
+                                                        Envío protegido
                                                     </span>
                                                 </div>
                                             </div>
