@@ -13,6 +13,7 @@ use App\Models\StoreOrderItem;
 use App\Models\Suscripcion;
 use App\Models\User;
 use App\Support\Demo\DemoStoreOrderFactory;
+use App\Support\HistoriaSuscripcionPrecio;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
@@ -303,15 +304,25 @@ class DashboardDemoDataSeeder extends Seeder
             $historia = $this->historias[array_rand($this->historias)];
             $createdAt = $this->randomDateInTargetMonth();
 
+            $fechaAdquisicion = $createdAt->toDateString();
+            $mesesEntregaTotal = HistoriaSuscripcionPrecio::mesesEntregaTotal($historia);
+            $fechaFinalizacion = $mesesEntregaTotal !== null
+                ? Carbon::parse($fechaAdquisicion)
+                    ->addMonthsNoOverflow($mesesEntregaTotal)
+                    ->toDateString()
+                : null;
+
             $suscripcion = Suscripcion::query()->create([
                 'user_id' => $cliente->id,
                 'historia_id' => $historia->id,
                 'tipo' => 'Mensual',
                 'cantidad' => 1,
-                'meses_entrega_total' => $historia->duracion_meses,
-                'fecha_adquisicion' => $createdAt->toDateString(),
-                'fecha_finalizacion' => null,
-                'proximo_cobro' => $createdAt->copy()->addMonth()->toDateString(),
+                'meses_entrega_total' => $mesesEntregaTotal,
+                'fecha_adquisicion' => $fechaAdquisicion,
+                'fecha_finalizacion' => $fechaFinalizacion,
+                'proximo_cobro' => Carbon::parse($fechaAdquisicion)
+                    ->addMonthsNoOverflow(HistoriaSuscripcionPrecio::intervaloFacturacionMeses($historia))
+                    ->toDateString(),
                 'estado' => 'activa',
                 'paypal_subscription_id' => 'I-DEMO-SUB-MAY-'.str_pad((string) $i, 4, '0', STR_PAD_LEFT),
             ]);

@@ -6,6 +6,7 @@ use App\Models\StoreOrder;
 use App\Models\Suscripcion;
 use App\Models\User;
 use App\Services\Admin\DashboardMetricasService;
+use App\Support\HistoriaSuscripcionPrecio;
 use Database\Seeders\DashboardDemoDataSeeder;
 use Illuminate\Support\Carbon;
 
@@ -48,6 +49,48 @@ test('dashboard demo data seeder crea cantidades exactas en mayo 2026', function
     )->toBe(45);
 });
 
+test('dashboard demo data seeder calcula fecha finalizacion segun meses de entrega de la historia', function (): void {
+    (new DashboardDemoDataSeeder)->configure(2026, 5, true)->run();
+
+    $suscripcion = Suscripcion::query()
+        ->where('paypal_subscription_id', 'like', 'I-DEMO-SUB-MAY-%')
+        ->with('historia')
+        ->first();
+
+    expect($suscripcion)->not->toBeNull();
+
+    $historia = $suscripcion->historia;
+    expect($historia)->not->toBeNull();
+
+    expect($suscripcion->meses_entrega_total)->toBe(
+        HistoriaSuscripcionPrecio::mesesEntregaTotal($historia),
+    );
+
+    expect($suscripcion->fecha_finalizacion)->not->toBeNull();
+
+    expect($suscripcion->fecha_finalizacion->format('Y-m-d'))->toBe(
+        Carbon::parse($suscripcion->fecha_adquisicion)
+            ->addMonthsNoOverflow((int) $suscripcion->meses_entrega_total)
+            ->toDateString(),
+    );
+
+    $demoSuscripciones = Suscripcion::query()
+        ->where('paypal_subscription_id', 'like', 'I-DEMO-SUB-MAY-%')
+        ->with('historia')
+        ->get();
+
+    foreach ($demoSuscripciones as $demoSuscripcion) {
+        $mesesHistoria = HistoriaSuscripcionPrecio::mesesEntregaTotal($demoSuscripcion->historia);
+
+        if ($mesesHistoria === null) {
+            continue;
+        }
+
+        expect($demoSuscripcion->fecha_finalizacion)->not->toBeNull();
+        expect($demoSuscripcion->meses_entrega_total)->toBe($mesesHistoria);
+    }
+});
+
 test('dashboard demo data seeder alimenta metricas y grafico del mes', function (): void {
     (new DashboardDemoDataSeeder)->configure(2026, 5, true)->run();
 
@@ -75,7 +118,7 @@ test('dashboard demo data seeder aborta en produccion', function (): void {
 
     try {
         expect(fn () => (new DashboardDemoDataSeeder)->run())
-            ->toThrow(\RuntimeException::class, 'producción');
+            ->toThrow(RuntimeException::class, 'producción');
     } finally {
         $app['env'] = $previous;
     }
