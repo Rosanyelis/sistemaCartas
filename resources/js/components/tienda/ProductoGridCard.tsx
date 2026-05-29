@@ -1,0 +1,65 @@
+import { Link } from '@inertiajs/react';
+import { show } from '@/routes/productos';
+import type { Product } from '@/types/welcome';
+
+export type ProductoGridCardProps = {
+    product: Product;
+    onAddToCart: (product: Product) => void;
+};
+
+export default function ProductoGridCard({
+    product,
+    onAddToCart,
+}: ProductoGridCardProps) {
+    return (
+        <div className="group flex w-full flex-col items-start gap-4 overflow-hidden rounded-sm bg-white pb-6 shadow-[0px_0px_16px_rgba(0,0,0,0.04)]">
+            <Link
+                href={show.url(product.slug)}
+                className="relative h-[350px] w-full overflow-hidden"
+            >
+                <img
+                    src={product.img}
+                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    alt={product.name}
+                />
+                <div className="absolute inset-0 bg-black/5 opacity-0 transition-opacity group-hover:opacity-100" />
+            </Link>
+
+            <div className="flex w-full flex-1 flex-col gap-4 px-4">
+                <div className="flex flex-1 flex-col gap-3">
+                    <Link href={show.url(product.slug)}>
+                        <h3 className="font-['Inter',sans-serif] text-[18px] leading-tight font-semibold text-[#1B3D6D] hover:underline">
+                            {product.name}
+                        </h3>
+                    </Link>
+                    <p className="line-clamp-4 font-['Inter',sans-serif] text-[14px] leading-[22px] font-normal text-[#7B7B7B]">
+                        {product.desc}
+                    </p>
+                </div>
+
+                <div className="mt-auto flex flex-col gap-3">
+                    <div className="flex items-center justify-between gap-4 py-0">
+                        <span className="font-['Playfair_Display',serif] text-[30px] leading-none font-normal text-[#1B3D6D]">
+                            {product.price}
+                        </span>
+                        <Link
+                            href={show.url(product.slug)}
+                            className="flex h-[39px] shrink-0 items-center justify-center rounded-[2px] bg-[#1B3D6D] px-4 py-[10px] text-white transition duration-300 hover:scale-[1.02] hover:bg-[#1B3D6D]/90"
+                        >
+                            <span className="font-['Inter',sans-serif] text-[14px] leading-none font-semibold">
+                                Ver detalles
+                            </span>
+                        </Link>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => onAddToCart(product)}
+                        className="flex h-[39px] w-full items-center justify-center rounded-[2px] border border-[#1B3D6D] bg-white font-['Inter',sans-serif] text-[14px] font-semibold text-[#1B3D6D] transition hover:bg-[#1B3D6D]/5"
+                    >
+                        Añadir al carrito
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}

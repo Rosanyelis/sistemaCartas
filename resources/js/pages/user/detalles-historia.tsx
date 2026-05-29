@@ -2,7 +2,7 @@ import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { PageProps } from '@inertiajs/core';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Check, ShieldCheck, Package, CalendarX, Quote } from 'lucide-react';
+import { ShieldCheck, Package, CalendarX, Quote } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import CartConflictModal from '@/components/tienda/CartConflictModal';
 import {
@@ -14,6 +14,25 @@ import ClienteLayout from '@/layouts/cliente-layout';
 import { useCart } from '@/contexts/cart-context';
 import { HISTORIA_SUSCRIPCION_SUBTITLE } from '@/types/cart-line';
 import { inclusionIconOrFallback } from '@/lib/historia-detalle-inclusion-lucide-map';
+
+function ConfianzaCheckIcon() {
+    return (
+        <svg
+            width={16}
+            height={16}
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="shrink-0"
+            aria-hidden
+        >
+            <path
+                d="M7.75 0C3.46875 0 0 3.5 0 7.75C0 12.0312 3.46875 15.5 7.75 15.5C12 15.5 15.5 12.0312 15.5 7.75C15.5 3.5 12 0 7.75 0ZM7.75 1.5C11.1875 1.5 14 4.3125 14 7.75C14 11.2188 11.1875 14 7.75 14C4.28125 14 1.5 11.2188 1.5 7.75C1.5 4.3125 4.28125 1.5 7.75 1.5ZM12.125 5.59375L11.4062 4.875C11.2812 4.71875 11.0312 4.71875 10.875 4.875L6.46875 9.25L4.59375 7.375C4.4375 7.21875 4.21875 7.21875 4.0625 7.375L3.34375 8.0625C3.21875 8.21875 3.21875 8.46875 3.34375 8.59375L6.1875 11.4688C6.34375 11.625 6.5625 11.625 6.71875 11.4688L12.125 6.125C12.25 5.96875 12.25 5.71875 12.125 5.59375Z"
+                fill="#1B3D6D"
+            />
+        </svg>
+    );
+}
 
 export interface HistoriaPublicaDetalle {
     nombre: string;
@@ -261,29 +280,16 @@ export default function DetalleHistoria({
                                     Suscribirme a esta historia
                                 </span>
                             </button>
-                            <p className="font-['Inter',sans-serif] text-[11px] leading-relaxed text-[#7B7B7B]">
-                                El carrito no permite mezclar suscripciones con
-                                productos del catálogo: si ya tienes productos,
-                                te pediremos confirmación para reemplazarlos.
-                            </p>
 
                             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-x-8">
                                 <div className="flex items-center gap-2">
-                                    <Check
-                                        size={18}
-                                        strokeWidth={2.5}
-                                        className="shrink-0 text-[#1B3D6D]"
-                                    />
+                                    <ConfianzaCheckIcon />
                                     <span className="font-['Inter',sans-serif] text-[13px] font-normal text-[#1B3D6D]">
                                         Cancelable en cualquier momento
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Check
-                                        size={18}
-                                        strokeWidth={2.5}
-                                        className="shrink-0 text-[#1B3D6D]"
-                                    />
+                                    <ConfianzaCheckIcon />
                                     <span className="font-['Inter',sans-serif] text-[13px] font-normal text-[#1B3D6D]">
                                         Sin permanencia
                                     </span>
@@ -343,11 +349,12 @@ export default function DetalleHistoria({
 
                         <div className="mx-auto flex w-full max-w-[1208px] flex-col items-center gap-8">
                             <div className="relative flex w-full items-start gap-4 lg:gap-10">
-                                <Quote
-                                    size={32}
-                                    className="shrink-0 text-[#1B3D6D] lg:mt-2 lg:size-[44px]"
-                                    aria-hidden
-                                />
+                            <Quote
+                                            size={32}
+                                            className="rotate-180 text-[#1B3D6D] lg:size-[44px]"
+                                            aria-hidden
+                                        />
+                                
                                 <div
                                     className={`relative min-w-0 flex-1 overflow-hidden transition-all duration-500 font-['Inter',sans-serif] ${!isExpanded ? 'max-h-[220px] lg:max-h-[280px]' : 'max-h-[3000px]'}`}
                                 >
@@ -364,11 +371,11 @@ export default function DetalleHistoria({
                                         }}
                                     />
                                     <div className="mt-6 flex justify-end">
-                                        <Quote
-                                            size={32}
-                                            className="rotate-180 text-[#1B3D6D] lg:size-[44px]"
-                                            aria-hidden
-                                        />
+                                    <Quote
+                                    size={32}
+                                    className="shrink-0 text-[#1B3D6D] lg:mt-2 lg:size-[44px]"
+                                    aria-hidden
+                                />
                                     </div>
                                 </div>
                             </div>

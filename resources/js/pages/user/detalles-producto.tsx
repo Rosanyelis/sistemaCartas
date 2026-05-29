@@ -311,7 +311,7 @@ function DetalleProductoContent() {
                                         className="text-[#1B3D6D]"
                                     />
                                     <span className="font-['Inter',sans-serif] text-[13px] font-normal text-[#1B3D6D]">
-                                        Pago seguro con PayPal (sandbox)
+                                        Pago seguro
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2">
