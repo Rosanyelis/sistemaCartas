@@ -3,6 +3,7 @@
 namespace App\Exports\Admin;
 
 use App\Models\Suscripcion;
+use App\Support\SuscripcionUsuarioListaSerializer;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Concerns\FromQuery;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -57,13 +58,15 @@ class SuscripcionesExport implements FromQuery, WithHeadings, WithMapping
      */
     public function map($suscripcion): array
     {
+        $presentacion = SuscripcionUsuarioListaSerializer::estadoPresentacion((string) $suscripcion->estado);
+
         return [
-            $suscripcion->codigo ?? ('#'.str_pad((string) $suscripcion->id, 5, '0', STR_PAD_LEFT)),
+            '#'.$suscripcion->id,
             $suscripcion->historia?->nombre ?? 'Suscripción '.$suscripcion->id,
             $suscripcion->user?->name ?? 'Usuario Eliminado',
-            $suscripcion->status === 'active' ? 'Activo' : 'Cancelado',
+            $presentacion['label'],
             $suscripcion->fecha_adquisicion?->format('d/m/Y') ?? '-',
-            $suscripcion->fecha_culminacion?->format('d/m/Y') ?? '-',
+            $suscripcion->fecha_finalizacion?->format('d/m/Y') ?? '-',
         ];
     }
 }

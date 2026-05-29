@@ -36,6 +36,8 @@ interface Subscription {
     fecha_finalizacion: string | null;
     proximo_cobro: string | null;
     estado: string;
+    estado_label: string;
+    estado_color: 'success' | 'warning' | 'danger';
 }
 
 interface Props {
@@ -106,18 +108,6 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
     };
 
     const formatDateLabel = (date: string) => date.split('-').reverse().join('/');
-
-    /** Alineado con `SuscripcionUsuarioListaSerializer::estadoPresentacion` (PHP). */
-    const subscriptionStatusPresentation = (estado: string) => {
-        const key = estado.toLowerCase();
-        const map: Record<string, { label: string; tone: 'success' | 'danger' | 'warning' }> = {
-            activa: { label: 'Completado', tone: 'success' },
-            inactiva: { label: 'Rechazado', tone: 'danger' },
-            pendiente: { label: 'Pendiente', tone: 'warning' },
-        };
-
-        return map[key] ?? { label: 'Rechazado', tone: 'danger' };
-    };
 
     const subscriptionStatusBadgeClass = (tone: 'success' | 'danger' | 'warning', compact = false): string => {
         if (tone === 'success') {
@@ -194,7 +184,7 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
                             <div className="absolute top-full right-0 lg:left-0 lg:right-auto mt-2 z-10 w-full md:w-72 rounded-md border border-[#E5E7EB] bg-white p-4 shadow-lg">
                                 <div className="flex flex-col gap-3">
                                     <div>
-                                        <label className="mb-1 block text-xs font-semibold text-[#7B7B7B]">Desde (Fecha de adquisición):</label>
+                                        <label className="mb-1 block text-xs font-semibold text-[#7B7B7B]">Desde:</label>
                                         <input 
                                             type="date" 
                                             value={startDate} 
@@ -203,7 +193,7 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
                                         />
                                     </div>
                                     <div>
-                                        <label className="mb-1 block text-xs font-semibold text-[#7B7B7B]">Hasta (Fecha de adquisición):</label>
+                                        <label className="mb-1 block text-xs font-semibold text-[#7B7B7B]">Hasta:</label>
                                         <input 
                                             type="date" 
                                             value={endDate} 
@@ -287,16 +277,11 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
                                             <td className="px-5 py-4 text-sm font-medium text-[#111827]">{sub.user?.name ?? '-'}</td>
                                             <td className="px-5 py-4 text-sm text-[#7B7B7B]">{sub.user?.direction ?? '-'}</td>
                                             <td className="px-5 py-4">
-                                                {(() => {
-                                                    const st = subscriptionStatusPresentation(sub.estado);
-                                                    return (
-                                                        <span
-                                                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${subscriptionStatusBadgeClass(st.tone)}`}
-                                                        >
-                                                            {st.label}
-                                                        </span>
-                                                    );
-                                                })()}
+                                                <span
+                                                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${subscriptionStatusBadgeClass(sub.estado_color)}`}
+                                                >
+                                                    {sub.estado_label}
+                                                </span>
                                             </td>
                                         </tr>
                                     ))
@@ -319,16 +304,11 @@ export default function Subscriptions({ suscripciones, filters }: Props) {
                                     <div key={sub.id} className="flex flex-col py-[18px] px-5 gap-3">
                                         <div className="flex justify-between items-center bg-white">
                                             <span className="text-[13.5px] font-medium text-[#4B5563]">#{sub.id}</span>
-                                            {(() => {
-                                                const st = subscriptionStatusPresentation(sub.estado);
-                                                return (
-                                                    <span
-                                                        className={`inline-flex items-center rounded px-[10px] py-[3px] text-[11.5px] font-medium tracking-wide ${subscriptionStatusBadgeClass(st.tone, true)}`}
-                                                    >
-                                                        {st.label}
-                                                    </span>
-                                                );
-                                            })()}
+                                            <span
+                                                className={`inline-flex items-center rounded px-[10px] py-[3px] text-[11.5px] font-medium tracking-wide ${subscriptionStatusBadgeClass(sub.estado_color, true)}`}
+                                            >
+                                                {sub.estado_label}
+                                            </span>
                                         </div>
                                         <div className="-mt-1 text-[13.5px] font-medium text-[#111827]">
                                             {sub.historia?.nombre ?? '-'}

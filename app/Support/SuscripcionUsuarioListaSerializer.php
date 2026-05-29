@@ -17,10 +17,10 @@ final class SuscripcionUsuarioListaSerializer
     public static function estadoPresentacion(string $estado): array
     {
         return match ($estado) {
-            'activa' => ['label' => 'Completado', 'color' => 'success'],
-            'inactiva' => ['label' => 'Rechazado', 'color' => 'danger'],
+            'activa' => ['label' => 'Activo', 'color' => 'success'],
+            'inactiva' => ['label' => 'Inactivo', 'color' => 'danger'],
             'pendiente' => ['label' => 'Pendiente', 'color' => 'warning'],
-            default => ['label' => 'Rechazado', 'color' => 'danger'],
+            default => ['label' => 'Inactivo', 'color' => 'danger'],
         };
     }
 

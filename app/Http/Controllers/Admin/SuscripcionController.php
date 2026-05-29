@@ -6,6 +6,7 @@ use App\Exports\Admin\SuscripcionesExport;
 use App\Http\Controllers\Controller;
 use App\Models\Suscripcion;
 use App\Services\Admin\ExportService;
+use App\Support\SuscripcionUsuarioListaSerializer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -44,6 +45,32 @@ class SuscripcionController extends Controller
         }
 
         $suscripciones = $query->latest()->paginate(10)->withQueryString();
+
+        $suscripciones->through(function (Suscripcion $suscripcion): array {
+            $presentacion = SuscripcionUsuarioListaSerializer::estadoPresentacion((string) $suscripcion->estado);
+
+            return [
+                'id' => $suscripcion->id,
+                'user' => $suscripcion->user ? [
+                    'id' => $suscripcion->user->id,
+                    'name' => $suscripcion->user->name,
+                    'email' => $suscripcion->user->email,
+                    'direction' => $suscripcion->user->direction,
+                ] : null,
+                'historia' => $suscripcion->historia ? [
+                    'id' => $suscripcion->historia->id,
+                    'nombre' => $suscripcion->historia->nombre,
+                ] : null,
+                'cantidad' => $suscripcion->cantidad,
+                'tipo' => (string) $suscripcion->tipo,
+                'fecha_adquisicion' => $suscripcion->fecha_adquisicion?->format('Y-m-d') ?? '',
+                'fecha_finalizacion' => $suscripcion->fecha_finalizacion?->format('Y-m-d') ?? '',
+                'proximo_cobro' => $suscripcion->proximo_cobro?->format('Y-m-d') ?? '',
+                'estado' => (string) $suscripcion->estado,
+                'estado_label' => $presentacion['label'],
+                'estado_color' => $presentacion['color'],
+            ];
+        });
 
         return Inertia::render('admin/subscriptions', [
             'suscripciones' => $suscripciones,

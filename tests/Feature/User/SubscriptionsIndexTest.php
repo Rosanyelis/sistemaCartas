@@ -39,7 +39,7 @@ test('cliente ve sus suscripciones desde la base de datos', function (): void {
             ->where('suscripciones.0.id', '#'.$sub->id)
             ->where('suscripciones.0.suscripcion_id', $sub->id)
             ->where('suscripciones.0.historia', 'Historia única panel')
-            ->where('suscripciones.0.estado', 'Completado')
+            ->where('suscripciones.0.estado', 'Activo')
             ->where('suscripciones.0.es_activa', true));
 });
 
