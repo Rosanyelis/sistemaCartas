@@ -4,9 +4,11 @@ namespace Database\Seeders;
 
 use App\Models\Historia;
 use App\Models\HistoriaCategoria;
+use App\Models\HistoriaGaleria;
 use App\Models\PasarelaEvento;
 use App\Models\Producto;
 use App\Models\ProductoCategoria;
+use App\Models\ProductoGaleria;
 use App\Models\ProductoSubcategoria;
 use App\Models\StoreOrder;
 use App\Models\StoreOrderItem;
@@ -14,10 +16,11 @@ use App\Models\Suscripcion;
 use App\Models\User;
 use App\Support\Demo\DemoStoreOrderFactory;
 use App\Support\HistoriaSuscripcionPrecio;
+use Database\Seeders\Support\HistoriaSeederImagenes;
+use Database\Seeders\Support\ProductoSeederImagenes;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 /**
@@ -25,7 +28,10 @@ use RuntimeException;
  *
  * Ejecución manual (no se invoca desde DatabaseSeeder por defecto):
  *   php artisan demo:seed-dashboard
- *   php artisan demo:seed-dashboard --year=2026 --month=5 --force
+ *   php artisan demo:seed-dashboard --year=2026 --force
+ *
+ * Las compras demo se reparten entre el 1 de abril y el 3 de junio del año indicado (por defecto 2026).
+ * La opción --month del comando se ignora (rango fijo abr–3 jun).
  *
  * Credenciales clientes demo: demo-cliente-{n}@historiasporcorreo.test / password
  */
@@ -41,11 +47,23 @@ class DashboardDemoDataSeeder extends Seeder
 
     public const int DEMO_SUBSCRIPTIONS = 45;
 
+    /** Órdenes pagadas demo por tramo (abr / may / jun 1–3). */
+    public const int DEMO_ORDERS_APRIL = 20;
+
+    public const int DEMO_ORDERS_MAY = 25;
+
+    public const int DEMO_ORDERS_JUNE = 5;
+
+    /** Suscripciones demo por tramo (abr / may / jun 1–3). */
+    public const int DEMO_SUBSCRIPTIONS_APRIL = 18;
+
+    public const int DEMO_SUBSCRIPTIONS_MAY = 22;
+
+    public const int DEMO_SUBSCRIPTIONS_JUNE = 5;
+
     public bool $force = false;
 
     private int $year = 2026;
-
-    private int $month = 5;
 
     /** @var list<User> */
     private array $clientes = [];
@@ -65,7 +83,6 @@ class DashboardDemoDataSeeder extends Seeder
         }
 
         $this->year = (int) (env('DEMO_DATA_YEAR') ?: $this->year);
-        $this->month = (int) (env('DEMO_DATA_MONTH') ?: $this->month);
 
         if ($this->shouldSkip()) {
             $this->command?->warn(
@@ -85,21 +102,22 @@ class DashboardDemoDataSeeder extends Seeder
         $this->seedSuscripciones();
 
         $this->command?->info(sprintf(
-            'Dashboard demo: %d clientes, %d productos, %d historias, %d órdenes, %d suscripciones (%s %d).',
+            'Dashboard demo: %d clientes, %d productos, %d historias, %d órdenes, %d suscripciones (compras entre abril y 3 de junio de %d).',
             self::DEMO_CLIENTS,
             self::DEMO_PRODUCTS,
             self::DEMO_STORIES,
             self::DEMO_PAID_ORDERS,
             self::DEMO_SUBSCRIPTIONS,
-            $this->monthName(),
             $this->year,
         ));
     }
 
-    public function configure(int $year, int $month, bool $force = false): self
+    /**
+     * @param  int|null  $month  Ignorado (compatibilidad); el rango de fechas es fijo abr–3 jun.
+     */
+    public function configure(int $year, ?int $month = null, bool $force = false): self
     {
         $this->year = $year;
-        $this->month = $month;
         $this->force = $force;
 
         return $this;
@@ -178,7 +196,7 @@ class DashboardDemoDataSeeder extends Seeder
         $this->clientes = [];
 
         for ($i = 1; $i <= self::DEMO_CLIENTS; $i++) {
-            $createdAt = $this->randomDateInTargetMonth();
+            $createdAt = $this->randomDateInDemoPeriod();
 
             $user = new User([
                 'name' => "Cliente demo {$i}",
@@ -206,13 +224,13 @@ class DashboardDemoDataSeeder extends Seeder
         $this->productos = [];
 
         for ($i = 1; $i <= self::DEMO_PRODUCTS; $i++) {
-            $createdAt = $this->randomDateInTargetMonth();
+            $createdAt = $this->randomDateInDemoPeriod();
 
             $producto = Producto::query()->create([
                 'nombre' => "Producto demo {$i}",
                 'slug' => "demo-producto-{$i}",
                 'codigo' => '#DEMO-P-'.str_pad((string) $i, 4, '0', STR_PAD_LEFT),
-                'imagen' => 'https://picsum.photos/seed/demo-producto-'.$i.'/400/400',
+                'imagen' => ProductoSeederImagenes::randomMainImagePath(),
                 'descripcion_corta' => 'Producto de demostración para el panel admin.',
                 'descripcion_larga' => 'Descripción larga del producto demo '.$i.'.',
                 'detalle' => [
@@ -233,6 +251,15 @@ class DashboardDemoDataSeeder extends Seeder
             $producto->updated_at = $createdAt;
             $producto->save();
 
+            foreach (ProductoSeederImagenes::secondaryGalleryPaths($i - 1) as $path) {
+                ProductoGaleria::query()->create([
+                    'producto_id' => $producto->id,
+                    'path' => $path,
+                    'tipo' => 'imagen',
+                    'es_principal' => false,
+                ]);
+            }
+
             $this->productos[] = $producto;
         }
     }
@@ -244,14 +271,14 @@ class DashboardDemoDataSeeder extends Seeder
         $this->historias = [];
 
         for ($i = 1; $i <= self::DEMO_STORIES; $i++) {
-            $createdAt = $this->randomDateInTargetMonth();
+            $createdAt = $this->randomDateInDemoPeriod();
             $duracionMeses = fake()->numberBetween(6, 12);
 
             $historia = Historia::query()->create([
                 'nombre' => "Historia demo {$i}",
                 'slug' => "demo-historia-{$i}",
                 'codigo' => '#DEMO-H-'.str_pad((string) $i, 4, '0', STR_PAD_LEFT),
-                'imagen' => 'https://picsum.photos/seed/demo-historia-'.$i.'/400/400',
+                'imagen' => HistoriaSeederImagenes::mainImagePathForIndex($i - 1),
                 'descripcion_corta' => 'Historia de demostración para métricas del dashboard.',
                 'descripcion_larga' => 'Descripción larga de la historia demo '.$i.'.',
                 'detalle' => [
@@ -275,17 +302,32 @@ class DashboardDemoDataSeeder extends Seeder
             $historia->updated_at = $createdAt;
             $historia->save();
 
+            foreach (HistoriaSeederImagenes::secondaryGalleryPaths($i - 1) as $path) {
+                HistoriaGaleria::query()->create([
+                    'historia_id' => $historia->id,
+                    'path' => $path,
+                    'tipo' => 'imagen',
+                    'es_principal' => false,
+                ]);
+            }
+
             $this->historias[] = $historia;
         }
     }
 
     private function seedOrdenesProducto(): void
     {
+        $segments = $this->shuffledDemoSegments(
+            self::DEMO_ORDERS_APRIL,
+            self::DEMO_ORDERS_MAY,
+            self::DEMO_ORDERS_JUNE,
+        );
+
         for ($i = 1; $i <= self::DEMO_PAID_ORDERS; $i++) {
             $producto = $this->productos[array_rand($this->productos)];
             $cliente = $this->clientes[array_rand($this->clientes)];
             $lineTotal = fake()->randomFloat(2, 10, 150);
-            $createdAt = $this->randomDateInTargetMonth();
+            $createdAt = $this->randomDateInDemoSegment($segments[$i - 1]);
 
             DemoStoreOrderFactory::createPaidProductOrder(
                 $producto,
@@ -299,10 +341,16 @@ class DashboardDemoDataSeeder extends Seeder
 
     private function seedSuscripciones(): void
     {
+        $segments = $this->shuffledDemoSegments(
+            self::DEMO_SUBSCRIPTIONS_APRIL,
+            self::DEMO_SUBSCRIPTIONS_MAY,
+            self::DEMO_SUBSCRIPTIONS_JUNE,
+        );
+
         for ($i = 1; $i <= self::DEMO_SUBSCRIPTIONS; $i++) {
             $cliente = $this->clientes[array_rand($this->clientes)];
             $historia = $this->historias[array_rand($this->historias)];
-            $createdAt = $this->randomDateInTargetMonth();
+            $createdAt = $this->randomDateInDemoSegment($segments[$i - 1]);
 
             $fechaAdquisicion = $createdAt->toDateString();
             $mesesEntregaTotal = HistoriaSuscripcionPrecio::mesesEntregaTotal($historia);
@@ -344,19 +392,62 @@ class DashboardDemoDataSeeder extends Seeder
         }
     }
 
-    private function randomDateInTargetMonth(): Carbon
+    private function demoPeriodStart(): Carbon
+    {
+        return Carbon::create($this->year, 4, 1)->startOfDay();
+    }
+
+    private function demoPeriodEnd(): Carbon
+    {
+        return Carbon::create($this->year, 6, 3)->endOfDay();
+    }
+
+    private function randomDateInDemoPeriod(): Carbon
+    {
+        $start = $this->demoPeriodStart();
+        $end = $this->demoPeriodEnd();
+        $timestamp = fake()->numberBetween($start->timestamp, $end->timestamp);
+
+        return Carbon::createFromTimestamp($timestamp)
+            ->setTime(
+                fake()->numberBetween(8, 20),
+                fake()->numberBetween(0, 59),
+            );
+    }
+
+    private function randomDateInDemoSegment(string $segment): Carbon
+    {
+        return match ($segment) {
+            'april' => $this->randomDateInDemoMonth(4, 1, 30),
+            'may' => $this->randomDateInDemoMonth(5, 1, 31),
+            'june' => $this->randomDateInDemoMonth(6, 1, 3),
+            default => $this->randomDateInDemoPeriod(),
+        };
+    }
+
+    private function randomDateInDemoMonth(int $month, int $dayMin, int $dayMax): Carbon
     {
         return Carbon::create(
             $this->year,
-            $this->month,
-            fake()->numberBetween(1, 28),
+            $month,
+            fake()->numberBetween($dayMin, $dayMax),
             fake()->numberBetween(8, 20),
             fake()->numberBetween(0, 59),
         );
     }
 
-    private function monthName(): string
+    /**
+     * @return list<string>
+     */
+    private function shuffledDemoSegments(int $aprilCount, int $mayCount, int $juneCount): array
     {
-        return Str::ucfirst(Carbon::create($this->year, $this->month, 1)->locale('es')->monthName);
+        $segments = array_merge(
+            array_fill(0, $aprilCount, 'april'),
+            array_fill(0, $mayCount, 'may'),
+            array_fill(0, $juneCount, 'june'),
+        );
+        shuffle($segments);
+
+        return $segments;
     }
 }

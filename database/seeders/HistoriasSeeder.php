@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Historia;
 use App\Models\HistoriaCategoria;
+use Database\Seeders\Support\HistoriaSeederImagenes;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
@@ -105,7 +106,7 @@ class HistoriasSeeder extends Seeder
             ],
         ];
 
-        foreach ($historias as $data) {
+        foreach ($historias as $index => $data) {
             $categoriaNombre = $data['categoria'];
             unset($data['categoria']);
 
@@ -124,7 +125,7 @@ class HistoriasSeeder extends Seeder
                 [
                     ...$data,
                     'historia_categoria_id' => $categoriaId,
-                    'imagen' => '/images/placeholder.svg',
+                    'imagen' => HistoriaSeederImagenes::mainImagePathForIndex($index),
                     'video' => null,
                     'impuesto' => 16.00,
                     'peso' => '0.3kg',

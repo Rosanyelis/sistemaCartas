@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Producto;
 use App\Models\ProductoCategoria;
 use App\Models\ProductoSubcategoria;
+use Database\Seeders\Support\ProductoSeederImagenes;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -50,7 +51,6 @@ class ProductosSeeder extends Seeder
                     ['icon' => 'Package', 'title' => 'Incluye set completo', 'description' => 'Listo para usar desde el primer día.'],
                     ['icon' => 'ShieldCheck', 'title' => 'Material durable', 'description' => 'Sello metálico de alta resistencia.'],
                 ],
-                'imagen' => '/images/placeholder.svg',
                 'video' => null,
                 'peso' => '0.5kg',
                 'dimensiones' => '18x12x5',
@@ -71,7 +71,6 @@ class ProductosSeeder extends Seeder
                     ['icon' => 'PenTool', 'title' => 'Trazo fino y fluido', 'description' => 'Punta diseñada para precisión constante.'],
                     ['icon' => 'Gift', 'title' => 'Estuche incluido', 'description' => 'Presentación lista para regalo.'],
                 ],
-                'imagen' => '/images/placeholder.svg',
                 'video' => null,
                 'peso' => '0.2kg',
                 'dimensiones' => '16x4x3',
@@ -92,7 +91,6 @@ class ProductosSeeder extends Seeder
                     ['icon' => 'Scissors', 'title' => 'Corte preciso', 'description' => 'Abre sobres sin romper bordes.'],
                     ['icon' => 'Star', 'title' => 'Acabado premium', 'description' => 'Tono bronce envejecido.'],
                 ],
-                'imagen' => '/images/placeholder.svg',
                 'video' => null,
                 'peso' => '0.3kg',
                 'dimensiones' => '22x3x2',
@@ -113,7 +111,6 @@ class ProductosSeeder extends Seeder
                     ['icon' => 'Crown', 'title' => 'Edición limitada', 'description' => 'Disponibilidad reducida por temporada.'],
                     ['icon' => 'Archive', 'title' => 'Incluye certificado', 'description' => 'Numeración individual en cada set.'],
                 ],
-                'imagen' => '/images/placeholder.svg',
                 'video' => null,
                 'peso' => '0.9kg',
                 'dimensiones' => '26x18x6',
@@ -134,7 +131,6 @@ class ProductosSeeder extends Seeder
                     ['icon' => 'Inbox', 'title' => 'Organización práctica', 'description' => 'Capacidad para sobres y tarjetas.'],
                     ['icon' => 'Palette', 'title' => 'Diseño sobrio', 'description' => 'Combina con espacios clásicos y modernos.'],
                 ],
-                'imagen' => '/images/placeholder.svg',
                 'video' => null,
                 'peso' => '0.7kg',
                 'dimensiones' => '30x20x4',
@@ -155,7 +151,6 @@ class ProductosSeeder extends Seeder
                     ['icon' => 'Gift', 'title' => 'Presentación elegante', 'description' => 'Lista para entregar como obsequio.'],
                     ['icon' => 'Shield', 'title' => 'Protección extra', 'description' => 'Resguarda piezas delicadas durante el transporte.'],
                 ],
-                'imagen' => '/images/placeholder.svg',
                 'video' => null,
                 'peso' => '0.4kg',
                 'dimensiones' => '24x18x7',
@@ -178,7 +173,7 @@ class ProductosSeeder extends Seeder
                 [
                     'nombre' => $data['nombre'],
                     'codigo' => $data['codigo'],
-                    'imagen' => $data['imagen'],
+                    'imagen' => ProductoSeederImagenes::randomMainImagePath(),
                     'video' => $data['video'],
                     'descripcion_corta' => $data['descripcion_corta'],
                     'descripcion_larga' => $data['descripcion_larga'],
