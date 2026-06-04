@@ -6,6 +6,8 @@ export type CatalogGridPaginationData = {
     last_page: number;
     prev_page_url?: string | null;
     next_page_url?: string | null;
+    first_page_url?: string | null;
+    path?: string;
     links: Array<{ url: string | null; label: string; active: boolean }>;
 };
 
@@ -19,53 +21,61 @@ export type CatalogGridPaginationProps = {
 
 function stripHtmlTags(html: string): string {
     return html
-        .replace(/&laquo;/g, '«')
-        .replace(/&raquo;/g, '»')
-        .replace(/&hellip;/g, '…')
+        .replace(/&laquo;/g, '')
+        .replace(/&raquo;/g, '')
+        .replace(/&hellip;/g, '')
         .replace(/&amp;/g, '&')
         .replace(/<[^>]*>/g, '')
         .trim();
 }
 
-function isNavigationLink(label: string): boolean {
-    const lab = stripHtmlTags(label).replace(/«|»/g, '').trim();
-
-    return lab === 'Previous' || lab === 'Next';
-}
-
-function findNavUrl(
-    links: CatalogGridPaginationData['links'],
-    direction: 'prev' | 'next',
+/**
+ * URL de página sin usar el texto visible del enlace (evita "pagination.previous", etc.).
+ */
+function resolvePageUrl(
+    pagination: CatalogGridPaginationData,
+    page: number,
 ): string | null {
-    const link = links.find((item) => {
-        const lab = stripHtmlTags(item.label).toLowerCase();
+    if (page < 1 || page > pagination.last_page) {
+        return null;
+    }
 
-        if (direction === 'prev') {
-            return lab.includes('previous') || lab === '«';
+    const fromLinks = pagination.links.find((item) => {
+        if (!item.url) {
+            return false;
         }
 
-        return lab.includes('next') || lab === '»';
+        const n = Number.parseInt(stripHtmlTags(item.label), 10);
+
+        return Number.isFinite(n) && n === page;
     });
 
-    return link?.url ?? null;
+    if (fromLinks?.url) {
+        return fromLinks.url;
+    }
+
+    const template =
+        pagination.links.find((item) => item.url)?.url ??
+        pagination.first_page_url ??
+        null;
+
+    if (!template) {
+        return null;
+    }
+
+    try {
+        const target = new URL(template, 'http://local');
+        target.searchParams.set('page', String(page));
+
+        return `${target.pathname}${target.search}`;
+    } catch {
+        return null;
+    }
 }
 
-function resolveNavUrls(pagination: CatalogGridPaginationData): {
-    prev: string | null;
-    next: string | null;
-} {
-    return {
-        prev:
-            pagination.prev_page_url ??
-            findNavUrl(pagination.links, 'prev'),
-        next:
-            pagination.next_page_url ??
-            findNavUrl(pagination.links, 'next'),
-    };
+function pageNumbers(lastPage: number): number[] {
+    return Array.from({ length: lastPage }, (_, index) => index + 1);
 }
-
-const numberLinks = (pagination: CatalogGridPaginationData) =>
-    pagination.links.filter((link) => !isNavigationLink(link.label));
 
 export default function CatalogGridPagination({
     pagination,
@@ -77,8 +87,9 @@ export default function CatalogGridPagination({
         return null;
     }
 
-    const { prev, next } = resolveNavUrls(pagination);
-    const pages = numberLinks(pagination);
+    const prev = pagination.prev_page_url ?? null;
+    const next = pagination.next_page_url ?? null;
+    const pages = pageNumbers(pagination.last_page);
 
     return (
         <nav
@@ -109,36 +120,37 @@ export default function CatalogGridPagination({
             )}
 
             <div className="flex min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto scrollbar-hide font-['Inter',sans-serif] text-[15px] font-normal sm:gap-3 sm:text-[16px]">
-                {pages.map((link, idx) => {
-                    const labelText = stripHtmlTags(link.label);
+                {pages.map((page) => {
+                    const url = resolvePageUrl(pagination, page);
+                    const isActive = page === pagination.current_page;
 
-                    if (link.url) {
+                    if (url && !isActive) {
                         return (
                             <Link
-                                key={`${link.label}-${idx}`}
-                                href={link.url}
+                                key={page}
+                                href={url}
                                 preserveScroll
                                 preserveState
                                 only={inertiaOnly}
-                                className={cn(
-                                    'flex h-10 min-w-[2.25rem] shrink-0 items-center justify-center rounded-lg px-2 transition-colors',
-                                    link.active
-                                        ? 'bg-[#1B3D6D] font-semibold text-white'
-                                        : 'text-[#637381] hover:text-[#1B3D6D]',
-                                )}
-                                aria-current={link.active ? 'page' : undefined}
+                                className="flex h-10 min-w-[2.25rem] shrink-0 items-center justify-center rounded-lg px-2 text-[#637381] transition-colors hover:text-[#1B3D6D]"
                             >
-                                {labelText}
+                                {page}
                             </Link>
                         );
                     }
 
                     return (
                         <span
-                            key={`${link.label}-${idx}`}
-                            className="shrink-0 px-1.5 text-[#637381] select-none"
+                            key={page}
+                            className={cn(
+                                'flex h-10 min-w-[2.25rem] shrink-0 items-center justify-center rounded-lg px-2',
+                                isActive
+                                    ? 'bg-[#1B3D6D] font-semibold text-white'
+                                    : 'text-[#637381] select-none',
+                            )}
+                            aria-current={isActive ? 'page' : undefined}
                         >
-                            {labelText}
+                            {page}
                         </span>
                     );
                 })}
