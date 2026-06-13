@@ -22,39 +22,6 @@ function stripHtmlForWordCount(html: string): string {
     return html.replace(/<[^>]*>/g, ' ');
 }
 
-function extractYoutubeEmbedUrl(url: string): string | null {
-    try {
-        const u = new URL(url);
-
-        if (u.hostname === 'youtu.be') {
-            const id = u.pathname.replace(/^\//, '');
-
-            return id ? `https://www.youtube.com/embed/${id}` : null;
-        }
-
-        if (
-            u.hostname === 'www.youtube.com' ||
-            u.hostname === 'youtube.com'
-        ) {
-            const v = u.searchParams.get('v');
-
-            if (v) {
-                return `https://www.youtube.com/embed/${v}`;
-            }
-
-            const m = u.pathname.match(/^\/embed\/([^/]+)/);
-
-            if (m?.[1]) {
-                return `https://www.youtube.com/embed/${m[1]}`;
-            }
-        }
-    } catch {
-        return null;
-    }
-
-    return null;
-}
-
 /**
  * CartProvider envuelve la app en `app.tsx` / `ssr.tsx`; el contenido sigue dentro de ClienteLayout por UI.
  */
@@ -103,11 +70,6 @@ function DetalleProductoContent() {
             ? null
             : Number(product.old_price);
     const total = (Number.isFinite(price) ? price * quantity : 0).toFixed(2);
-
-    const youtubeEmbed =
-        product.video && product.video.trim() !== ''
-            ? extractYoutubeEmbedUrl(product.video.trim())
-            : null;
 
     const inStock = product.in_stock !== false;
 
@@ -365,33 +327,6 @@ function DetalleProductoContent() {
                             )}
                         </div>
                     </section>
-
-                    {product.video && product.video.trim() !== '' && (
-                        <section className="border-b-[0.5px] border-[#F2F2F2] px-3 py-10 lg:px-[72px]">
-                            <h2 className="mb-4 font-['Playfair_Display',serif] text-[24px] font-semibold text-[#1B3D6D] lg:text-[28px]">
-                                Vídeo del producto
-                            </h2>
-                            <div className="aspect-video w-full max-w-[900px] overflow-hidden rounded-[2px] bg-black/5">
-                                {youtubeEmbed ? (
-                                    <iframe
-                                        title={`Vídeo: ${product.name}`}
-                                        src={youtubeEmbed}
-                                        className="h-full w-full"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    />
-                                ) : (
-                                    <video
-                                        controls
-                                        className="h-full w-full"
-                                        src={product.video}
-                                    >
-                                        Tu navegador no reproduce vídeo HTML5.
-                                    </video>
-                                )}
-                            </div>
-                        </section>
-                    )}
 
                     <section className="flex flex-col items-center gap-11 border-b-[0.5px] border-[#F2F2F2] px-3 py-12 lg:items-start lg:px-[72px] lg:py-[70px]">
                         <div className="flex flex-col items-start gap-1">

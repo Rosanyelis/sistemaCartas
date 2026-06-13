@@ -60,7 +60,7 @@ export function ProductoMultimediaPanel({
 
             <div className="flex flex-col gap-2">
                 <label htmlFor={fieldIds.imagen} className="text-[13px] font-semibold text-[#1B3D6D]">
-                    Imagen principal (JPG, PNG, máx 2MB)
+                    Imagen principal (JPG/PNG, máx. 5 MB, se guardará como WebP)
                 </label>
                 <div
                     className="relative flex h-40 w-full items-center justify-center overflow-hidden rounded-md border-2 border-dashed border-[#DFE4EA] bg-[#F9FAFB]"

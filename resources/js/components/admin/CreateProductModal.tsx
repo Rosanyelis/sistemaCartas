@@ -5,7 +5,7 @@ import type { ChangeEvent, FormEvent, MouseEvent } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
 import { ProductoMultimediaPanel } from '@/components/admin/create-product/ProductoMultimediaPanel';
-import { pickGalleryFiles } from '@/components/admin/constants/media-limits';
+import { pickGalleryFiles, validateMediaFileSize, MAX_IMAGEN_BYTES, MENSAJE_MAX_IMAGEN } from '@/components/admin/constants/media-limits';
 import { MAX_PALABRAS_TEXTO_LARGO } from '@/components/admin/create-story/constants';
 import { normalizeDetalleInclusiones } from '@/components/admin/create-story/formDefaults';
 import { HistoriaDetalleInclusionsEditor } from '@/components/admin/create-story/HistoriaDetalleInclusionsEditor';
@@ -43,7 +43,6 @@ export type ProductoModalFormData = {
     dimensiones: string;
     estado: string;
     imagen: File | null;
-    video: File | null;
     galeria: File[];
     producto_gallery_sync?: boolean;
     galeria_keep_ids?: number[];
@@ -70,7 +69,6 @@ type ProductoFormularioJson = {
     codigo: string;
     stock: number;
     imagen: string;
-    video?: string;
     peso: string;
     dimensiones: string;
     estado: string;
@@ -115,7 +113,6 @@ export function CreateProductModal({
             dimensiones: '',
             estado: 'activo',
             imagen: null,
-            video: null,
             galeria: [],
         }),
         [],
@@ -131,6 +128,7 @@ export function CreateProductModal({
     const [stockInput, setStockInput] = useState('0');
     const [galleryItems, setGalleryItems] = useState<GallerySlot[]>([]);
     const [galeriaLimitMessage, setGaleriaLimitMessage] = useState<string | null>(null);
+    const [imagenClientError, setImagenClientError] = useState<string | null>(null);
     const [richEditors, setRichEditors] = useState<{
         seed: number;
         descripcion_larga: string;
@@ -274,7 +272,6 @@ export function CreateProductModal({
                     codigo: payload.codigo,
                     stock: payload.stock,
                     imagen: null,
-                    video: null,
                     galeria: [],
                     peso: payload.peso ?? '',
                     dimensiones: payload.dimensiones ?? '',
@@ -337,11 +334,23 @@ export function CreateProductModal({
 
     const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        e.target.value = '';
 
         if (!file) {
             return;
         }
 
+        const sizeError = validateMediaFileSize(
+            file,
+            MAX_IMAGEN_BYTES,
+            MENSAJE_MAX_IMAGEN,
+        );
+        if (sizeError) {
+            setImagenClientError(sizeError);
+            return;
+        }
+
+        setImagenClientError(null);
         setData('imagen', file);
         const reader = new FileReader();
         reader.onloadend = () => {
@@ -362,6 +371,18 @@ export function CreateProductModal({
 
         if (slice.length === 0) {
             return;
+        }
+
+        for (const file of slice) {
+            const sizeError = validateMediaFileSize(
+                file,
+                MAX_IMAGEN_BYTES,
+                MENSAJE_MAX_IMAGEN,
+            );
+            if (sizeError) {
+                setGaleriaLimitMessage(sizeError);
+                return;
+            }
         }
 
         void Promise.all(
@@ -795,7 +816,7 @@ export function CreateProductModal({
                                     onRemoveGalleryImage={removeGalleryImage}
                                     galeriaLimitMessage={galeriaLimitMessage}
                                     errors={{
-                                        imagen: errors.imagen,
+                                        imagen: imagenClientError ?? errors.imagen,
                                         galeria: errors.galeria,
                                         estado: errors.estado,
                                     }}

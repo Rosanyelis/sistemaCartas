@@ -12,7 +12,7 @@ test('un admin puede obtener el json de formulario de un producto', function () 
     $response->assertOk()
         ->assertJsonPath('nombre', $producto->nombre)
         ->assertJsonPath('codigo', $producto->codigo)
-        ->assertJsonPath('video', $producto->video ?? '')
+        ->assertJsonMissingPath('video')
         ->assertJsonStructure([
             'galeria',
         ]);

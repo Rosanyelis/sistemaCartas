@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\HistoriaVarianteTipo;
+use App\Exceptions\MediaCompressionException;
 use App\Exports\Admin\HistoriasExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreHistoriaRequest;
@@ -10,6 +11,8 @@ use App\Http\Requests\Admin\UpdateHistoriaRequest;
 use App\Models\Historia;
 use App\Models\HistoriaCategoria;
 use App\Services\Admin\ExportService;
+use App\Services\Media\HistoriaVideoStorageService;
+use App\Services\Media\WebpImageStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -50,12 +53,15 @@ class HistoriaController extends Controller
         ]);
     }
 
-    public function store(StoreHistoriaRequest $request): RedirectResponse
-    {
+    public function store(
+        StoreHistoriaRequest $request,
+        WebpImageStorageService $webpStorage,
+        HistoriaVideoStorageService $videoStorage,
+    ): RedirectResponse {
         Gate::authorize('create', Historia::class);
 
         try {
-            return DB::transaction(function () use ($request) {
+            return DB::transaction(function () use ($request, $webpStorage, $videoStorage) {
                 $data = $request->validated();
                 unset($data['galeria']);
                 $data['slug'] = Str::slug($data['nombre']).'-'.Str::random(5);
@@ -64,19 +70,16 @@ class HistoriaController extends Controller
                     $data['fecha_publicacion'] = now();
                 }
 
-                // Manejo de imagen
                 if ($request->hasFile('imagen')) {
-                    $data['imagen'] = '/storage/'.$request->file('imagen')->store('historias/imagenes', 'public');
+                    $data['imagen'] = $webpStorage->store($request->file('imagen'), 'historias/imagenes');
                 }
 
-                // Manejo de video
                 if ($request->hasFile('video')) {
-                    $data['video'] = '/storage/'.$request->file('video')->store('historias/videos', 'public');
+                    $data['video'] = $videoStorage->store($request->file('video'), 'historias/videos');
                 }
 
                 $historia = Historia::query()->create($data);
 
-                // Guardar variantes (tipo: papel | color, valor texto)
                 if (! empty($data['variantes'])) {
                     foreach ($data['variantes'] as $variante) {
                         if (! is_array($variante)) {
@@ -86,10 +89,9 @@ class HistoriaController extends Controller
                     }
                 }
 
-                // Guardar galería
                 if ($request->hasFile('galeria')) {
                     foreach ($request->file('galeria') as $imageFile) {
-                        $pt = '/storage/'.$imageFile->store('historias/galeria', 'public');
+                        $pt = $webpStorage->store($imageFile, 'historias/galeria');
                         $historia->galeria()->create([
                             'path' => $pt,
                             'tipo' => 'imagen',
@@ -98,7 +100,6 @@ class HistoriaController extends Controller
                     }
                 }
 
-                // Registrar la imagen principal también en la galería para coherencia
                 if (isset($data['imagen'])) {
                     $historia->galeria()->create([
                         'path' => $data['imagen'],
@@ -109,6 +110,8 @@ class HistoriaController extends Controller
 
                 return redirect()->route('admin.historias')->with('success', 'Historia creada exitosamente.');
             });
+        } catch (MediaCompressionException $e) {
+            return back()->withErrors($this->mediaCompressionErrors($request, $e))->withInput();
         } catch (\Throwable $e) {
             report($e);
 
@@ -116,12 +119,16 @@ class HistoriaController extends Controller
         }
     }
 
-    public function update(UpdateHistoriaRequest $request, Historia $historia): RedirectResponse
-    {
+    public function update(
+        UpdateHistoriaRequest $request,
+        Historia $historia,
+        WebpImageStorageService $webpStorage,
+        HistoriaVideoStorageService $videoStorage,
+    ): RedirectResponse {
         Gate::authorize('update', $historia);
 
         try {
-            return DB::transaction(function () use ($request, $historia) {
+            return DB::transaction(function () use ($request, $historia, $webpStorage, $videoStorage) {
                 $data = $request->validated();
                 $syncGallery = $request->boolean('historia_gallery_sync');
                 $keepIds = collect($data['galeria_keep_ids'] ?? [])
@@ -132,22 +139,18 @@ class HistoriaController extends Controller
 
                 unset($data['galeria'], $data['galeria_keep_ids'], $data['historia_gallery_sync']);
 
-                // Manejo de imagen
                 if ($request->hasFile('imagen')) {
-                    // Eliminar antigua si existe
                     if ($historia->imagen) {
                         Storage::disk('public')->delete(str_replace('/storage/', '', $historia->imagen));
                     }
-                    $data['imagen'] = '/storage/'.$request->file('imagen')->store('historias/imagenes', 'public');
+                    $data['imagen'] = $webpStorage->store($request->file('imagen'), 'historias/imagenes');
                 }
 
-                // Manejo de video
                 if ($request->hasFile('video')) {
-                    // Eliminar antiguo si existe
                     if ($historia->video) {
                         Storage::disk('public')->delete(str_replace('/storage/', '', $historia->video));
                     }
-                    $data['video'] = '/storage/'.$request->file('video')->store('historias/videos', 'public');
+                    $data['video'] = $videoStorage->store($request->file('video'), 'historias/videos');
                 }
 
                 // Sin archivo nuevo: no pisar columnas (multipart suele mandar `imagen`/`video` como null validados).
@@ -189,7 +192,7 @@ class HistoriaController extends Controller
 
                 if ($request->hasFile('galeria')) {
                     foreach ($request->file('galeria') as $imageFile) {
-                        $pt = '/storage/'.$imageFile->store('historias/galeria', 'public');
+                        $pt = $webpStorage->store($imageFile, 'historias/galeria');
                         $historia->galeria()->create([
                             'path' => $pt,
                             'tipo' => 'imagen',
@@ -210,6 +213,8 @@ class HistoriaController extends Controller
 
                 return redirect()->route('admin.historias')->with('success', 'Historia actualizada exitosamente.');
             });
+        } catch (MediaCompressionException $e) {
+            return back()->withErrors($this->mediaCompressionErrors($request, $e))->withInput();
         } catch (\Throwable $e) {
             report($e);
 
@@ -315,6 +320,30 @@ class HistoriaController extends Controller
             'tipo' => $tipo,
             'valor' => $valor,
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function mediaCompressionErrors(Request $request, MediaCompressionException $exception): array
+    {
+        $errors = [];
+
+        if ($request->hasFile('video')) {
+            $errors['video'] = 'No se pudo procesar el video. Usa MP4 o MOV válido (máx. 10 MB).';
+        }
+
+        if ($request->hasFile('imagen') || $request->hasFile('galeria')) {
+            $errors['imagen'] = 'No se pudo procesar la imagen.';
+        }
+
+        if ($errors === []) {
+            $errors['imagen'] = $exception->getMessage() !== ''
+                ? $exception->getMessage()
+                : 'No se pudo procesar el archivo multimedia.';
+        }
+
+        return $errors;
     }
 
     /**

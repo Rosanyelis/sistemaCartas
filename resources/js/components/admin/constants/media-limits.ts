@@ -2,14 +2,15 @@ export const MAX_IMAGENES_GALERIA = 5;
 
 export const MENSAJE_MAX_IMAGENES_GALERIA = 'Máximo 5 imágenes en la galería.';
 
-/** 2 MB — alineado con reglas Laravel `max:2048` (kilobytes). */
-export const MAX_VIDEO_BYTES = 2 * 1024 * 1024;
+/** 10 MB — alineado con reglas Laravel `max:10240` (kilobytes). */
+export const MAX_VIDEO_BYTES = 10 * 1024 * 1024;
 
-export const MENSAJE_MAX_VIDEO = 'El video no puede superar 2 MB.';
+export const MENSAJE_MAX_VIDEO = 'El video no puede superar 10 MB.';
 
-export const MAX_IMAGEN_BYTES = 2 * 1024 * 1024;
+/** 5 MB — alineado con reglas Laravel `max:5120` (kilobytes). */
+export const MAX_IMAGEN_BYTES = 5 * 1024 * 1024;
 
-export const MENSAJE_MAX_IMAGEN = 'La imagen no puede superar 2 MB.';
+export const MENSAJE_MAX_IMAGEN = 'La imagen no puede superar 5 MB.';
 
 export type GalleryFilePickResult = {
     files: File[];

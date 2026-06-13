@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\MediaCompressionException;
 use App\Exports\Admin\ProductosExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\AjustarStockRequest;
@@ -10,6 +11,7 @@ use App\Http\Requests\Admin\UpdateProductoRequest;
 use App\Models\Producto;
 use App\Models\ProductoCategoria;
 use App\Services\Admin\ExportService;
+use App\Services\Media\WebpImageStorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -80,7 +82,6 @@ class ProductoController extends Controller
             'codigo' => $producto->codigo,
             'stock' => $producto->stock,
             'imagen' => $producto->imagen ?? '',
-            'video' => $producto->video ?? '',
             'peso' => $producto->peso ?? '',
             'dimensiones' => $producto->dimensiones ?? '',
             'estado' => $producto->estado,
@@ -93,29 +94,25 @@ class ProductoController extends Controller
         ]);
     }
 
-    public function store(StoreProductoRequest $request): RedirectResponse
+    public function store(StoreProductoRequest $request, WebpImageStorageService $webpStorage): RedirectResponse
     {
         Gate::authorize('create', Producto::class);
 
         try {
-            return DB::transaction(function () use ($request) {
+            return DB::transaction(function () use ($request, $webpStorage) {
                 $data = $request->validated();
                 unset($data['galeria']);
                 $data['slug'] = Str::slug($data['nombre']).'-'.Str::random(5);
 
                 if ($request->hasFile('imagen')) {
-                    $data['imagen'] = '/storage/'.$request->file('imagen')->store('productos/imagenes', 'public');
-                }
-
-                if ($request->hasFile('video')) {
-                    $data['video'] = '/storage/'.$request->file('video')->store('productos/videos', 'public');
+                    $data['imagen'] = $webpStorage->store($request->file('imagen'), 'productos/imagenes');
                 }
 
                 $producto = Producto::query()->create($data);
 
                 if ($request->hasFile('galeria')) {
                     foreach ($request->file('galeria') as $imageFile) {
-                        $pt = '/storage/'.$imageFile->store('productos/galeria', 'public');
+                        $pt = $webpStorage->store($imageFile, 'productos/galeria');
                         $producto->galeria()->create([
                             'path' => $pt,
                             'tipo' => 'imagen',
@@ -134,6 +131,10 @@ class ProductoController extends Controller
 
                 return redirect()->route('admin.productos')->with('success', 'Producto creado exitosamente.');
             });
+        } catch (MediaCompressionException $e) {
+            return back()->withErrors([
+                'imagen' => 'No se pudo procesar la imagen.',
+            ])->withInput();
         } catch (Throwable $e) {
             report($e);
 
@@ -141,12 +142,15 @@ class ProductoController extends Controller
         }
     }
 
-    public function update(UpdateProductoRequest $request, Producto $producto): RedirectResponse
-    {
+    public function update(
+        UpdateProductoRequest $request,
+        Producto $producto,
+        WebpImageStorageService $webpStorage,
+    ): RedirectResponse {
         Gate::authorize('update', $producto);
 
         try {
-            return DB::transaction(function () use ($request, $producto) {
+            return DB::transaction(function () use ($request, $producto, $webpStorage) {
                 $data = $request->validated();
                 $syncGallery = $request->boolean('producto_gallery_sync');
                 $keepIds = collect($data['galeria_keep_ids'] ?? [])
@@ -161,21 +165,11 @@ class ProductoController extends Controller
                     if ($producto->imagen) {
                         Storage::disk('public')->delete(str_replace('/storage/', '', $producto->imagen));
                     }
-                    $data['imagen'] = '/storage/'.$request->file('imagen')->store('productos/imagenes', 'public');
-                }
-
-                if ($request->hasFile('video')) {
-                    if ($producto->video) {
-                        Storage::disk('public')->delete(str_replace('/storage/', '', $producto->video));
-                    }
-                    $data['video'] = '/storage/'.$request->file('video')->store('productos/videos', 'public');
+                    $data['imagen'] = $webpStorage->store($request->file('imagen'), 'productos/imagenes');
                 }
 
                 if (! $request->hasFile('imagen')) {
                     unset($data['imagen']);
-                }
-                if (! $request->hasFile('video')) {
-                    unset($data['video']);
                 }
 
                 $producto->update($data);
@@ -195,7 +189,7 @@ class ProductoController extends Controller
 
                 if ($request->hasFile('galeria')) {
                     foreach ($request->file('galeria') as $imageFile) {
-                        $pt = '/storage/'.$imageFile->store('productos/galeria', 'public');
+                        $pt = $webpStorage->store($imageFile, 'productos/galeria');
                         $producto->galeria()->create([
                             'path' => $pt,
                             'tipo' => 'imagen',
@@ -215,6 +209,10 @@ class ProductoController extends Controller
 
                 return redirect()->route('admin.productos')->with('success', 'Producto actualizado exitosamente.');
             });
+        } catch (MediaCompressionException $e) {
+            return back()->withErrors([
+                'imagen' => 'No se pudo procesar la imagen.',
+            ])->withInput();
         } catch (Throwable $e) {
             report($e);
 
@@ -269,9 +267,6 @@ class ProductoController extends Controller
 
                 if ($producto->imagen) {
                     $copy->imagen = $resolverRuta($producto->imagen) ?? $producto->imagen;
-                }
-                if ($producto->video) {
-                    $copy->video = $resolverRuta($producto->video) ?? $producto->video;
                 }
                 $copy->save();
 

@@ -185,6 +185,18 @@ export function CreateStoryModal({
             return;
         }
 
+        for (const file of slice) {
+            const sizeError = validateMediaFileSize(
+                file,
+                MAX_IMAGEN_BYTES,
+                MENSAJE_MAX_IMAGEN,
+            );
+            if (sizeError) {
+                setGaleriaLimitMessage(sizeError);
+                return;
+            }
+        }
+
         void Promise.all(
             slice.map(
                 (file) =>

@@ -57,13 +57,13 @@ class StoreProductoRequest extends FormRequest
             'impuesto' => ['nullable', 'numeric', 'min:0'],
             'codigo' => ['required', 'string', 'max:50', 'unique:productos,codigo'],
             'stock' => ['required', 'integer', 'min:0'],
-            'imagen' => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
-            'video' => ['nullable', 'file', 'mimetypes:video/mp4,video/quicktime', 'max:20480'],
+            'imagen' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
+            'video' => ['prohibited'],
             'peso' => ['nullable', 'string', 'max:50'],
             'dimensiones' => ['nullable', 'string', 'max:50'],
             'estado' => ['required', 'in:activo,pausado'],
             'galeria' => ['nullable', 'array', 'max:5'],
-            'galeria.*' => ['image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'galeria.*' => ['image', 'mimes:jpeg,png,jpg,webp', 'max:5120'],
             'producto_gallery_sync' => ['prohibited'],
             'galeria_keep_ids' => ['prohibited'],
         ];
@@ -95,6 +95,8 @@ class StoreProductoRequest extends FormRequest
             'detalle.*.title.required' => 'Cada ítem debe tener un título.',
             'detalle.*.title.max' => 'El título de cada ítem no puede superar 255 caracteres.',
             'detalle.*.description.max' => 'La descripción de cada ítem no puede superar 500 caracteres.',
+            'imagen.max' => 'La imagen no puede superar 5 MB.',
+            'video.prohibited' => 'Los productos no admiten video.',
         ];
     }
 }
