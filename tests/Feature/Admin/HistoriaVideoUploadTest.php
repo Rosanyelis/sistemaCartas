@@ -1,9 +1,9 @@
 <?php
 
+use App\Models\Historia;
 use App\Models\User;
-use App\Services\Media\HistoriaVideoStorageService;
 use Illuminate\Http\UploadedFile;
-use Symfony\Component\Process\Process;
+use Illuminate\Support\Facades\Storage;
 
 test('rechaza video de historia mayor a 10 MB al crear', function (): void {
     $admin = User::factory()->create(['role' => 'admin']);
@@ -29,19 +29,6 @@ test('rechaza video de historia mayor a 10 MB al crear', function (): void {
 });
 
 test('acepta video de historia de hasta 10 MB al crear', function (): void {
-    $ffmpeg = new Process([(string) config('media.video.ffmpeg_binaries', 'ffmpeg'), '-version']);
-    $ffmpeg->run();
-
-    if (! $ffmpeg->isSuccessful()) {
-        $this->markTestSkipped('FFmpeg no disponible.');
-    }
-
-    $this->mock(HistoriaVideoStorageService::class, function ($mock): void {
-        $mock->shouldReceive('store')
-            ->once()
-            ->andReturn('/storage/historias/videos/demo.mp4');
-    });
-
     $admin = User::factory()->create(['role' => 'admin']);
     $suffix = uniqid('', true);
 
@@ -63,4 +50,12 @@ test('acepta video de historia de hasta 10 MB al crear', function (): void {
         ])
         ->assertRedirect(route('admin.historias', absolute: false))
         ->assertSessionHasNoErrors();
+
+    $historia = Historia::query()->where('codigo', '#VIDOK-'.$suffix)->first();
+
+    expect($historia)->not->toBeNull()
+        ->and($historia->video)->toContain('.mp4');
+
+    $relativePath = str_replace('/storage/', '', (string) $historia->video);
+    expect(Storage::disk('public')->exists($relativePath))->toBeTrue();
 });
