@@ -37,7 +37,7 @@ export default function HowItWorksSection() {
                             {
                                 step: 'Paso 2',
                                 title: 'Activa tu suscripción',
-                                desc: 'Proceso de alta sencillo y seguro. Sin cuotas ocultas ni complicaciones técnicas.',
+                                desc: 'Proceso de alta sencillo y seguro. Sin pagos ocultos ni complicaciones técnicas.',
                                 align: 'right',
                                 icon: (
                                     <svg
