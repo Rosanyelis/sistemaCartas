@@ -332,7 +332,7 @@ class HistoriaController extends Controller
         if ($request->hasFile('video')) {
             $errors['video'] = $exception->getMessage() !== ''
                 ? $exception->getMessage()
-                : 'No se pudo procesar el video. Usa MP4 o MOV válido (máx. 10 MB).';
+                : 'No se pudo procesar el video. Usa MP4 o MOV válido.';
         }
 
         if ($request->hasFile('imagen') || $request->hasFile('galeria')) {

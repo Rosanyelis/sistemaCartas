@@ -5,15 +5,15 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 
-test('rechaza video de historia mayor a 10 MB al crear', function (): void {
+test('rechaza video de historia con formato no permitido al crear', function (): void {
     $admin = User::factory()->create(['role' => 'admin']);
     $suffix = uniqid('', true);
 
-    $video = UploadedFile::fake()->create('promo.mp4', 11000, 'video/mp4');
+    $video = UploadedFile::fake()->create('promo.avi', 2000, 'video/x-msvideo');
 
     $this->actingAs($admin)
         ->post(route('admin.historias.store'), [
-            'nombre' => 'Historia video grande '.$suffix,
+            'nombre' => 'Historia video inválido '.$suffix,
             'descripcion_corta' => 'Resumen breve.',
             'descripcion_larga' => implode(' ', array_fill(0, 30, 'palabra')),
             'historia_categoria_id' => historiaCategoriaId('Aventura'),
@@ -25,10 +25,10 @@ test('rechaza video de historia mayor a 10 MB al crear', function (): void {
             'duracion_meses' => '12',
             'video' => $video,
         ])
-        ->assertSessionHasErrors(['video' => 'El video no puede superar 10 MB.']);
+        ->assertSessionHasErrors(['video' => 'El video debe ser MP4 o MOV.']);
 });
 
-test('acepta video de historia de hasta 10 MB al crear', function (): void {
+test('acepta video de historia mp4 al crear', function (): void {
     $admin = User::factory()->create(['role' => 'admin']);
     $suffix = uniqid('', true);
 

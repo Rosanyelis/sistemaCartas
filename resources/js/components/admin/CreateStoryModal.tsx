@@ -6,9 +6,7 @@ import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
 import { HISTORIA_DETALLE_INCLUSION_ICONS } from '@/constants/historia-detalle-inclusion-icons';
 import {
     MAX_IMAGEN_BYTES,
-    MAX_VIDEO_BYTES,
     MENSAJE_MAX_IMAGEN,
-    MENSAJE_MAX_VIDEO,
     pickGalleryFiles,
     validateMediaFileSize,
 } from '@/components/admin/constants/media-limits';
@@ -145,15 +143,6 @@ export function CreateStoryModal({
             const allowedTypes = ['video/mp4', 'video/quicktime'];
             if (!allowedTypes.includes(file.type)) {
                 setVideoClientError('El video debe ser MP4 o MOV.');
-                return;
-            }
-            const sizeError = validateMediaFileSize(
-                file,
-                MAX_VIDEO_BYTES,
-                MENSAJE_MAX_VIDEO,
-            );
-            if (sizeError) {
-                setVideoClientError(sizeError);
                 return;
             }
             setVideoClientError(null);

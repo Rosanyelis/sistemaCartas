@@ -11,7 +11,7 @@ use Symfony\Component\Process\Process;
 final class HistoriaVideoStorageService
 {
     /**
-     * Transcodifica a MP4 H.264 + AAC, escala y asegura tamaño ≤ 10 MB.
+     * Transcodifica a MP4 H.264 + AAC y escala según configuración.
      *
      * @throws MediaCompressionException
      */
@@ -62,7 +62,7 @@ final class HistoriaVideoStorageService
 
         Storage::disk('public')->delete($relativePath);
 
-        throw new MediaCompressionException('El video no pudo comprimirse por debajo de 10 MB.');
+        throw new MediaCompressionException('No se pudo comprimir el video al tamaño de salida permitido.');
     }
 
     private function isMp4Upload(UploadedFile $file, string $mimeType): bool
@@ -212,7 +212,7 @@ final class HistoriaVideoStorageService
 
         if (! $process->isSuccessful()) {
             throw new MediaCompressionException(
-                'No se pudo transcodificar el video. Usa MP4 o MOV válido (máx. 10 MB).',
+                'No se pudo transcodificar el video. Usa MP4 o MOV válido.',
             );
         }
     }
