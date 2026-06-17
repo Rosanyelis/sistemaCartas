@@ -3,15 +3,13 @@ import {
     
 } from '@/constants/historia-detalle-inclusion-icons';
 import type {HistoriaDetalleInclusionIconName} from '@/constants/historia-detalle-inclusion-icons';
-import { MAX_PALABRAS_TEXTO_LARGO } from './constants';
-import type {
+import { MAX_CARACTERES_DESCRIPCION_LARGA } from './constants';
     HistoriaDestacadaForm,
     HistoriaDetalleInclusionRow,
     HistoriaFormData,
     HistoriaParaFormulario,
     HistoriaVarianteForm,
 } from './types';
-import { clampToMaxWords } from './wordLimit';
 
 function str(v: unknown, fallback = ''): string {
     if (v === null || v === undefined) {
@@ -21,13 +19,13 @@ function str(v: unknown, fallback = ''): string {
     return String(v);
 }
 
-/** Texto plano: recorta palabras. HTML (TipTap): se deja tal cual para no romper etiquetas. */
+/** Trunca HTML o texto plano si supera el máximo de caracteres del formulario. */
 function clampLargoFormulario(raw: string): string {
-    if (/<[a-z][\s\S]*>/i.test(raw)) {
+    if (raw.length <= MAX_CARACTERES_DESCRIPCION_LARGA) {
         return raw;
     }
 
-    return clampToMaxWords(raw, MAX_PALABRAS_TEXTO_LARGO);
+    return raw.slice(0, MAX_CARACTERES_DESCRIPCION_LARGA);
 }
 
 const allowedInclusionIcons = new Set<string>(HISTORIA_DETALLE_INCLUSION_ICONS);

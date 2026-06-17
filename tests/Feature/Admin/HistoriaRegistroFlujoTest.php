@@ -150,3 +150,71 @@ test('validación rechaza icono no permitido en detalle de inclusión', function
         ])
         ->assertSessionHasErrors(['detalle.0.icon']);
 });
+
+test('acepta descripción larga con más de 500 palabras si no supera 15000 caracteres', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $suffix = uniqid('', true);
+    $descripcionLarga = implode(' ', array_fill(0, 600, 'palabra'));
+
+    expect(mb_strlen($descripcionLarga))->toBeLessThanOrEqual(15000);
+
+    $this->actingAs($admin)
+        ->post(route('admin.historias.store'), [
+            'nombre' => 'Historia sinopsis larga '.$suffix,
+            'descripcion_corta' => 'Resumen breve.',
+            'descripcion_larga' => $descripcionLarga,
+            'historia_categoria_id' => historiaCategoriaId('Aventura'),
+            'autor' => 'Autor QA',
+            'precio_base' => '19.99',
+            'codigo' => '#SIN-'.$suffix,
+            'estado' => 'activo',
+            'destacada' => 'no',
+            'duracion_meses' => '12',
+        ])
+        ->assertRedirect(route('admin.historias', absolute: false))
+        ->assertSessionHasNoErrors();
+
+    $historia = Historia::query()->where('codigo', '#SIN-'.$suffix)->first();
+    expect($historia)->not->toBeNull();
+    expect(mb_strlen((string) $historia->descripcion_larga))->toBe(mb_strlen($descripcionLarga));
+});
+
+test('rechaza descripción larga con más de 15000 caracteres al crear', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $suffix = uniqid('', true);
+
+    $this->actingAs($admin)
+        ->post(route('admin.historias.store'), [
+            'nombre' => 'Historia descripción excesiva '.$suffix,
+            'descripcion_corta' => 'Resumen breve.',
+            'descripcion_larga' => str_repeat('a', 15001),
+            'historia_categoria_id' => historiaCategoriaId('Aventura'),
+            'autor' => 'Autor QA',
+            'precio_base' => '19.99',
+            'codigo' => '#MAX-'.$suffix,
+            'estado' => 'activo',
+            'destacada' => 'no',
+            'duracion_meses' => '12',
+        ])
+        ->assertSessionHasErrors(['descripcion_larga']);
+});
+
+test('rechaza descripción larga con más de 15000 caracteres al actualizar', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $historia = Historia::factory()->create();
+
+    $this->actingAs($admin)
+        ->patch(route('admin.historias.update', $historia), [
+            'nombre' => $historia->nombre,
+            'descripcion_corta' => $historia->descripcion_corta,
+            'descripcion_larga' => str_repeat('b', 15001),
+            'historia_categoria_id' => $historia->historia_categoria_id,
+            'autor' => $historia->autor,
+            'precio_base' => (string) $historia->precio_base,
+            'codigo' => $historia->codigo,
+            'estado' => $historia->estado,
+            'destacada' => $historia->destacada,
+            'duracion_meses' => (string) $historia->duracion_meses,
+        ])
+        ->assertSessionHasErrors(['descripcion_larga']);
+});

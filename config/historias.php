@@ -1,5 +1,7 @@
 <?php
 
+use App\Support\HistoriaFormLimits;
+
 return [
 
     /*
@@ -17,5 +19,13 @@ return [
     */
 
     'tienda_destacadas_max' => (int) env('HISTORIAS_TIENDA_DESTACADAS_MAX', 10),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Formulario admin — descripción larga
+    |--------------------------------------------------------------------------
+    */
+
+    'max_descripcion_larga_caracteres' => HistoriaFormLimits::MAX_DESCRIPCION_LARGA_CARACTERES,
 
 ];

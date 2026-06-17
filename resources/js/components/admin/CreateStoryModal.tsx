@@ -10,7 +10,7 @@ import {
     pickGalleryFiles,
     validateMediaFileSize,
 } from '@/components/admin/constants/media-limits';
-import { MAX_PALABRAS_TEXTO_LARGO } from './create-story/constants';
+import { MAX_CARACTERES_DESCRIPCION_LARGA } from './create-story/constants';
 import { buildHistoriaFormData } from './create-story/formDefaults';
 import { HistoriaDetalleInclusionsEditor } from './create-story/HistoriaDetalleInclusionsEditor';
 import { HistoriaMultimediaPanel } from './create-story/HistoriaMultimediaPanel';
@@ -355,7 +355,7 @@ export function CreateStoryModal({
                                             }
                                             initialHtml={richEditors.descripcion_larga}
                                             onChange={(v) => setData('descripcion_larga', v)}
-                                            maxWords={MAX_PALABRAS_TEXTO_LARGO}
+                                            maxChars={MAX_CARACTERES_DESCRIPCION_LARGA}
                                             placeholder="Una apasionante aventura por los rincones del Londres..."
                                             rows={5}
                                             error={errors.descripcion_larga}

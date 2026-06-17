@@ -4,8 +4,8 @@ namespace App\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\Concerns\PreparesHistoriaDetalleJson;
 use App\Http\Requests\Admin\Concerns\ValidatesGaleriaImageLimit;
-use App\Rules\MaxWords;
 use App\Support\HistoriaDetalleInclusionIcon;
+use App\Support\HistoriaFormLimits;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -49,7 +49,7 @@ class StoreHistoriaRequest extends FormRequest
         return [
             'nombre' => ['required', 'string', 'max:255'],
             'descripcion_corta' => ['required', 'string', 'max:255'],
-            'descripcion_larga' => ['required', 'string', new MaxWords(500)],
+            'descripcion_larga' => ['required', 'string', 'max:'.HistoriaFormLimits::MAX_DESCRIPCION_LARGA_CARACTERES],
             'detalle' => ['nullable', 'array', 'max:20'],
             'detalle.*.icon' => ['required', 'string', Rule::in(HistoriaDetalleInclusionIcon::allowed())],
             'detalle.*.title' => ['required', 'string', 'max:255'],
@@ -86,6 +86,7 @@ class StoreHistoriaRequest extends FormRequest
             'nombre.required' => 'El nombre de la historia es obligatorio.',
             'descripcion_corta.required' => 'La descripción corta es obligatoria.',
             'descripcion_larga.required' => 'La descripción larga es obligatoria.',
+            'descripcion_larga.max' => 'La descripción larga no puede superar :max caracteres.',
             'historia_categoria_id.required' => 'La categoría es obligatoria.',
             'historia_categoria_id.exists' => 'La categoría seleccionada no es válida.',
             'autor.required' => 'El autor es obligatorio.',

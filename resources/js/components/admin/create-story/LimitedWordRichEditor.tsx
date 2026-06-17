@@ -18,21 +18,26 @@ import { countEditorWords, countEditorWordsFromHtml } from './editorWordCount';
 const toolbarBtn =
     'rounded px-2 py-1.5 text-[12px] text-gray-700 transition-colors hover:bg-[#1B3D6D]/10 disabled:cursor-not-allowed disabled:opacity-40';
 
-interface LimitedWordRichEditorProps {
+type LimitedWordRichEditorBaseProps = {
     id?: string;
     label: ReactNode;
     initialHtml: string;
     onChange: (html: string) => void;
-    maxWords: number;
     placeholder?: string;
     rows?: number;
     error?: string;
     hint?: string;
-}
+};
+
+type LimitedWordRichEditorProps = LimitedWordRichEditorBaseProps &
+    (
+        | { maxWords: number; maxChars?: never }
+        | { maxChars: number; maxWords?: never }
+    );
 
 /**
- * Editor TipTap (HTML) con contador de palabras solo para la UI (texto del documento).
- * El límite `maxWords` es referencia orientativa; la validación definitiva la hace el backend.
+ * Editor TipTap (HTML) con contador orientativo (palabras o caracteres según props).
+ * La validación definitiva la hace el backend.
  */
 export function LimitedWordRichEditor({
     id,
@@ -40,6 +45,7 @@ export function LimitedWordRichEditor({
     initialHtml,
     onChange,
     maxWords,
+    maxChars,
     placeholder,
     rows = 5,
     error,
@@ -90,8 +96,14 @@ export function LimitedWordRichEditor({
         };
     }, [editor]);
 
+    const htmlContent = editor ? editor.getHTML() : initialHtml;
+    const charCount = htmlContent.length;
     const words = editor ? countEditorWords(editor) : countEditorWordsFromHtml(initialHtml);
-    const atLimit = words >= maxWords;
+    const usesCharLimit = maxChars !== undefined;
+    const atLimit = usesCharLimit ? charCount >= maxChars : words >= (maxWords ?? 0);
+    const counterLabel = usesCharLimit
+        ? `${charCount} / ${maxChars} caracteres`
+        : `${words} / ${maxWords} palabras`;
 
     return (
         <div className="flex flex-col gap-1.5">
@@ -184,7 +196,7 @@ export function LimitedWordRichEditor({
                     <span
                         className={`text-[11px] font-medium tabular-nums ${atLimit ? 'text-amber-700' : 'text-[#6B7280]'}`}
                     >
-                        {words} / {maxWords} palabras
+                        {counterLabel}
                     </span>
                 </div>
             </div>
