@@ -10,8 +10,11 @@ import {
 import ListPagination from '@/components/panel/ListPagination';
 import UserLayout from '@/layouts/user-layout';
 import type { PaginatedData } from '@/types/pagination';
-import { audios as adminAudiosList } from '@/routes/admin';
-import { destroy as audiosDestroy, qr as audiosQr } from '@/routes/admin/audios';
+import {
+    destroy as audiosDestroy,
+    downloadQr as audiosDownloadQr,
+    index as adminAudiosList,
+} from '@/actions/App/Http/Controllers/Admin/AudioController';
 
 interface AudioRow {
     id: number;
@@ -39,7 +42,7 @@ export default function Audios({ audios, historias, filters }: Props) {
     const [openMenuId, setOpenMenuId] = useState<number | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [audioToEdit, setAudioToEdit] = useState<AudioParaFormulario | null>(null);
-    const [deleteAudioId, setDeleteAudioId] = useState<number | null>(null);
+    const [deleteAudioSlug, setDeleteAudioSlug] = useState<string | null>(null);
 
     useEffect(() => {
         const closeActionMenu = () => setOpenMenuId(null);
@@ -74,11 +77,11 @@ export default function Audios({ audios, historias, filters }: Props) {
     };
 
     const handleDeleteConfirm = () => {
-        if (deleteAudioId !== null) {
-            router.delete(audiosDestroy.url(deleteAudioId), {
+        if (deleteAudioSlug !== null) {
+            router.delete(audiosDestroy.url(deleteAudioSlug), {
                 preserveScroll: true,
                 preserveState: false,
-                onSuccess: () => setDeleteAudioId(null),
+                onSuccess: () => setDeleteAudioSlug(null),
             });
         }
     };
@@ -88,6 +91,7 @@ export default function Audios({ audios, historias, filters }: Props) {
         setIsCreateModalOpen(false);
         setAudioToEdit({
             id: audio.id,
+            slug: audio.slug,
             titulo: audio.titulo,
             codigo: audio.codigo,
             historia_id: audio.historia_id,
@@ -118,7 +122,7 @@ export default function Audios({ audios, historias, filters }: Props) {
                 Ver URL pública
             </button>
             <a
-                href={audiosQr.url(audio.id)}
+                href={audiosDownloadQr.url(audio.slug)}
                 className="flex w-full items-center justify-start px-4 py-2.5 text-[14px] text-[#4B5563] transition-colors hover:bg-gray-50"
                 onClick={() => setOpenMenuId(null)}
             >
@@ -128,7 +132,7 @@ export default function Audios({ audios, historias, filters }: Props) {
                 type="button"
                 onClick={() => {
                     setOpenMenuId(null);
-                    setDeleteAudioId(audio.id);
+                    setDeleteAudioSlug(audio.slug);
                 }}
                 className="flex w-full items-center justify-start px-4 py-2.5 text-[14px] text-red-500 transition-colors hover:bg-red-50"
             >
@@ -273,14 +277,14 @@ export default function Audios({ audios, historias, filters }: Props) {
             />
 
             <ConfirmDialog
-                isOpen={deleteAudioId !== null}
+                isOpen={deleteAudioSlug !== null}
                 title="Eliminar audio"
                 description="¿Seguro que deseas eliminar este audio? Se borrarán el archivo y el código QR."
                 confirmText="Eliminar"
                 onConfirm={handleDeleteConfirm}
                 onOpenChange={(open) => {
                     if (!open) {
-                        setDeleteAudioId(null);
+                        setDeleteAudioSlug(null);
                     }
                 }}
             />

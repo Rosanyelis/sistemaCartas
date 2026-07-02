@@ -10,12 +10,16 @@ import {
     MENSAJE_MAX_AUDIO,
     validateMediaFileSize,
 } from '@/components/admin/constants/media-limits';
-import { store as audiosStore, update as audiosUpdate } from '@/routes/admin/audios';
+import {
+    store as audiosStore,
+    update as audiosUpdate,
+} from '@/actions/App/Http/Controllers/Admin/AudioController';
 
 type HistoriaOption = { id: number; nombre: string };
 
 export interface AudioParaFormulario {
     id: number;
+    slug: string;
     titulo: string;
     codigo: string | null;
     historia_id: number;
@@ -143,7 +147,7 @@ export function CreateAudioModal({
         };
 
         if (audioToEdit) {
-            post(audiosUpdate.url(audioToEdit.id), options);
+            post(audiosUpdate.url(audioToEdit.slug), options);
 
             return;
         }
