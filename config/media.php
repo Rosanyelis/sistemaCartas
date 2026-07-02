@@ -18,4 +18,10 @@ return [
         'ffmpeg_binaries' => env('FFMPEG_BINARIES', 'ffmpeg'),
         'ffprobe_binaries' => env('FFPROBE_BINARIES', 'ffprobe'),
     ],
+    'audio' => [
+        'max_upload_kb' => 51200,
+        'allowed_mimetypes' => ['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/wav', 'audio/ogg'],
+        'qr_logo_path' => public_path('images/hero-image.webp'),
+        'qr_size' => 512,
+    ],
 ];

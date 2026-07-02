@@ -52,3 +52,18 @@ export function validateMediaFileSize(
 
     return null;
 }
+
+/** 50 MB — alineado con reglas Laravel `max:51200` (kilobytes). */
+export const MAX_AUDIO_BYTES = 50 * 1024 * 1024;
+
+export const MENSAJE_MAX_AUDIO = 'El audio no puede superar 50 MB.';
+
+export const AUDIO_ALLOWED_TYPES = [
+    'audio/mpeg',
+    'audio/mp4',
+    'audio/x-m4a',
+    'audio/wav',
+    'audio/ogg',
+] as const;
+
+export const MENSAJE_AUDIO_TIPO = 'El formato de audio no está permitido.';

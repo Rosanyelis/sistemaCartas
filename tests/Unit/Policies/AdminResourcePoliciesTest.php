@@ -2,6 +2,7 @@
 
 use App\Models\Suscripcion;
 use App\Models\User;
+use App\Policies\AudioPolicy;
 use App\Policies\HistoriaPolicy;
 use App\Policies\ProductoPolicy;
 use App\Policies\StoreOrderPolicy;
@@ -11,6 +12,15 @@ test('HistoriaPolicy concede solo a administradores', function (): void {
     $admin = new User(['role' => 'admin']);
     $cliente = new User(['role' => 'cliente']);
     $policy = new HistoriaPolicy;
+
+    expect($policy->before($admin, 'viewAny'))->toBeTrue()
+        ->and($policy->before($cliente, 'viewAny'))->toBeFalse();
+});
+
+test('AudioPolicy concede solo a administradores', function (): void {
+    $admin = new User(['role' => 'admin']);
+    $cliente = new User(['role' => 'cliente']);
+    $policy = new AudioPolicy;
 
     expect($policy->before($admin, 'viewAny'))->toBeTrue()
         ->and($policy->before($cliente, 'viewAny'))->toBeFalse();

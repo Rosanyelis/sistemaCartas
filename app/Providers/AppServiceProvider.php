@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Audio;
 use App\Models\Historia;
 use App\Models\HistoriaCategoria;
 use App\Models\Producto;
@@ -10,6 +11,7 @@ use App\Models\ProductoSubcategoria;
 use App\Models\StoreOrder;
 use App\Models\Suscripcion;
 use App\Models\User;
+use App\Policies\AudioPolicy;
 use App\Policies\HistoriaCategoriaPolicy;
 use App\Policies\HistoriaPolicy;
 use App\Policies\ProductoCategoriaPolicy;
@@ -45,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
             return $user->isAdmin();
         });
 
+        Gate::policy(Audio::class, AudioPolicy::class);
         Gate::policy(Historia::class, HistoriaPolicy::class);
         Gate::policy(HistoriaCategoria::class, HistoriaCategoriaPolicy::class);
         Gate::policy(Producto::class, ProductoPolicy::class);

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AudioController as AdminAudioController;
 use App\Http\Controllers\Admin\ClienteController as AdminClienteController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\HistoriaCategoriaController as AdminHistoriaCategoriaController;
@@ -15,6 +16,8 @@ use App\Http\Controllers\Checkout\PayPalCheckoutController;
 use App\Http\Controllers\Checkout\PayPalSubscriptionCheckoutController;
 use App\Http\Controllers\Checkout\PayPalSubscriptionSyncController;
 use App\Http\Controllers\Checkout\PayPalWebhookController;
+use App\Http\Controllers\Storefront\AudioPublicController;
+use App\Http\Controllers\Storefront\AudioStreamController;
 use App\Http\Controllers\Storefront\AvisoPrivacidadController;
 use App\Http\Controllers\Storefront\HomeController;
 use App\Http\Controllers\Storefront\TerminosCondicionesController;
@@ -42,6 +45,11 @@ Route::get('/productos', [ProductoController::class, 'index'])->name('productos'
 Route::get('/productos/ejemplo', [ProductoController::class, 'showReference'])
     ->name('productos.ejemplo');
 Route::get('/productos/{slug}', [ProductoController::class, 'show'])->name('productos.show');
+
+Route::get('/audios/{audio:slug}', [AudioPublicController::class, 'show'])->name('audios.show');
+Route::get('/audios/{audio:slug}/stream', [AudioStreamController::class, 'stream'])
+    ->middleware('throttle:60,1')
+    ->name('audios.stream');
 
 Route::post('/checkout/paypal/order', [PayPalCheckoutController::class, 'createOrder'])
     ->name('checkout.paypal.order');
@@ -141,6 +149,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('historias/{historia}', [AdminHistoriaController::class, 'destroy'])->name('historias.destroy');
         Route::post('historias/{historia}/duplicate', [AdminHistoriaController::class, 'duplicate'])->name('historias.duplicate');
         Route::patch('historias/{historia}/toggle-status', [AdminHistoriaController::class, 'toggleStatus'])->name('historias.toggle-status');
+
+        // Audios
+        Route::get('audios', [AdminAudioController::class, 'index'])->name('audios');
+        Route::post('audios', [AdminAudioController::class, 'store'])->name('audios.store');
+        Route::patch('audios/{audio}', [AdminAudioController::class, 'update'])->name('audios.update');
+        Route::delete('audios/{audio}', [AdminAudioController::class, 'destroy'])->name('audios.destroy');
+        Route::get('audios/{audio}/qr', [AdminAudioController::class, 'downloadQr'])->name('audios.qr');
 
         // Productos
         Route::get('productos', [AdminProductoController::class, 'index'])->name('productos');

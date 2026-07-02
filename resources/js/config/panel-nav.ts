@@ -1,4 +1,5 @@
 import {
+    PanelNavAudiosIcon,
     PanelNavClientesIcon,
     PanelNavHistoriasIcon,
     PanelNavOrdenesIcon,
@@ -10,6 +11,7 @@ import {
 } from '@/components/panel/panel-nav-icons';
 import type { IconComponent } from '@/components/ui/icon';
 import {
+    audios as adminAudios,
     clientes,
     clients as adminClientsLegacy,
     dashboard as adminDashboard,
@@ -46,6 +48,7 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
     const s = adminSuscripciones.definition.url;
     const c = clientes.definition.url;
     const h = adminHistorias.definition.url;
+    const a = adminAudios.definition.url;
     const p = adminProductos.definition.url;
 
     return [
@@ -86,6 +89,12 @@ export function getAdminPanelNav(currentUrl: string): PanelNavItem[] {
             active:
                 currentUrl.startsWith(h) ||
                 currentUrl.startsWith(adminStoriesLegacy.definition.url),
+        },
+        {
+            name: 'Audios',
+            icon: PanelNavAudiosIcon,
+            href: adminAudios.url(),
+            active: currentUrl.startsWith(a),
         },
         {
             name: 'Productos',

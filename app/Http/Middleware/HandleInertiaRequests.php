@@ -18,6 +18,7 @@ class HandleInertiaRequests extends Middleware
             'home',
             'historias',
             'historias.show',
+            'audios.show',
             'productos',
             'productos.show',
             'productos.ejemplo',

@@ -134,4 +134,12 @@ class Historia extends Model
     {
         return $this->hasMany(Suscripcion::class);
     }
+
+    /**
+     * @return HasMany<Audio, $this>
+     */
+    public function audios(): HasMany
+    {
+        return $this->hasMany(Audio::class);
+    }
 }

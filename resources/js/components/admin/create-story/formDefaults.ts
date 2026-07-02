@@ -4,6 +4,7 @@ import {
 } from '@/constants/historia-detalle-inclusion-icons';
 import type {HistoriaDetalleInclusionIconName} from '@/constants/historia-detalle-inclusion-icons';
 import { MAX_CARACTERES_DESCRIPCION_LARGA } from './constants';
+import type {
     HistoriaDestacadaForm,
     HistoriaDetalleInclusionRow,
     HistoriaFormData,
@@ -137,7 +138,7 @@ export function buildHistoriaFormData(source?: HistoriaParaFormulario | null): H
         descripcion_larga: clampLargoFormulario(str(source.descripcion_larga)),
         detalle: normalizeDetalleInclusiones(source.detalle),
         historia_categoria_id:
-            source.historia_categoria_id != null && source.historia_categoria_id !== ''
+            source.historia_categoria_id != null
                 ? String(source.historia_categoria_id)
                 : '',
         autor: str(source.autor),
