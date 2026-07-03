@@ -13,6 +13,7 @@ beforeEach(function (): void {
 test('página pública de audio activo responde 200', function (): void {
     $historia = Historia::factory()->activo()->create([
         'nombre' => 'Historia pública',
+        'slug' => 'historia-publica-audio',
         'descripcion_corta' => 'Resumen de la historia',
         'imagen' => '/images/story_cover.png',
     ]);
@@ -28,7 +29,9 @@ test('página pública de audio activo responde 200', function (): void {
         ->assertInertia(fn (Assert $page) => $page
             ->component('user/audio-publico')
             ->where('audio.titulo', 'Audio público')
-            ->where('audio.historia.nombre', 'Historia pública'));
+            ->where('audio.historia.nombre', 'Historia pública')
+            ->where('audio.historia.slug', 'historia-publica-audio')
+            ->where('audio.historia.show_url', route('historias.show', 'historia-publica-audio')));
 });
 
 test('audio pausado devuelve 404 en página pública', function (): void {

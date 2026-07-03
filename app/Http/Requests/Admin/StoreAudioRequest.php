@@ -14,13 +14,6 @@ class StoreAudioRequest extends FormRequest
         return true;
     }
 
-    protected function prepareForValidation(): void
-    {
-        if ($this->has('codigo') && $this->input('codigo') === '') {
-            $this->merge(['codigo' => null]);
-        }
-    }
-
     /**
      * @return array<string, array<int, mixed>>
      */
@@ -32,7 +25,6 @@ class StoreAudioRequest extends FormRequest
         return [
             'historia_id' => ['required', 'integer', 'exists:historias,id'],
             'titulo' => ['required', 'string', 'max:255'],
-            'codigo' => ['nullable', 'string', 'max:50', 'unique:audios,codigo'],
             'estado' => ['required', 'in:activo,pausado'],
             'audio' => ['required', 'file', 'mimetypes:'.implode(',', $mimetypes), 'max:'.$maxKb],
         ];
@@ -47,7 +39,6 @@ class StoreAudioRequest extends FormRequest
             'historia_id.required' => 'La historia es obligatoria.',
             'historia_id.exists' => 'La historia seleccionada no es válida.',
             'titulo.required' => 'El título es obligatorio.',
-            'codigo.unique' => 'Este código ya está en uso.',
             'estado.required' => 'El estado es obligatorio.',
             'audio.required' => 'El archivo de audio es obligatorio.',
             'audio.mimetypes' => 'El formato de audio no está permitido.',

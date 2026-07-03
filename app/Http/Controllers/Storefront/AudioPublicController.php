@@ -16,7 +16,7 @@ class AudioPublicController extends Controller
             abort(404);
         }
 
-        $audio->load('historia');
+        $audio->load('historia.historiaCategoria');
 
         if ($audio->historia === null) {
             abort(404);

@@ -12,14 +12,18 @@ class AudioPublicSerializer
     public static function publico(Audio $audio): array
     {
         $historia = $audio->historia;
+        $slug = $historia?->slug ?? '';
 
         return [
             'titulo' => $audio->titulo,
             'stream_url' => route('audios.stream', $audio),
             'historia' => [
                 'nombre' => $historia?->nombre ?? '',
+                'slug' => $slug,
+                'categoria' => $historia?->historiaCategoria?->nombre ?? '',
                 'imagen' => $historia?->imagen ?: '/images/story_cover.png',
                 'descripcion_corta' => $historia?->descripcion_corta ?? '',
+                'show_url' => $slug !== '' ? route('historias.show', $slug) : null,
             ],
         ];
     }

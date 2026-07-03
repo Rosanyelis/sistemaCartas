@@ -19,7 +19,6 @@ test('admin puede crear audio con archivo', function (): void {
     $response = $this->actingAs($admin)->post(route('admin.audios.store'), [
         'historia_id' => $historia->id,
         'titulo' => 'Capítulo uno',
-        'codigo' => '#AUD-'.uniqid(),
         'estado' => 'activo',
         'audio' => UploadedFile::fake()->create('capitulo.mp3', 100, 'audio/mpeg'),
     ]);

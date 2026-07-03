@@ -11,17 +11,18 @@ import {
     validateMediaFileSize,
 } from '@/components/admin/constants/media-limits';
 import {
+    SearchableHistoriaSelect,
+    type HistoriaSelectOption,
+} from '@/components/admin/SearchableHistoriaSelect';
+import {
     store as audiosStore,
     update as audiosUpdate,
 } from '@/actions/App/Http/Controllers/Admin/AudioController';
-
-type HistoriaOption = { id: number; nombre: string };
 
 export interface AudioParaFormulario {
     id: number;
     slug: string;
     titulo: string;
-    codigo: string | null;
     historia_id: number;
     estado: string;
     qr_path: string | null;
@@ -30,7 +31,7 @@ export interface AudioParaFormulario {
 interface CreateAudioModalProps {
     isOpen: boolean;
     onClose: () => void;
-    historias: HistoriaOption[];
+    historias: HistoriaSelectOption[];
     audioToEdit?: AudioParaFormulario | null;
 }
 
@@ -49,7 +50,6 @@ export function CreateAudioModal({
     const { data, setData, post, processing, errors, reset, transform } = useForm({
         historia_id: '',
         titulo: '',
-        codigo: '',
         estado: 'activo',
         audio: null as File | null,
     });
@@ -66,7 +66,6 @@ export function CreateAudioModal({
             setData({
                 historia_id: String(audioToEdit.historia_id),
                 titulo: audioToEdit.titulo,
-                codigo: audioToEdit.codigo ?? '',
                 estado: audioToEdit.estado,
                 audio: null,
             });
@@ -127,7 +126,6 @@ export function CreateAudioModal({
             const base = {
                 ...formData,
                 historia_id: Number(formData.historia_id),
-                codigo: formData.codigo === '' ? null : formData.codigo,
             };
 
             if (audioToEdit) {
@@ -168,21 +166,12 @@ export function CreateAudioModal({
                             <label className="mb-1.5 block text-[13px] font-medium text-[#1B3D6D]">
                                 Historia *
                             </label>
-                            <select
+                            <SearchableHistoriaSelect
+                                historias={historias}
                                 value={data.historia_id}
-                                onChange={(e) => setData('historia_id', e.target.value)}
-                                className={inputClass(!!errors.historia_id)}
-                            >
-                                <option value="">Seleccionar historia</option>
-                                {historias.map((h) => (
-                                    <option key={h.id} value={h.id}>
-                                        {h.nombre}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.historia_id && (
-                                <p className="mt-1 text-[12px] text-red-500">{errors.historia_id}</p>
-                            )}
+                                onChange={(historiaId) => setData('historia_id', historiaId)}
+                                error={errors.historia_id}
+                            />
                         </div>
 
                         <div>
@@ -198,22 +187,6 @@ export function CreateAudioModal({
                             />
                             {errors.titulo && (
                                 <p className="mt-1 text-[12px] text-red-500">{errors.titulo}</p>
-                            )}
-                        </div>
-
-                        <div>
-                            <label className="mb-1.5 block text-[13px] font-medium text-[#1B3D6D]">
-                                Código
-                            </label>
-                            <input
-                                type="text"
-                                value={data.codigo}
-                                onChange={(e) => setData('codigo', e.target.value)}
-                                className={inputClass(!!errors.codigo)}
-                                placeholder="Opcional"
-                            />
-                            {errors.codigo && (
-                                <p className="mt-1 text-[12px] text-red-500">{errors.codigo}</p>
                             )}
                         </div>
 

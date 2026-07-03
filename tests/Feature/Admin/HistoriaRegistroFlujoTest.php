@@ -179,6 +179,34 @@ test('acepta descripción larga con más de 500 palabras si no supera 15000 cara
     expect(mb_strlen((string) $historia->descripcion_larga))->toBe(mb_strlen($descripcionLarga));
 });
 
+test('acepta icono Headphones en detalle de inclusión al crear historia', function (): void {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $suffix = uniqid('', true);
+
+    $this->actingAs($admin)
+        ->post(route('admin.historias.store'), [
+            'nombre' => 'Historia con audio '.$suffix,
+            'descripcion_corta' => 'Corta.',
+            'descripcion_larga' => implode(' ', array_fill(0, 30, 'palabra')),
+            'detalle' => [
+                ['icon' => 'Headphones', 'title' => 'Audio narrado'],
+            ],
+            'historia_categoria_id' => historiaCategoriaId('Aventura'),
+            'autor' => 'Autor',
+            'precio_base' => '10',
+            'codigo' => '#AUD-'.$suffix,
+            'estado' => 'activo',
+            'destacada' => 'no',
+            'duracion_meses' => '12',
+        ])
+        ->assertRedirect(route('admin.historias', absolute: false))
+        ->assertSessionHasNoErrors();
+
+    $historia = Historia::query()->where('codigo', '#AUD-'.$suffix)->first();
+    expect($historia)->not->toBeNull()
+        ->and($historia->detalle[0]['icon'])->toBe('Headphones');
+});
+
 test('rechaza descripción larga con más de 15000 caracteres al crear', function (): void {
     $admin = User::factory()->create(['role' => 'admin']);
     $suffix = uniqid('', true);

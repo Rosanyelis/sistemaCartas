@@ -64,7 +64,6 @@ class Audio extends Model
             $search = (string) $filters['search'];
             $query->where(function (Builder $q) use ($search): void {
                 $q->where('titulo', 'like', "%{$search}%")
-                    ->orWhere('codigo', 'like', "%{$search}%")
                     ->orWhereHas('historia', function (Builder $hq) use ($search): void {
                         $hq->where('nombre', 'like', "%{$search}%");
                     });

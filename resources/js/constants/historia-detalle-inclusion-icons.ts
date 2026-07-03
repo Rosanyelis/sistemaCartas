@@ -19,6 +19,7 @@ export const HISTORIA_DETALLE_INCLUSION_ICONS = [
     'Heart',
     'Truck',
     'Sparkles',
+    'Headphones',
 ] as const;
 
 export type HistoriaDetalleInclusionIconName = (typeof HISTORIA_DETALLE_INCLUSION_ICONS)[number];

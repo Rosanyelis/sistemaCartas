@@ -30,7 +30,7 @@ class AudioController extends Controller
 
         $audios = Audio::query()
             ->adminFilters($filters)
-            ->with('historia:id,nombre')
+            ->with('historia:id,nombre,imagen')
             ->latest()
             ->paginate(10)
             ->withQueryString()
@@ -39,9 +39,9 @@ class AudioController extends Controller
                     'id' => $audio->id,
                     'titulo' => $audio->titulo,
                     'slug' => $audio->slug,
-                    'codigo' => $audio->codigo,
                     'historia_id' => $audio->historia_id,
                     'historia_nombre' => $audio->historia?->nombre ?? '',
+                    'historia_imagen' => $audio->historia?->imagen,
                     'estado' => $audio->estado,
                     'qr_path' => $audio->qr_path,
                     'public_url' => $audio->publicUrl(),

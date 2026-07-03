@@ -7,6 +7,7 @@ import {
     CreateAudioModal,
     type AudioParaFormulario,
 } from '@/components/admin/CreateAudioModal';
+import type { HistoriaSelectOption } from '@/components/admin/SearchableHistoriaSelect';
 import ListPagination from '@/components/panel/ListPagination';
 import UserLayout from '@/layouts/user-layout';
 import type { PaginatedData } from '@/types/pagination';
@@ -20,26 +21,34 @@ interface AudioRow {
     id: number;
     titulo: string;
     slug: string;
-    codigo: string | null;
     historia_id: number;
     historia_nombre: string;
+    historia_imagen: string | null;
     estado: string;
     qr_path: string | null;
     public_url: string;
     created_at: string;
 }
 
-type HistoriaOption = { id: number; nombre: string };
-
 interface Props {
     audios: PaginatedData<AudioRow>;
-    historias: HistoriaOption[];
+    historias: HistoriaSelectOption[];
     filters: { search?: string };
+}
+
+function estadoBadgeClass(estado: string): string {
+    return estado === 'activo'
+        ? 'bg-[#D1F4E0] text-[#12A05B]'
+        : 'bg-[#E0F2FE] text-[#0284C7]';
+}
+
+function estadoLabel(estado: string): string {
+    return estado.charAt(0).toUpperCase() + estado.slice(1);
 }
 
 export default function Audios({ audios, historias, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
-    const [openMenuId, setOpenMenuId] = useState<number | null>(null);
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [audioToEdit, setAudioToEdit] = useState<AudioParaFormulario | null>(null);
     const [deleteAudioSlug, setDeleteAudioSlug] = useState<string | null>(null);
@@ -93,7 +102,6 @@ export default function Audios({ audios, historias, filters }: Props) {
             id: audio.id,
             slug: audio.slug,
             titulo: audio.titulo,
-            codigo: audio.codigo,
             historia_id: audio.historia_id,
             estado: audio.estado,
             qr_path: audio.qr_path,
@@ -165,7 +173,7 @@ export default function Audios({ audios, historias, filters }: Props) {
                             type="text"
                             value={searchTerm}
                             onChange={handleSearch}
-                            placeholder="Filtrar por título, código o historia"
+                            placeholder="Filtrar por título o historia"
                             className="block w-full rounded-[4px] border border-[#DFE4EA] bg-white py-[10px] pl-[34px] pr-3 text-[13px] text-[#1B3D6D] placeholder:text-[#1B3D6D]/60 outline-none transition-all focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/15 md:rounded-md md:border-[#E5E7EB] md:py-2.5 md:pl-10 md:text-sm md:text-gray-900 md:placeholder:text-[#A0A0A0]"
                         />
                     </div>
@@ -176,94 +184,183 @@ export default function Audios({ audios, historias, filters }: Props) {
                             setAudioToEdit(null);
                             setIsCreateModalOpen(true);
                         }}
-                        className="flex items-center justify-center gap-2 rounded-[4px] bg-[#1B3D6D] px-5 py-2.5 text-[13px] font-semibold text-white transition-opacity hover:opacity-90 md:text-sm"
+                        className="flex w-full items-center justify-center gap-2 rounded-[4px] bg-[#1B3D6D] px-4 py-[10px] text-[14px] font-bold text-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-[#1B3D6D]/90 md:w-auto md:rounded-md md:py-2.5 md:font-semibold md:shadow-sm"
                     >
-                        <FontAwesomeIcon icon={faPlus} />
-                        Crear audio
+                        <span>Crear audio</span>
+                        <FontAwesomeIcon icon={faPlus} className="text-[12px] md:text-[14px]" />
                     </button>
                 </div>
 
-                <div className="overflow-hidden rounded-[6px] border border-[#E5E7EB] bg-white shadow-sm">
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full text-left text-[13px] md:text-sm">
-                            <thead className="border-b border-[#E5E7EB] bg-[#F9FAFB] text-[#4B5563]">
-                                <tr>
-                                    <th className="px-4 py-3 font-semibold md:px-6">Título</th>
-                                    <th className="px-4 py-3 font-semibold md:px-6">Historia</th>
-                                    <th className="px-4 py-3 font-semibold md:px-6">Estado</th>
-                                    <th className="px-4 py-3 font-semibold md:px-6">Fecha</th>
-                                    <th className="px-4 py-3 font-semibold md:px-6">Acciones</th>
+                <div className="flex w-full flex-col bg-transparent md:rounded-lg md:bg-white md:shadow-[0px_0px_15px_rgba(36,16,167,0.08)]">
+                    <div className="hidden overflow-visible md:block">
+                        <table className="w-full min-w-[900px] border-collapse text-left">
+                            <thead>
+                                <tr className="border-b border-[#F3F4F6] bg-[#F9FAFB]">
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-[#7B7B7B]">
+                                        Título
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-[#7B7B7B]">
+                                        Historia
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-[#7B7B7B]">
+                                        Estado
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-[#7B7B7B]">
+                                        Fecha creación
+                                    </th>
+                                    <th className="px-5 py-4 text-center text-xs font-bold uppercase tracking-wider text-[#7B7B7B]">
+                                        Acciones
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {audioList.length === 0 ? (
-                                    <tr>
-                                        <td
-                                            colSpan={5}
-                                            className="px-6 py-10 text-center text-[#7B7B7B]"
-                                        >
-                                            No hay audios registrados.
-                                        </td>
-                                    </tr>
-                                ) : (
+                            <tbody className="divide-y divide-[#F3F4F6]">
+                                {audioList.length > 0 ? (
                                     audioList.map((audio) => (
                                         <tr
                                             key={audio.id}
-                                            className="border-b border-[#F3F4F6] last:border-0 hover:bg-[#FAFAFA]"
+                                            className="transition-colors hover:bg-gray-50"
                                         >
-                                            <td className="px-4 py-3 font-medium text-[#1B3D6D] md:px-6">
-                                                {audio.titulo}
+                                            <td className="px-5 py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <img
+                                                        src={
+                                                            audio.historia_imagen ||
+                                                            '/images/placeholder.svg'
+                                                        }
+                                                        alt={audio.titulo}
+                                                        className="h-10 w-10 rounded object-cover bg-gray-100 shadow-sm"
+                                                    />
+                                                    <span className="text-sm font-medium text-[#111827]">
+                                                        {audio.titulo}
+                                                    </span>
+                                                </div>
                                             </td>
-                                            <td className="px-4 py-3 text-[#4B5563] md:px-6">
+                                            <td className="px-5 py-4 text-sm text-[#4B5563]">
                                                 {audio.historia_nombre}
                                             </td>
-                                            <td className="px-4 py-3 md:px-6">
+                                            <td className="px-5 py-4">
                                                 <span
-                                                    className={`inline-flex rounded-full px-2.5 py-0.5 text-[12px] font-medium ${
-                                                        audio.estado === 'activo'
-                                                            ? 'bg-green-50 text-green-700'
-                                                            : 'bg-amber-50 text-amber-700'
-                                                    }`}
+                                                    className={`inline-flex items-center rounded px-2.5 py-0.5 text-[11.5px] font-semibold tracking-wide ${estadoBadgeClass(audio.estado)}`}
                                                 >
-                                                    {audio.estado === 'activo' ? 'Activo' : 'Pausado'}
+                                                    {estadoLabel(audio.estado)}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-3 text-[#4B5563] md:px-6">
+                                            <td className="px-5 py-4 text-sm text-[#4B5563]">
                                                 {audio.created_at}
                                             </td>
-                                            <td className="relative px-4 py-3 md:px-6">
+                                            <td className="relative px-5 py-4 text-center">
                                                 <button
                                                     type="button"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
+                                                        const menuKey = `desktop-${audio.id}`;
                                                         setOpenMenuId(
-                                                            openMenuId === audio.id ? null : audio.id,
+                                                            openMenuId === menuKey ? null : menuKey,
                                                         );
                                                     }}
-                                                    className="rounded p-2 text-[#4B5563] hover:bg-gray-100"
+                                                    className="rounded-full p-2 text-[#7B7B7B] outline-none transition-colors hover:bg-gray-100 hover:text-[#1B3D6D]"
                                                     aria-label="Acciones"
                                                 >
-                                                    <FontAwesomeIcon icon={faEllipsisV} />
+                                                    <FontAwesomeIcon icon={faEllipsisV} className="text-sm" />
                                                 </button>
-                                                {openMenuId === audio.id && renderActionMenu(audio)}
+                                                {openMenuId === `desktop-${audio.id}` &&
+                                                    renderActionMenu(audio)}
                                             </td>
                                         </tr>
                                     ))
+                                ) : (
+                                    <tr>
+                                        <td
+                                            colSpan={5}
+                                            className="px-5 py-10 text-center text-sm text-[#7B7B7B]"
+                                        >
+                                            No hay audios registrados.
+                                        </td>
+                                    </tr>
                                 )}
                             </tbody>
                         </table>
                     </div>
-                </div>
 
-                <ListPagination
-                    variant="admin"
-                    currentPage={current_page}
-                    lastPage={last_page}
-                    from={from}
-                    to={to}
-                    total={total}
-                    onPageChange={goToPage}
-                />
+                    <div className="mb-4 block flex-col rounded-[10px] bg-white shadow-[0px_0px_10px_rgba(0,0,0,0.04)] md:hidden">
+                        <div className="flex w-full flex-col divide-y divide-[#F3F4F6] px-4">
+                            {audioList.length > 0 ? (
+                                audioList.map((audio) => (
+                                    <div key={audio.id} className="relative flex gap-3 py-[18px]">
+                                        <div className="shrink-0">
+                                            <img
+                                                src={
+                                                    audio.historia_imagen ||
+                                                    '/images/placeholder.svg'
+                                                }
+                                                alt={audio.titulo}
+                                                className="h-[88px] w-[88px] rounded-[6px] border border-gray-100 bg-gray-100 object-cover shadow-sm"
+                                            />
+                                        </div>
+                                        <div className="flex min-w-0 flex-1 flex-col">
+                                            <div className="relative flex w-full items-start justify-between gap-2">
+                                                <div className="min-w-0 pr-8">
+                                                    <div className="truncate text-[13.5px] font-medium leading-tight text-[#111827]">
+                                                        {audio.titulo}
+                                                    </div>
+                                                    <div className="mt-1 text-[13px] text-[#4B5563]">
+                                                        {audio.historia_nombre}
+                                                    </div>
+                                                </div>
+                                                <div className="absolute right-0 top-0 flex items-center gap-2">
+                                                    <span
+                                                        className={`inline-flex items-center justify-center rounded px-[8px] py-[2px] text-[11.5px] font-medium tracking-wide ${estadoBadgeClass(audio.estado)}`}
+                                                    >
+                                                        {estadoLabel(audio.estado)}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const menuKey = `mobile-${audio.id}`;
+                                                            setOpenMenuId(
+                                                                openMenuId === menuKey
+                                                                    ? null
+                                                                    : menuKey,
+                                                            );
+                                                        }}
+                                                        className="text-[#4B5563] outline-none"
+                                                        aria-label="Acciones"
+                                                    >
+                                                        <FontAwesomeIcon
+                                                            icon={faEllipsisV}
+                                                            className="text-sm"
+                                                        />
+                                                    </button>
+                                                </div>
+                                                {openMenuId === `mobile-${audio.id}` &&
+                                                    renderActionMenu(audio)}
+                                            </div>
+                                            <div className="mt-2 text-[12.5px] text-[#A0A0A0]">
+                                                {audio.created_at}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-10 text-center text-[13px] text-[#7B7B7B]">
+                                    No hay audios registrados.
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <ListPagination
+                        variant="admin"
+                        currentPage={current_page}
+                        lastPage={last_page}
+                        from={from}
+                        to={to}
+                        total={total}
+                        onPageChange={goToPage}
+                        className="mt-2 justify-center bg-transparent md:mt-0 md:justify-between md:bg-white md:py-4"
+                    />
+                </div>
             </div>
 
             <CreateAudioModal

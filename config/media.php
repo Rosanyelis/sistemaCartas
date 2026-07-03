@@ -21,7 +21,7 @@ return [
     'audio' => [
         'max_upload_kb' => 51200,
         'allowed_mimetypes' => ['audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/wav', 'audio/ogg'],
-        'qr_logo_path' => public_path('images/hero-image.webp'),
+        'qr_logo_path' => public_path('images/logo-hc.png'),
         'qr_size' => 512,
     ],
 ];

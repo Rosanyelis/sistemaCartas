@@ -28,6 +28,7 @@ final class HistoriaDetalleInclusionIcon
         'Heart',
         'Truck',
         'Sparkles',
+        'Headphones',
     ];
 
     /**
