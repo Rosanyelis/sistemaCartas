@@ -48,10 +48,13 @@ export function AdminFormSidePanel({
                     <button
                         type="button"
                         onClick={onClose}
-                        className="-mr-2 p-2 text-[#7B7B7B] outline-none transition-colors hover:text-[#1B3D6D]"
+                        className="-mr-2 p-2 text-[#7B7B7B] transition-colors outline-none hover:text-[#1B3D6D]"
                         aria-label="Cerrar"
                     >
-                        <FontAwesomeIcon icon={faTimes} className="text-[17px] md:text-lg" />
+                        <FontAwesomeIcon
+                            icon={faTimes}
+                            className="text-[17px] md:text-lg"
+                        />
                     </button>
                 </div>
 

@@ -1,4 +1,8 @@
-import { faBars, faTriangleExclamation, faUser } from '@fortawesome/free-solid-svg-icons';
+import {
+    faBars,
+    faTriangleExclamation,
+    faUser,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { appFontLinks } from '@/components/AppFontLinks';
 import { FlashToasts } from '@/components/FlashToasts';
@@ -33,17 +37,11 @@ export default function PanelShell({
     );
     const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
-    const clienteAvatarSrc = (
-        user.avatar_url ??
-        user.avatar ??
-        ''
-    ).trim();
+    const clienteAvatarSrc = (user.avatar_url ?? user.avatar ?? '').trim();
 
     return (
         <div className="flex min-h-screen bg-[#F5F6F7] font-['Inter',sans-serif]">
-            <Head title={title}>
-                {appFontLinks()}
-            </Head>
+            <Head title={title}>{appFontLinks()}</Head>
             {isSidebarOpen && (
                 <div
                     onClick={() => setIsSidebarOpen(false)}
@@ -58,7 +56,7 @@ export default function PanelShell({
             <div
                 className={`flex min-w-0 flex-1 flex-col transition-all duration-300 ${isSidebarOpen ? 'md:ml-[245px]' : 'ml-0 md:ml-[72px]'}`}
             >
-                <div className="sticky top-0 z-30 shrink-0 bg-[#F5F6F7] px-3 pb-2 pt-1.5 md:static md:bg-transparent md:px-5 md:pb-0 md:pt-1.5">
+                <div className="sticky top-0 z-30 shrink-0 bg-[#F5F6F7] px-3 pt-1.5 pb-2 md:static md:bg-transparent md:px-5 md:pt-1.5 md:pb-0">
                     <header className="flex h-[52px] items-center justify-between rounded-[4px] bg-white px-4 shadow-[0px_0px_15px_rgba(36,16,167,0.1)] md:px-5">
                         <button
                             type="button"
@@ -124,7 +122,7 @@ export default function PanelShell({
                     </header>
                 </div>
 
-                <main className="min-w-0 flex-1 overflow-x-hidden px-2 pb-6 pt-0 md:px-3 md:pb-8 md:pt-1">
+                <main className="min-w-0 flex-1 overflow-x-hidden px-2 pt-0 pb-6 md:px-3 md:pt-1 md:pb-8">
                     {children}
                 </main>
             </div>
@@ -150,13 +148,15 @@ export default function PanelShell({
                                 </div>
 
                                 <h3 className="font-['Inter'] text-[25px] leading-[30px] font-semibold text-[#111928]">
-                                    ¿Estás seguro de que deseas cerrar tu sesión?
+                                    ¿Estás seguro de que deseas cerrar tu
+                                    sesión?
                                 </h3>
 
                                 <div className="h-[3px] w-[90px] rounded-[2px] bg-[#1B3D6D]" />
 
                                 <p className="font-['Inter'] text-[16px] leading-[19px] text-[#7B7B7B]">
-                                    Si cierras sesión, te llevará de vuelta a la página de inicio
+                                    Si cierras sesión, te llevará de vuelta a la
+                                    página de inicio
                                 </p>
                             </div>
 

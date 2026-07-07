@@ -15,17 +15,23 @@ final class ProductoTiendaSerializer
     /**
      * Tarjeta del listado paginado (alineado al shape estático previo de ProductCatalog::forCatalog).
      *
-     * @return array{slug: string, name: string, desc: string, price: string, img: string, unit_price: float}
+     * @return array{slug: string, name: string, desc: string, price: string, old_price: ?float, img: string, unit_price: float}
      */
     public static function tarjetaCatalogo(Producto $producto): array
     {
         $precio = (float) $producto->precio;
+        $promoRaw = $producto->precio_promocional;
+        $promo = $promoRaw !== null ? (float) $promoRaw : null;
+        $tienePromo = $promo !== null && $promo > 0;
+        $base = (float) $producto->precio_base;
+        $oldPrice = $tienePromo && $promo < $base ? $base : null;
 
         return [
             'slug' => $producto->slug,
             'name' => $producto->nombre,
             'desc' => $producto->descripcion_corta,
             'price' => self::formatDisplayPrice($precio),
+            'old_price' => $oldPrice,
             'img' => self::mainImageUrl($producto),
             'unit_price' => $precio,
         ];

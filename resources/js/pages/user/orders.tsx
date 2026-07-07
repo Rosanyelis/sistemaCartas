@@ -95,24 +95,34 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
             }
             params.page = '1';
 
-            router.get(orders.url({ query: params }), {}, {
-                preserveState: true,
-                preserveScroll: true,
-            });
+            router.get(
+                orders.url({ query: params }),
+                {},
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                },
+            );
         }, 320);
 
         return () => window.clearTimeout(id);
     }, [searchTerm, filters.search, startDate, endDate]);
 
-    const buildQuery = (overrides: {
-        search?: string;
-        startDate?: string;
-        endDate?: string;
-        page?: number;
-    } = {}): Record<string, string> => {
-        const s = (overrides.search !== undefined ? overrides.search : searchTerm).trim();
-        const sd = overrides.startDate !== undefined ? overrides.startDate : startDate;
-        const ed = overrides.endDate !== undefined ? overrides.endDate : endDate;
+    const buildQuery = (
+        overrides: {
+            search?: string;
+            startDate?: string;
+            endDate?: string;
+            page?: number;
+        } = {},
+    ): Record<string, string> => {
+        const s = (
+            overrides.search !== undefined ? overrides.search : searchTerm
+        ).trim();
+        const sd =
+            overrides.startDate !== undefined ? overrides.startDate : startDate;
+        const ed =
+            overrides.endDate !== undefined ? overrides.endDate : endDate;
         const params: Record<string, string> = {};
         if (s !== '') {
             params.search = s;
@@ -139,10 +149,14 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
             page?: number;
         } = {},
     ) => {
-        router.get(orders.url({ query: buildQuery(overrides) }), {}, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        router.get(
+            orders.url({ query: buildQuery(overrides) }),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -158,10 +172,14 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
     };
 
     const goToPage = (page: number) => {
-        router.get(orders.url({ query: buildQuery({ page }) }), {}, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        router.get(
+            orders.url({ query: buildQuery({ page }) }),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     const handleDateApply = () => {
@@ -173,10 +191,14 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
         setStartDate('');
         setEndDate('');
         setIsDateMenuOpen(false);
-        router.get(orders.url({ query: buildQuery({ startDate: '', endDate: '' }) }), {}, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        router.get(
+            orders.url({ query: buildQuery({ startDate: '', endDate: '' }) }),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
     };
 
     const hasFilter =
@@ -192,18 +214,19 @@ export default function Orders({ auth, ordenes, filters }: OrdersPageProps) {
         return 'No se encontraron órdenes que coincidan con tu búsqueda.';
     };
 
-    const lineKey = (row: PedidoLineaCliente) => `${row.order_id}-${row.item_id}`;
+    const lineKey = (row: PedidoLineaCliente) =>
+        `${row.order_id}-${row.item_id}`;
 
     return (
         <UserLayout title="Mis Órdenes">
             <Head title="Mis órdenes" />
             <div className="flex w-full flex-col gap-5 font-['Inter',sans-serif]">
-            <div className="flex w-full flex-col gap-1 lg:flex-row lg:items-center lg:gap-5">
-                    <h1 className="text-[25px] font-semibold leading-normal text-[#1B3D6D]">
+                <div className="flex w-full flex-col gap-1 lg:flex-row lg:items-center lg:gap-5">
+                    <h1 className="text-[25px] leading-normal font-semibold text-[#1B3D6D]">
                         ¡Hola, {auth.user.name.split(' ')[0]} bienvenido!{' '}
                         <span className="text-[24px]">👋</span>
                     </h1>
-                    <p className="text-lg font-normal leading-7 text-[#7B7B7B] lg:text-[16px] lg:leading-[22px]">
+                    <p className="text-lg leading-7 font-normal text-[#7B7B7B] lg:text-[16px] lg:leading-[22px]">
                         Estas son tus órdenes del día...
                     </p>
                 </div>

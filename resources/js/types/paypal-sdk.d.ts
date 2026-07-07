@@ -25,7 +25,9 @@ declare global {
     interface Window {
         paypal?: {
             Buttons: (
-                config: PayPalOrderButtonsConfig | PayPalSubscriptionButtonsConfig,
+                config:
+                    | PayPalOrderButtonsConfig
+                    | PayPalSubscriptionButtonsConfig,
             ) => {
                 render: (container: HTMLElement) => Promise<void>;
             };

@@ -20,7 +20,10 @@ import {
 } from 'lucide-react';
 import type { HistoriaDetalleInclusionIconName } from '@/constants/historia-detalle-inclusion-icons';
 
-export const inclusionLucideMap: Record<HistoriaDetalleInclusionIconName, LucideIcon> = {
+export const inclusionLucideMap: Record<
+    HistoriaDetalleInclusionIconName,
+    LucideIcon
+> = {
     FileText,
     Newspaper,
     Mail,

@@ -98,28 +98,39 @@ export function LimitedWordRichEditor({
 
     const htmlContent = editor ? editor.getHTML() : initialHtml;
     const charCount = htmlContent.length;
-    const words = editor ? countEditorWords(editor) : countEditorWordsFromHtml(initialHtml);
+    const words = editor
+        ? countEditorWords(editor)
+        : countEditorWordsFromHtml(initialHtml);
     const usesCharLimit = maxChars !== undefined;
-    const atLimit = usesCharLimit ? charCount >= maxChars : words >= (maxWords ?? 0);
+    const atLimit = usesCharLimit
+        ? charCount >= maxChars
+        : words >= (maxWords ?? 0);
     const counterLabel = usesCharLimit
         ? `${charCount} / ${maxChars} caracteres`
         : `${words} / ${maxWords} palabras`;
 
     return (
         <div className="flex flex-col gap-1.5">
-            <label htmlFor={fieldId} className="text-[13px] font-semibold text-[#1B3D6D]">
+            <label
+                htmlFor={fieldId}
+                className="text-[13px] font-semibold text-[#1B3D6D]"
+            >
                 {label}
             </label>
             <div
-                className={`rounded-[4px] border overflow-hidden shadow-sm ${error ? 'border-red-500' : 'border-[#DFE4EA]'}`}
+                className={`overflow-hidden rounded-[4px] border shadow-sm ${error ? 'border-red-500' : 'border-[#DFE4EA]'}`}
             >
                 {editor ? (
-                    <div className="border-b border-[#F3F4F6] bg-[#FAFBFC] px-2 py-1.5 flex flex-wrap items-center gap-0.5">
+                    <div className="flex flex-wrap items-center gap-0.5 border-b border-[#F3F4F6] bg-[#FAFBFC] px-2 py-1.5">
                         <button
                             type="button"
                             className={`${toolbarBtn} ${editor.isActive('bold') ? 'bg-[#1B3D6D]/15 text-[#1B3D6D]' : ''}`}
-                            onClick={() => editor.chain().focus().toggleBold().run()}
-                            disabled={!editor.can().chain().focus().toggleBold().run()}
+                            onClick={() =>
+                                editor.chain().focus().toggleBold().run()
+                            }
+                            disabled={
+                                !editor.can().chain().focus().toggleBold().run()
+                            }
                             title="Negrita"
                         >
                             <FontAwesomeIcon icon={faBold} />
@@ -127,17 +138,31 @@ export function LimitedWordRichEditor({
                         <button
                             type="button"
                             className={`${toolbarBtn} ${editor.isActive('italic') ? 'bg-[#1B3D6D]/15 text-[#1B3D6D]' : ''}`}
-                            onClick={() => editor.chain().focus().toggleItalic().run()}
-                            disabled={!editor.can().chain().focus().toggleItalic().run()}
+                            onClick={() =>
+                                editor.chain().focus().toggleItalic().run()
+                            }
+                            disabled={
+                                !editor
+                                    .can()
+                                    .chain()
+                                    .focus()
+                                    .toggleItalic()
+                                    .run()
+                            }
                             title="Cursiva"
                         >
                             <FontAwesomeIcon icon={faItalic} />
                         </button>
-                        <span className="mx-1 h-4 w-px bg-[#DFE4EA]" aria-hidden />
+                        <span
+                            className="mx-1 h-4 w-px bg-[#DFE4EA]"
+                            aria-hidden
+                        />
                         <button
                             type="button"
                             className={`${toolbarBtn} ${editor.isActive('bulletList') ? 'bg-[#1B3D6D]/15 text-[#1B3D6D]' : ''}`}
-                            onClick={() => editor.chain().focus().toggleBulletList().run()}
+                            onClick={() =>
+                                editor.chain().focus().toggleBulletList().run()
+                            }
                             title="Lista con viñetas"
                         >
                             <FontAwesomeIcon icon={faListUl} />
@@ -145,7 +170,9 @@ export function LimitedWordRichEditor({
                         <button
                             type="button"
                             className={`${toolbarBtn} ${editor.isActive('orderedList') ? 'bg-[#1B3D6D]/15 text-[#1B3D6D]' : ''}`}
-                            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                            onClick={() =>
+                                editor.chain().focus().toggleOrderedList().run()
+                            }
                             title="Lista numerada"
                         >
                             <FontAwesomeIcon icon={faListOl} />
@@ -153,17 +180,24 @@ export function LimitedWordRichEditor({
                         <button
                             type="button"
                             className={`${toolbarBtn} ${editor.isActive('blockquote') ? 'bg-[#1B3D6D]/15 text-[#1B3D6D]' : ''}`}
-                            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                            onClick={() =>
+                                editor.chain().focus().toggleBlockquote().run()
+                            }
                             title="Cita"
                         >
                             <FontAwesomeIcon icon={faQuoteLeft} />
                         </button>
-                        <span className="mx-1 h-4 w-px bg-[#DFE4EA]" aria-hidden />
+                        <span
+                            className="mx-1 h-4 w-px bg-[#DFE4EA]"
+                            aria-hidden
+                        />
                         <button
                             type="button"
                             className={toolbarBtn}
                             onClick={() => editor.chain().focus().undo().run()}
-                            disabled={!editor.can().chain().focus().undo().run()}
+                            disabled={
+                                !editor.can().chain().focus().undo().run()
+                            }
                             title="Deshacer"
                         >
                             <FontAwesomeIcon icon={faRotateLeft} />
@@ -172,7 +206,9 @@ export function LimitedWordRichEditor({
                             type="button"
                             className={toolbarBtn}
                             onClick={() => editor.chain().focus().redo().run()}
-                            disabled={!editor.can().chain().focus().redo().run()}
+                            disabled={
+                                !editor.can().chain().focus().redo().run()
+                            }
                             title="Rehacer"
                         >
                             <FontAwesomeIcon icon={faRotateRight} />
@@ -187,7 +223,10 @@ export function LimitedWordRichEditor({
                 </div>
                 <div className="flex items-center justify-between gap-2 border-t border-[#F3F4F6] bg-[#FAFBFC] px-3 py-1.5">
                     {hint && !error ? (
-                        <span id={`${fieldId}-hint`} className="text-[11px] text-[#A0A0A0]">
+                        <span
+                            id={`${fieldId}-hint`}
+                            className="text-[11px] text-[#A0A0A0]"
+                        >
                             {hint}
                         </span>
                     ) : (
@@ -200,7 +239,9 @@ export function LimitedWordRichEditor({
                     </span>
                 </div>
             </div>
-            {error ? <span className="text-red-500 text-[11px]">{error}</span> : null}
+            {error ? (
+                <span className="text-[11px] text-red-500">{error}</span>
+            ) : null}
             <style>{`
                 .tiptap-editor-prose p.is-editor-empty:first-child::before {
                     content: attr(data-placeholder);

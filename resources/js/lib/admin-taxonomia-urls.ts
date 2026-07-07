@@ -26,7 +26,10 @@ function withQuery(base: string, query?: TaxonomiaListQuery): string {
     }
 
     if (query.producto_categoria_id !== undefined) {
-        params.set('producto_categoria_id', String(query.producto_categoria_id));
+        params.set(
+            'producto_categoria_id',
+            String(query.producto_categoria_id),
+        );
     }
 
     const qs = params.toString();
@@ -51,6 +54,7 @@ export const adminTaxonomiaUrls = {
         index: (query?: TaxonomiaListQuery) =>
             withQuery('/admin/taxonomia/producto-subcategorias', query),
         store: () => '/admin/taxonomia/producto-subcategorias',
-        destroy: (id: number) => `/admin/taxonomia/producto-subcategorias/${id}`,
+        destroy: (id: number) =>
+            `/admin/taxonomia/producto-subcategorias/${id}`,
     },
 } as const;

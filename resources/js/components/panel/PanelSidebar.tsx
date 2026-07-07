@@ -23,13 +23,19 @@ function navItemClass(isOpen: boolean, active: boolean): string {
 
 const labelClass = (isOpen: boolean) =>
     `font-['Inter'] text-[16px] leading-[22px] font-normal whitespace-nowrap transition-all duration-300 ${
-        isOpen ? 'w-auto opacity-100' : 'pointer-events-none w-0 translate-x-4 opacity-0'
+        isOpen
+            ? 'w-auto opacity-100'
+            : 'pointer-events-none w-0 translate-x-4 opacity-0'
     }`;
 
 /**
  * Sidebar unificado admin/cliente según Figma 15519:10196 (NfblilJds13pHlU1YbWXLp).
  */
-export function PanelSidebar({ items, isOpen, onLogoutClick }: PanelSidebarProps) {
+export function PanelSidebar({
+    items,
+    isOpen,
+    onLogoutClick,
+}: PanelSidebarProps) {
     return (
         <aside
             className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#1B3D6D] transition-all duration-300 ${
@@ -57,7 +63,9 @@ export function PanelSidebar({ items, isOpen, onLogoutClick }: PanelSidebarProps
                     </Link>
                 </div>
 
-                {isOpen ? <div className="mb-3 h-[0.5px] w-full shrink-0 bg-[#F2F2F2]" /> : null}
+                {isOpen ? (
+                    <div className="mb-3 h-[0.5px] w-full shrink-0 bg-[#F2F2F2]" />
+                ) : null}
 
                 <nav className="flex min-h-0 flex-1 flex-col gap-3">
                     <div className="flex flex-1 flex-col gap-3">
@@ -68,9 +76,14 @@ export function PanelSidebar({ items, isOpen, onLogoutClick }: PanelSidebarProps
                                 className={navItemClass(isOpen, item.active)}
                             >
                                 <span className="flex size-6 shrink-0 items-center justify-center">
-                                    <Icon iconNode={item.icon} className="size-6" />
+                                    <Icon
+                                        iconNode={item.icon}
+                                        className="size-6"
+                                    />
                                 </span>
-                                <span className={labelClass(isOpen)}>{item.name}</span>
+                                <span className={labelClass(isOpen)}>
+                                    {item.name}
+                                </span>
                             </Link>
                         ))}
 
@@ -82,21 +95,29 @@ export function PanelSidebar({ items, isOpen, onLogoutClick }: PanelSidebarProps
                             className={`${navItemClass(isOpen, false)} text-white`}
                         >
                             <span className="flex size-6 shrink-0 items-center justify-center">
-                                <Icon iconNode={PanelNavPowerIcon} className="size-6" />
+                                <Icon
+                                    iconNode={PanelNavPowerIcon}
+                                    className="size-6"
+                                />
                             </span>
-                            <span className={labelClass(isOpen)}>Cerrar sesión</span>
+                            <span className={labelClass(isOpen)}>
+                                Cerrar sesión
+                            </span>
                         </button>
                     </div>
-
-                    
                 </nav>
 
                 <div
                     className={`mt-6 hidden w-full text-center font-['Inter'] text-[8.5px] leading-normal text-white transition-all duration-300 md:block ${
-                        isOpen ? 'opacity-100' : 'pointer-events-none scale-75 opacity-0'
+                        isOpen
+                            ? 'opacity-100'
+                            : 'pointer-events-none scale-75 opacity-0'
                     }`}
                 >
-                    <p className="text-[10px]">© Historias por correo <br/> Todos los derechos reservados</p>
+                    <p className="text-[10px]">
+                        © Historias por correo <br /> Todos los derechos
+                        reservados
+                    </p>
                 </div>
             </div>
         </aside>

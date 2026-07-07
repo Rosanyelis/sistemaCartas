@@ -32,7 +32,11 @@ export default function PayPalCheckoutButtons({
     const { paypal: paypalFromProps } = usePage().props;
     const paypal =
         paypalFromProps ??
-        ({ clientId: '', currency: 'USD', enabled: false } satisfies SharedPayPalProps['paypal']);
+        ({
+            clientId: '',
+            currency: 'USD',
+            enabled: false,
+        } satisfies SharedPayPalProps['paypal']);
     const containerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -106,11 +110,7 @@ export default function PayPalCheckoutButtons({
                         const msg =
                             cap.message ??
                             'No se pudo completar el cobro con PayPal.';
-                        setError(
-                            cap.detail
-                                ? `${msg} (${cap.detail})`
-                                : msg,
-                        );
+                        setError(cap.detail ? `${msg} (${cap.detail})` : msg);
                         throw new Error(msg);
                     }
 
@@ -138,7 +138,14 @@ export default function PayPalCheckoutButtons({
                 el.innerHTML = '';
             }
         };
-    }, [linesKey, lines, onSuccess, paypal.clientId, paypal.currency, paypal.enabled]);
+    }, [
+        linesKey,
+        lines,
+        onSuccess,
+        paypal.clientId,
+        paypal.currency,
+        paypal.enabled,
+    ]);
 
     if (!paypal.enabled || !paypal.clientId) {
         return (

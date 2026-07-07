@@ -27,13 +27,18 @@ export type VentasChartPoint = {
 
 export type DashboardFilters = {
     periodo: string;
+    anio?: number | null;
     fecha_desde?: string | null;
     fecha_hasta?: string | null;
     chart_desde?: string | null;
     chart_hasta?: string | null;
 };
 
-export type ChartSerieFilter = 'todos' | 'historias' | 'productos' | 'cancelados';
+export type ChartSerieFilter =
+    | 'todos'
+    | 'historias'
+    | 'productos'
+    | 'cancelados';
 
 export const CHART_FILTER_OPTIONS: {
     key: ChartSerieFilter;

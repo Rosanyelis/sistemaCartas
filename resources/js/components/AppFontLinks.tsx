@@ -6,7 +6,11 @@ import type { ReactElement } from 'react';
  */
 export function appFontLinks(): ReactElement[] {
     return [
-        <link key="fonts-preconnect" rel="preconnect" href="https://fonts.bunny.net" />,
+        <link
+            key="fonts-preconnect"
+            rel="preconnect"
+            href="https://fonts.bunny.net"
+        />,
         <link
             key="fonts-family"
             href="https://fonts.bunny.net/css?family=playfair-display:400,600,700,700i|inter:400,500,600,700|cormorant-garamond:400,700,700i|roboto:400,500"

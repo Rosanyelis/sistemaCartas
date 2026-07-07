@@ -35,8 +35,13 @@ export type PanelNavItem = {
     active: boolean;
 };
 
-export function getPanelNav(role: PanelRole, currentUrl: string): PanelNavItem[] {
-    return role === 'admin' ? getAdminPanelNav(currentUrl) : getClientePanelNav(currentUrl);
+export function getPanelNav(
+    role: PanelRole,
+    currentUrl: string,
+): PanelNavItem[] {
+    return role === 'admin'
+        ? getAdminPanelNav(currentUrl)
+        : getClientePanelNav(currentUrl);
 }
 
 /**

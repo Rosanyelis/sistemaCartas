@@ -25,7 +25,7 @@ export default function DashboardSalesSidebar({
         <div className="flex w-full min-w-0 flex-col gap-4 xl:w-[265px] xl:shrink-0 xl:gap-4">
             <div className={`rounded-[4px] bg-white p-3 ${cardShadow}`}>
                 <div className="mb-3 flex items-start justify-between gap-2 lg:mb-0 lg:gap-2">
-                    <h3 className="text-[16px] font-semibold leading-none text-[#7B7B7B]">
+                    <h3 className="text-[16px] leading-none font-semibold text-[#7B7B7B]">
                         Ventas totales
                     </h3>
                     <div className={iconBoxClass}>
@@ -42,7 +42,7 @@ export default function DashboardSalesSidebar({
                         <div className="mb-4 h-8 w-40 animate-pulse rounded bg-gray-200 lg:mt-3" />
                     }
                 >
-                    <p className="mb-4 text-[25px] font-semibold leading-none text-[#A4A4A4] lg:mb-3 lg:mt-3">
+                    <p className="mb-4 text-[25px] leading-none font-semibold text-[#A4A4A4] lg:mt-3 lg:mb-3">
                         {formatMxn(metricas?.ventas_del_mes ?? 0).replace(
                             ' MX',
                             'MX',
@@ -60,7 +60,9 @@ export default function DashboardSalesSidebar({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <div className="size-3 rounded-[2px] bg-[#734B19]" />
-                                <span className="text-[#734B19]">Historias</span>
+                                <span className="text-[#734B19]">
+                                    Historias
+                                </span>
                             </div>
                             <span className="text-[#734B19]">
                                 {formatMxn(ventasHistoriasMes)}
@@ -69,7 +71,9 @@ export default function DashboardSalesSidebar({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <div className="size-3 rounded-[2px] bg-[#1B3D6D]" />
-                                <span className="text-[#1B3D6D]">Productos</span>
+                                <span className="text-[#1B3D6D]">
+                                    Productos
+                                </span>
                             </div>
                             <span className="text-[#1B3D6D]">
                                 {formatMxn(ventasProductosMes)}
@@ -83,7 +87,7 @@ export default function DashboardSalesSidebar({
                 className={`flex flex-1 flex-col rounded-[4px] bg-white p-3 ${cardShadow} lg:gap-4`}
             >
                 <div className="mb-4 flex items-center justify-between gap-2 lg:mb-0">
-                    <h3 className="text-[16px] font-semibold leading-none text-[#7B7B7B]">
+                    <h3 className="text-[16px] leading-none font-semibold text-[#7B7B7B]">
                         Historias activas
                     </h3>
                     <div className={iconBoxClass}>
@@ -132,7 +136,7 @@ export default function DashboardSalesSidebar({
                                     </PieChart>
                                 </ResponsiveContainer>
                                 <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-                                    <span className="text-[36px] font-semibold leading-none text-[#1B3D6D]">
+                                    <span className="text-[36px] leading-none font-semibold text-[#1B3D6D]">
                                         {metricas.suscripciones_activas_total}
                                     </span>
                                     <span className="max-w-[90px] text-center text-[9px] leading-normal text-[#7B7B7B]">

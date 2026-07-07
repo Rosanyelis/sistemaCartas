@@ -167,13 +167,16 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
         };
         document.addEventListener('mousedown', handleClickOutside);
 
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () =>
+            document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const applyFilters = useCallback(
         (params: Record<string, string>) => {
             router.get(
-                adminOrdenesIndex.url({ query: { ...filters, ...params, page: '1' } }),
+                adminOrdenesIndex.url({
+                    query: { ...filters, ...params, page: '1' },
+                }),
                 {},
                 { preserveState: true, preserveScroll: true },
             );
@@ -201,7 +204,9 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
 
     const goToPage = (page: number) => {
         router.get(
-            adminOrdenesIndex.url({ query: { ...filters, page: String(page) } }),
+            adminOrdenesIndex.url({
+                query: { ...filters, page: String(page) },
+            }),
             {},
             { preserveState: true, preserveScroll: true },
         );
@@ -226,16 +231,16 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                     <h1 className="text-[25px] font-bold text-[#1B3D6D] md:text-2xl">
                         Órdenes
                     </h1>
-                    <span className="text-[16px] font-normal leading-[22px] text-[#1B3D6D] md:text-[13px] md:font-medium md:opacity-80">
-                        Aquí puedes revisar y gestionar todas las órdenes creadas en la
-                        plataforma
+                    <span className="text-[16px] leading-[22px] font-normal text-[#1B3D6D] md:text-[13px] md:font-medium md:opacity-80">
+                        Aquí puedes revisar y gestionar todas las órdenes
+                        creadas en la plataforma
                     </span>
                 </div>
 
                 {/* Filters and Search */}
                 <div className="flex w-full flex-col justify-between gap-3 lg:flex-row lg:items-center">
                     <div className="relative w-full lg:max-w-xl lg:flex-1">
-                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#1B3D6D] opacity-60">
+                        <span className="absolute top-1/2 left-3.5 -translate-y-1/2 text-[#1B3D6D] opacity-60">
                             <FontAwesomeIcon
                                 icon={faMagnifyingGlass}
                                 className="size-3.5"
@@ -246,7 +251,7 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                             value={searchTerm}
                             onChange={handleSearch}
                             placeholder="Busca por numero de orden, nombre o correo..."
-                            className="h-10 w-full rounded-[4px] border border-[#DFE4EA] bg-white pl-10 pr-4 text-[13px] text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-all outline-none placeholder:text-[#1B3D6D]/40 focus:ring-1 focus:ring-[#1B3D6D]/15 md:rounded-md md:shadow-none"
+                            className="h-10 w-full rounded-[4px] border border-[#DFE4EA] bg-white pr-4 pl-10 text-[13px] text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-all outline-none placeholder:text-[#1B3D6D]/40 focus:ring-1 focus:ring-[#1B3D6D]/15 md:rounded-md md:shadow-none"
                         />
                     </div>
 
@@ -258,7 +263,9 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                             onClick={() => setIsDateMenuOpen(!isDateMenuOpen)}
                             className="flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-[4px] border border-[#DFE4EA] bg-white px-4 text-[13px] font-medium text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-all hover:bg-gray-50 md:w-auto md:justify-between md:rounded-md md:shadow-sm"
                         >
-                            <span className="opacity-80">{dateFilterLabel}</span>
+                            <span className="opacity-80">
+                                {dateFilterLabel}
+                            </span>
                             <FontAwesomeIcon
                                 icon={faChevronDown}
                                 className={`size-3 opacity-60 transition-transform duration-200 ${isDateMenuOpen ? 'rotate-180' : ''}`}
@@ -275,7 +282,9 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                                         <input
                                             type="date"
                                             value={startDate}
-                                            onChange={(e) => setStartDate(e.target.value)}
+                                            onChange={(e) =>
+                                                setStartDate(e.target.value)
+                                            }
                                             className="w-full rounded border border-[#E5E7EB] p-2 text-sm text-[#4B5563] outline-none focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]"
                                         />
                                     </div>
@@ -286,7 +295,9 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                                         <input
                                             type="date"
                                             value={endDate}
-                                            onChange={(e) => setEndDate(e.target.value)}
+                                            onChange={(e) =>
+                                                setEndDate(e.target.value)
+                                            }
                                             className="w-full rounded border border-[#E5E7EB] p-2 text-sm text-[#4B5563] outline-none focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]"
                                         />
                                     </div>
@@ -339,7 +350,7 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                         <table className="w-full min-w-[900px] border-collapse">
                             <thead>
                                 <tr className="border-b border-[#F2F2F2] bg-[#FAFAFA]">
-                                    <th className="whitespace-nowrap px-6 py-5 text-left text-[12px] font-bold text-[#111928]">
+                                    <th className="px-6 py-5 text-left text-[12px] font-bold whitespace-nowrap text-[#111928]">
                                         <div className="flex items-center gap-2">
                                             Nº
                                             <FontAwesomeIcon
@@ -348,13 +359,13 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                                             />
                                         </div>
                                     </th>
-                                    <th className="whitespace-nowrap px-6 py-5 text-left text-[12px] font-bold text-[#111928]">
+                                    <th className="px-6 py-5 text-left text-[12px] font-bold whitespace-nowrap text-[#111928]">
                                         Productos
                                     </th>
-                                    <th className="whitespace-nowrap px-6 py-5 text-left text-[12px] font-bold text-[#111928]">
+                                    <th className="px-6 py-5 text-left text-[12px] font-bold whitespace-nowrap text-[#111928]">
                                         Cantidad
                                     </th>
-                                    <th className="whitespace-nowrap px-6 py-5 text-left text-[12px] font-bold text-[#111928]">
+                                    <th className="px-6 py-5 text-left text-[12px] font-bold whitespace-nowrap text-[#111928]">
                                         <div className="flex items-center gap-2">
                                             Precio
                                             <FontAwesomeIcon
@@ -363,13 +374,13 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                                             />
                                         </div>
                                     </th>
-                                    <th className="whitespace-nowrap px-6 py-5 text-left text-[12px] font-bold text-[#111928]">
+                                    <th className="px-6 py-5 text-left text-[12px] font-bold whitespace-nowrap text-[#111928]">
                                         Cliente
                                     </th>
-                                    <th className="whitespace-nowrap px-6 py-5 text-left text-[12px] font-bold text-[#111928]">
+                                    <th className="px-6 py-5 text-left text-[12px] font-bold whitespace-nowrap text-[#111928]">
                                         Dirección
                                     </th>
-                                    <th className="whitespace-nowrap px-6 py-5 text-left text-[12px] font-bold text-[#111928]">
+                                    <th className="px-6 py-5 text-left text-[12px] font-bold whitespace-nowrap text-[#111928]">
                                         <div className="flex items-center gap-2">
                                             Estado
                                             <FontAwesomeIcon
@@ -395,7 +406,8 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                                                     #{order.id}
                                                 </td>
                                                 <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
-                                                    {firstItem?.product_name ?? '-'}
+                                                    {firstItem?.product_name ??
+                                                        '-'}
                                                 </td>
                                                 <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
                                                     {orderTotalQuantity(order)
@@ -403,13 +415,17 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                                                         .padStart(2, '0')}
                                                 </td>
                                                 <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
-                                                    ${Number(order.total).toFixed(2)}
+                                                    $
+                                                    {Number(
+                                                        order.total,
+                                                    ).toFixed(2)}
                                                 </td>
                                                 <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
                                                     {order.user?.name ?? '-'}
                                                 </td>
                                                 <td className="px-6 py-4 text-[13px] text-[#7B7B7B]">
-                                                    {order.user?.direction ?? '-'}
+                                                    {order.user?.direction ??
+                                                        '-'}
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <span
@@ -427,8 +443,8 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                                             colSpan={7}
                                             className="px-6 py-10 text-center text-sm text-[#7B7B7B]"
                                         >
-                                            No se encontraron órdenes que coincidan con la
-                                            búsqueda.
+                                            No se encontraron órdenes que
+                                            coincidan con la búsqueda.
                                         </td>
                                     </tr>
                                 )}
@@ -448,7 +464,8 @@ export default function AdminOrders({ ordenes, filters }: AdminOrdersProps) {
                                 ))
                             ) : (
                                 <p className="px-5 py-10 text-center text-[13px] text-[#7B7B7B]">
-                                    No se encontraron órdenes que coincidan con la búsqueda.
+                                    No se encontraron órdenes que coincidan con
+                                    la búsqueda.
                                 </p>
                             )}
                         </div>

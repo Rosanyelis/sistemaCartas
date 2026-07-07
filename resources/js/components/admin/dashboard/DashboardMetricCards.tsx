@@ -38,7 +38,7 @@ export default function DashboardMetricCards({
         : undefined;
 
     return (
-        <div className="min-w-0 w-full">
+        <div className="w-full min-w-0">
             <div
                 ref={scrollContainerRef}
                 onMouseDown={onMouseDown}

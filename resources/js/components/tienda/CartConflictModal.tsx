@@ -27,7 +27,7 @@ export default function CartConflictModal({
 
     return createPortal(
         <div
-            className="fixed inset-0 z-[220] flex items-center justify-center p-4 pointer-events-auto"
+            className="pointer-events-auto fixed inset-0 z-[220] flex items-center justify-center p-4"
             role="dialog"
             aria-modal="true"
             aria-labelledby="cart-conflict-title"

@@ -1,6 +1,11 @@
 import { usePage } from '@inertiajs/react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheckCircle, faCircleExclamation, faTriangleExclamation, faTimes } from '@fortawesome/free-solid-svg-icons';
+import {
+    faCheckCircle,
+    faCircleExclamation,
+    faTriangleExclamation,
+    faTimes,
+} from '@fortawesome/free-solid-svg-icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -108,16 +113,34 @@ export function FlashToasts() {
                     key={t.id}
                     className={cn(
                         'pointer-events-auto flex max-w-[min(100%,28rem)] items-start gap-3 rounded-lg border px-4 py-3 text-[13px] shadow-lg transition-all',
-                        t.kind === 'success' && 'border-emerald-200 bg-emerald-50 text-emerald-950',
-                        t.kind === 'error' && 'border-red-200 bg-red-50 text-red-950',
-                        t.kind === 'warning' && 'border-amber-200 bg-amber-50 text-amber-950',
+                        t.kind === 'success' &&
+                            'border-emerald-200 bg-emerald-50 text-emerald-950',
+                        t.kind === 'error' &&
+                            'border-red-200 bg-red-50 text-red-950',
+                        t.kind === 'warning' &&
+                            'border-amber-200 bg-amber-50 text-amber-950',
                     )}
                     role="status"
                 >
                     <span className="mt-0.5 shrink-0">
-                        {t.kind === 'success' && <FontAwesomeIcon icon={faCheckCircle} className="text-emerald-600" />}
-                        {t.kind === 'error' && <FontAwesomeIcon icon={faCircleExclamation} className="text-red-600" />}
-                        {t.kind === 'warning' && <FontAwesomeIcon icon={faTriangleExclamation} className="text-amber-600" />}
+                        {t.kind === 'success' && (
+                            <FontAwesomeIcon
+                                icon={faCheckCircle}
+                                className="text-emerald-600"
+                            />
+                        )}
+                        {t.kind === 'error' && (
+                            <FontAwesomeIcon
+                                icon={faCircleExclamation}
+                                className="text-red-600"
+                            />
+                        )}
+                        {t.kind === 'warning' && (
+                            <FontAwesomeIcon
+                                icon={faTriangleExclamation}
+                                className="text-amber-600"
+                            />
+                        )}
                     </span>
                     <p className="min-w-0 flex-1 leading-snug">{t.message}</p>
                     <button
@@ -126,7 +149,10 @@ export function FlashToasts() {
                         className="shrink-0 rounded p-1 opacity-70 transition-opacity hover:opacity-100"
                         aria-label="Cerrar notificación"
                     >
-                        <FontAwesomeIcon icon={faTimes} className="text-[12px]" />
+                        <FontAwesomeIcon
+                            icon={faTimes}
+                            className="text-[12px]"
+                        />
                     </button>
                 </div>
             ))}

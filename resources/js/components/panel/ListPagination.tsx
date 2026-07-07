@@ -62,8 +62,7 @@ export default function ListPagination({
     );
     const hasRecords = total > 0 && from != null && to != null;
     const navigationDisabled = total === 0;
-    const prevDisabled =
-        navigationDisabled || normalizedCurrentPage === 1;
+    const prevDisabled = navigationDisabled || normalizedCurrentPage === 1;
     const nextDisabled =
         navigationDisabled || normalizedCurrentPage === normalizedLastPage;
 
@@ -104,7 +103,7 @@ export default function ListPagination({
         'w-full text-center font-medium text-[#7B7B7B] md:w-auto md:text-left',
         isAdmin
             ? 'text-[13px] font-bold text-[#9CA3AF] md:font-normal md:text-[#7B7B7B]'
-            : 'font-[\'Inter\'] text-[14px] md:text-[13px] md:font-semibold',
+            : "font-['Inter'] text-[14px] md:text-[13px] md:font-semibold",
     );
 
     const pageButtonClass = (active: boolean) =>
@@ -149,9 +148,7 @@ export default function ListPagination({
                     className={navButtonClass(prevDisabled)}
                 >
                     <FontAwesomeIcon
-                        icon={
-                            isAdmin ? faChevronLeft : faChevronDown
-                        }
+                        icon={isAdmin ? faChevronLeft : faChevronDown}
                         className={cn(
                             'text-xs',
                             !isAdmin && 'size-3 rotate-90',
@@ -203,9 +200,7 @@ export default function ListPagination({
                     className={navButtonClass(nextDisabled)}
                 >
                     <FontAwesomeIcon
-                        icon={
-                            isAdmin ? faChevronRight : faChevronDown
-                        }
+                        icon={isAdmin ? faChevronRight : faChevronDown}
                         className={cn(
                             'text-xs',
                             !isAdmin && 'size-3 -rotate-90',

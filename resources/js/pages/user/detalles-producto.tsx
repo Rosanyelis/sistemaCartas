@@ -49,8 +49,7 @@ function DetalleProductoContent() {
     const [cartConflictOpen, setCartConflictOpen] = useState(false);
     const pendingProductRef = useRef<PendingProductPayload | null>(null);
 
-    const primaryImage =
-        product.images[0] ?? '/images/products/product-1.png';
+    const primaryImage = product.images[0] ?? '/images/products/product-1.png';
 
     const [quantity, setQuantity] = useState(1);
     const [mainImage, setMainImage] = useState(primaryImage);
@@ -90,13 +89,8 @@ function DetalleProductoContent() {
               porque Inertia serializa con renderTag y trataría los strings como nodos → Object.keys(null).
               Usar la prop `title` o un único literal en el hijo del <title>.
             */}
-            <Head
-                title={`${product.name} | Historias por Correo`}
-            >
-                <link
-                    rel="preconnect"
-                    href="https://fonts.bunny.net"
-                />
+            <Head title={`${product.name} | Historias por Correo`}>
+                <link rel="preconnect" href="https://fonts.bunny.net" />
                 <link
                     href="https://fonts.bunny.net/css?family=playfair-display:400,600,700,700i|inter:400,500,600,700|roboto:400,500"
                     rel="stylesheet"
@@ -182,14 +176,15 @@ function DetalleProductoContent() {
 
                             <div className="flex items-end gap-6">
                                 {oldPrice !== null &&
-                                    Number.isFinite(oldPrice) && (
-                                    <span className="font-['Playfair_Display',serif] text-[32px] font-normal text-[#7B7B7B] line-through">
-                                        $
-                                        {oldPrice
-                                            .toFixed(2)
-                                            .replace('.', ',')}
-                                    </span>
-                                )}
+                                    Number.isFinite(oldPrice) &&
+                                    oldPrice > 0 && (
+                                        <span className="font-['Playfair_Display',serif] text-[32px] font-normal text-[#7B7B7B] line-through">
+                                            $
+                                            {oldPrice
+                                                .toFixed(2)
+                                                .replace('.', ',')}
+                                        </span>
+                                    )}
                                 <span className="font-['Playfair_Display',serif] text-[32px] font-normal text-[#1B3D6D]">
                                     $
                                     {(Number.isFinite(price) ? price : 0)
@@ -249,13 +244,14 @@ function DetalleProductoContent() {
                                         const payload =
                                             buildProductCartPayload();
                                         const ok = addItem(payload);
+
                                         if (!ok) {
-                                            pendingProductRef.current =
-                                                payload;
+                                            pendingProductRef.current = payload;
                                             setCartConflictOpen(true);
 
                                             return;
                                         }
+
                                         openCart();
                                     }}
                                     className="flex h-[47px] flex-1 items-center justify-center gap-2 rounded-[2px] border border-[#1B3D6D] bg-[#1B3D6D] px-5 py-[14px] text-white transition hover:bg-[#1B3D6D]/90"
@@ -296,9 +292,10 @@ function DetalleProductoContent() {
                                     </h3>
                                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                         {product.included.map((item, i) => {
-                                            const Icon = inclusionIconOrFallback(
-                                                item.icon,
-                                            );
+                                            const Icon =
+                                                inclusionIconOrFallback(
+                                                    item.icon,
+                                                );
 
                                             return (
                                                 <div
@@ -367,9 +364,7 @@ function DetalleProductoContent() {
                                     {isExpanded && isLongDescription && (
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                setIsExpanded(false)
-                                            }
+                                            onClick={() => setIsExpanded(false)}
                                             className="flex items-center justify-center gap-2 lg:hidden"
                                         >
                                             <span className="font-['Inter',sans-serif] text-base font-semibold text-[#1B3D6D]">
@@ -422,9 +417,7 @@ function DetalleProductoContent() {
                                     {isExpanded && (
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                setIsExpanded(false)
-                                            }
+                                            onClick={() => setIsExpanded(false)}
                                             className="flex items-center justify-center gap-2 lg:hidden"
                                         >
                                             <span className="font-['Inter',sans-serif] text-base font-semibold text-[#1B3D6D]">
@@ -490,9 +483,11 @@ function DetalleProductoContent() {
                 }}
                 onConfirm={() => {
                     const payload = pendingProductRef.current;
+
                     if (payload) {
                         addItem(payload, { replaceOtherKind: true });
                     }
+
                     pendingProductRef.current = null;
                     setCartConflictOpen(false);
                     openCart();

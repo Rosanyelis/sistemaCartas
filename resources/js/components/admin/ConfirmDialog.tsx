@@ -36,7 +36,9 @@ export function ConfirmDialog({
     const zIndex = elevated ? 'z-[100]' : 'z-50';
 
     return createPortal(
-        <div className={`fixed inset-0 ${zIndex} flex items-center justify-center p-4`}>
+        <div
+            className={`fixed inset-0 ${zIndex} flex items-center justify-center p-4`}
+        >
             <div
                 className="absolute inset-0 animate-in bg-black/40 duration-300 fade-in"
                 onClick={() => !isProcessing && onOpenChange(false)}

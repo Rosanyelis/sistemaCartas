@@ -30,7 +30,11 @@ export default function PayPalSubscriptionButtons({
     const { paypal: paypalFromProps } = usePage().props;
     const paypal =
         paypalFromProps ??
-        ({ clientId: '', currency: 'USD', enabled: false } satisfies SharedPayPalProps['paypal']);
+        ({
+            clientId: '',
+            currency: 'USD',
+            enabled: false,
+        } satisfies SharedPayPalProps['paypal']);
     const containerRef = useRef<HTMLDivElement>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -100,9 +104,10 @@ export default function PayPalSubscriptionButtons({
                         data &&
                         typeof data === 'object' &&
                         'subscriptionID' in data &&
-                        typeof (data as { subscriptionID?: unknown }).subscriptionID ===
-                            'string'
-                            ? (data as { subscriptionID: string }).subscriptionID
+                        typeof (data as { subscriptionID?: unknown })
+                            .subscriptionID === 'string'
+                            ? (data as { subscriptionID: string })
+                                  .subscriptionID
                             : undefined;
 
                     if (!subscriptionID) {

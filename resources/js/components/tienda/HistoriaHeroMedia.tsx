@@ -40,7 +40,9 @@ function CarouselNavButton({
 }): ReactElement {
     const Icon = direction === 'prev' ? ChevronLeft : ChevronRight;
     const label =
-        direction === 'prev' ? 'Ver miniaturas anteriores' : 'Ver miniaturas siguientes';
+        direction === 'prev'
+            ? 'Ver miniaturas anteriores'
+            : 'Ver miniaturas siguientes';
 
     return (
         <button
@@ -214,7 +216,7 @@ export function HistoriaHeroMedia({
 
                 <div
                     ref={thumbStripRef}
-                    className="flex min-w-0 flex-1 gap-4 overflow-x-auto scroll-smooth pb-1 scrollbar-hide"
+                    className="scrollbar-hide flex min-w-0 flex-1 gap-4 overflow-x-auto scroll-smooth pb-1"
                 >
                     {media.map((item, i) => {
                         const altMini =

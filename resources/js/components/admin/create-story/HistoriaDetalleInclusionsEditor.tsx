@@ -1,4 +1,9 @@
-import { faArrowDown, faArrowUp, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import {
+    faArrowDown,
+    faArrowUp,
+    faPlus,
+    faTrash,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     Select,
@@ -62,7 +67,10 @@ export function HistoriaDetalleInclusionsEditor({
         ]);
     };
 
-    const updateRow = (index: number, patch: Partial<HistoriaDetalleInclusionRow>): void => {
+    const updateRow = (
+        index: number,
+        patch: Partial<HistoriaDetalleInclusionRow>,
+    ): void => {
         const next = [...items];
         next[index] = { ...next[index], ...patch };
 
@@ -89,8 +97,9 @@ export function HistoriaDetalleInclusionsEditor({
         <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <span className="text-[13px] font-semibold text-[#1B3D6D]">{sectionTitle}</span>
-                    
+                    <span className="text-[13px] font-semibold text-[#1B3D6D]">
+                        {sectionTitle}
+                    </span>
                 </div>
                 <button
                     type="button"
@@ -103,11 +112,13 @@ export function HistoriaDetalleInclusionsEditor({
             </div>
 
             {typeof errors.detalle === 'string' ? (
-                <span className="text-red-500 text-[11px]">{errors.detalle}</span>
+                <span className="text-[11px] text-red-500">
+                    {errors.detalle}
+                </span>
             ) : null}
 
             {items.length === 0 ? (
-                <p className="text-[12px] text-[#7B7B7B] border border-dashed border-[#DFE4EA] rounded-[4px] px-3 py-4 text-center">
+                <p className="rounded-[4px] border border-dashed border-[#DFE4EA] px-3 py-4 text-center text-[12px] text-[#7B7B7B]">
                     {emptyStateHint}
                 </p>
             ) : null}
@@ -116,10 +127,10 @@ export function HistoriaDetalleInclusionsEditor({
                 {items.map((row, index) => (
                     <div
                         key={`${rootId}-inclusion-${index}`}
-                        className="rounded-[4px] border border-[#DFE4EA] bg-[#FAFBFC] p-3 flex flex-col gap-2"
+                        className="flex flex-col gap-2 rounded-[4px] border border-[#DFE4EA] bg-[#FAFBFC] p-3"
                     >
                         <div className="flex flex-wrap items-end gap-2">
-                            <div className="flex flex-col gap-1 min-w-[140px] flex-1">
+                            <div className="flex min-w-[140px] flex-1 flex-col gap-1">
                                 <span
                                     id={`${rootId}-inclusion-icon-label-${index}`}
                                     className="text-[11px] font-medium text-[#6B7280]"
@@ -127,7 +138,9 @@ export function HistoriaDetalleInclusionsEditor({
                                     Icono
                                 </span>
                                 <Select
-                                    value={row.icon === '' ? undefined : row.icon}
+                                    value={
+                                        row.icon === '' ? undefined : row.icon
+                                    }
                                     onValueChange={(value) =>
                                         updateRow(index, {
                                             icon: value as HistoriaDetalleInclusionIconName,
@@ -137,10 +150,14 @@ export function HistoriaDetalleInclusionsEditor({
                                     <SelectTrigger
                                         id={`${rootId}-inclusion-icon-${index}`}
                                         aria-labelledby={`${rootId}-inclusion-icon-label-${index}`}
-                                        aria-invalid={Boolean(err(`detalle.${index}.icon`))}
+                                        aria-invalid={Boolean(
+                                            err(`detalle.${index}.icon`),
+                                        )}
                                         className={cn(
                                             'h-auto min-h-10 w-full max-w-none justify-between border-[#DFE4EA] bg-white py-2 text-[14px] text-gray-800 shadow-sm hover:bg-white focus-visible:border-[#1B3D6D] focus-visible:ring-[#1B3D6D]/20',
-                                            err(`detalle.${index}.icon`) ? 'border-red-500' : '',
+                                            err(`detalle.${index}.icon`)
+                                                ? 'border-red-500'
+                                                : '',
                                         )}
                                     >
                                         <SelectValue placeholder="Seleccione icono..." />
@@ -150,37 +167,46 @@ export function HistoriaDetalleInclusionsEditor({
                                         className="max-h-[min(280px,50vh)] w-[var(--radix-select-trigger-width)] border-[#DFE4EA] bg-white text-[#1B3D6D] dark:bg-white dark:text-[#1B3D6D]"
                                         sideOffset={4}
                                     >
-                                        {HISTORIA_DETALLE_INCLUSION_ICONS.map((name) => {
-                                            const IconOption = inclusionIconOrFallback(name);
+                                        {HISTORIA_DETALLE_INCLUSION_ICONS.map(
+                                            (name) => {
+                                                const IconOption =
+                                                    inclusionIconOrFallback(
+                                                        name,
+                                                    );
 
-                                            return (
-                                                <SelectItem
-                                                    key={name}
-                                                    value={name}
-                                                    textValue={name}
-                                                    className="cursor-pointer bg-white py-2 pl-2 pr-8 text-[13px] text-[#1B3D6D] focus:bg-[#1B3D6D]/8 dark:bg-white dark:text-[#1B3D6D]"
-                                                >
-                                                    <IconOption
-                                                        className="size-[18px] shrink-0 text-[#1B3D6D]"
-                                                        strokeWidth={1.75}
-                                                    />
-                                                    <span className="font-medium">{name}</span>
-                                                </SelectItem>
-                                            );
-                                        })}
+                                                return (
+                                                    <SelectItem
+                                                        key={name}
+                                                        value={name}
+                                                        textValue={name}
+                                                        className="cursor-pointer bg-white py-2 pr-8 pl-2 text-[13px] text-[#1B3D6D] focus:bg-[#1B3D6D]/8 dark:bg-white dark:text-[#1B3D6D]"
+                                                    >
+                                                        <IconOption
+                                                            className="size-[18px] shrink-0 text-[#1B3D6D]"
+                                                            strokeWidth={1.75}
+                                                        />
+                                                        <span className="font-medium">
+                                                            {name}
+                                                        </span>
+                                                    </SelectItem>
+                                                );
+                                            },
+                                        )}
                                     </SelectContent>
                                 </Select>
                                 {err(`detalle.${index}.icon`) ? (
-                                    <span className="text-red-500 text-[11px]">{err(`detalle.${index}.icon`)}</span>
+                                    <span className="text-[11px] text-red-500">
+                                        {err(`detalle.${index}.icon`)}
+                                    </span>
                                 ) : null}
                             </div>
-                            <div className="flex gap-1 shrink-0">
+                            <div className="flex shrink-0 gap-1">
                                 <button
                                     type="button"
                                     title="Subir"
                                     disabled={index === 0}
                                     onClick={() => moveRow(index, -1)}
-                                    className="rounded px-2 py-2 text-[#1B3D6D] border border-[#DFE4EA] bg-white disabled:opacity-40"
+                                    className="rounded border border-[#DFE4EA] bg-white px-2 py-2 text-[#1B3D6D] disabled:opacity-40"
                                 >
                                     <FontAwesomeIcon icon={faArrowUp} />
                                 </button>
@@ -189,7 +215,7 @@ export function HistoriaDetalleInclusionsEditor({
                                     title="Bajar"
                                     disabled={index === items.length - 1}
                                     onClick={() => moveRow(index, 1)}
-                                    className="rounded px-2 py-2 text-[#1B3D6D] border border-[#DFE4EA] bg-white disabled:opacity-40"
+                                    className="rounded border border-[#DFE4EA] bg-white px-2 py-2 text-[#1B3D6D] disabled:opacity-40"
                                 >
                                     <FontAwesomeIcon icon={faArrowDown} />
                                 </button>
@@ -197,7 +223,7 @@ export function HistoriaDetalleInclusionsEditor({
                                     type="button"
                                     title="Quitar"
                                     onClick={() => removeRow(index)}
-                                    className="rounded px-2 py-2 text-red-600 border border-red-200 bg-white hover:bg-red-50"
+                                    className="rounded border border-red-200 bg-white px-2 py-2 text-red-600 hover:bg-red-50"
                                 >
                                     <FontAwesomeIcon icon={faTrash} />
                                 </button>
@@ -214,12 +240,20 @@ export function HistoriaDetalleInclusionsEditor({
                                 id={`${rootId}-inclusion-title-${index}`}
                                 type="text"
                                 value={row.title}
-                                onChange={(ev) => updateRow(index, { title: ev.target.value })}
+                                onChange={(ev) =>
+                                    updateRow(index, { title: ev.target.value })
+                                }
                                 placeholder="Ej. La carta escrita a mano"
-                                className={err(`detalle.${index}.title`) ? fieldErrorClass : fieldClass}
+                                className={
+                                    err(`detalle.${index}.title`)
+                                        ? fieldErrorClass
+                                        : fieldClass
+                                }
                             />
                             {err(`detalle.${index}.title`) ? (
-                                <span className="text-red-500 text-[11px]">{err(`detalle.${index}.title`)}</span>
+                                <span className="text-[11px] text-red-500">
+                                    {err(`detalle.${index}.title`)}
+                                </span>
                             ) : null}
                         </div>
                         <div className="flex flex-col gap-1">
@@ -232,13 +266,23 @@ export function HistoriaDetalleInclusionsEditor({
                             <textarea
                                 id={`${rootId}-inclusion-desc-${index}`}
                                 value={row.description}
-                                onChange={(ev) => updateRow(index, { description: ev.target.value })}
+                                onChange={(ev) =>
+                                    updateRow(index, {
+                                        description: ev.target.value,
+                                    })
+                                }
                                 placeholder="Texto secundario bajo el título"
                                 rows={2}
-                                className={err(`detalle.${index}.description`) ? fieldErrorClass : fieldClass}
+                                className={
+                                    err(`detalle.${index}.description`)
+                                        ? fieldErrorClass
+                                        : fieldClass
+                                }
                             />
                             {err(`detalle.${index}.description`) ? (
-                                <span className="text-red-500 text-[11px]">{err(`detalle.${index}.description`)}</span>
+                                <span className="text-[11px] text-red-500">
+                                    {err(`detalle.${index}.description`)}
+                                </span>
                             ) : null}
                         </div>
                     </div>

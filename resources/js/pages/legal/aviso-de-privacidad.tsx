@@ -3,19 +3,15 @@ import type { ReactNode } from 'react';
 import ClienteLayout from '@/layouts/cliente-layout';
 import { STOREFRONT_PATHS } from '@/constants/storefront-paths';
 
-const prose = 'text-[15px] leading-[1.65] text-[#3e352f] md:text-[16px] md:leading-[1.7]';
+const prose =
+    'text-[15px] leading-[1.65] text-[#3e352f] md:text-[16px] md:leading-[1.7]';
 const h2 =
     "mb-4 font-['Playfair_Display',serif] text-[20px] font-bold tracking-tight text-[#1B3D6D] md:text-[22px]";
-const h3 = "mb-2 mt-4 text-[16px] font-semibold text-[#1B3D6D] md:text-[17px]";
-const linkClass = 'font-medium text-[#49637F] underline underline-offset-2 transition hover:opacity-80';
+const h3 = 'mb-2 mt-4 text-[16px] font-semibold text-[#1B3D6D] md:text-[17px]';
+const linkClass =
+    'font-medium text-[#49637F] underline underline-offset-2 transition hover:opacity-80';
 
-function Section({
-    title,
-    children,
-}: {
-    title: string;
-    children: ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
     return (
         <section className="mb-10 border-b border-[#e8e4d9] pb-10 last:mb-0 last:border-b-0 last:pb-0">
             <h2 className={h2}>{title}</h2>
@@ -70,7 +66,7 @@ function TransferenciasTable() {
 
     return (
         <div className="-mx-1 overflow-x-auto md:mx-0">
-            <table className="min-w-[640px] w-full border-collapse border border-[#e8e4d9] text-left text-[13px] md:min-w-0 md:text-[15px]">
+            <table className="w-full min-w-[640px] border-collapse border border-[#e8e4d9] text-left text-[13px] md:min-w-0 md:text-[15px]">
                 <thead>
                     <tr className="bg-[#f5f1e8]">
                         <th className="border border-[#e8e4d9] px-3 py-2 font-semibold text-[#1B3D6D]">
@@ -115,9 +111,9 @@ export default function AvisoDePrivacidad() {
                 />
             </Head>
 
-            <article className="mx-auto max-w-3xl px-5 pb-20 pt-[100px] md:px-8 md:pb-28 md:pt-[120px]">
+            <article className="mx-auto max-w-3xl px-5 pt-[100px] pb-20 md:px-8 md:pt-[120px] md:pb-28">
                 <header className="mb-12 text-center md:mb-14">
-                    <h1 className="mb-4 font-['Playfair_Display',serif] text-[22px] font-bold leading-tight tracking-tight text-[#1B3D6D] uppercase md:text-[26px]">
+                    <h1 className="mb-4 font-['Playfair_Display',serif] text-[22px] leading-tight font-bold tracking-tight text-[#1B3D6D] uppercase md:text-[26px]">
                         Aviso de privacidad integral
                     </h1>
                     <p className="text-[15px] font-semibold text-[#3e352f] md:text-[16px]">
@@ -144,15 +140,15 @@ export default function AvisoDePrivacidad() {
                             En cumplimiento a lo dispuesto por la Ley Federal de
                             Protección de Datos Personales en Posesión de los
                             Particulares (en adelante &quot;la Ley&quot;), su
-                            Reglamento y los Lineamientos del Aviso de Privacidad
-                            publicados en el Diario Oficial de la Federación,
-                            HISTORIAS POR CORREO, S.A.P.I. DE C.V. (en adelante
-                            &quot;HISTORIAS POR CORREO&quot; o &quot;el
-                            Responsable&quot;), con domicilio en Calle Manuel M.
-                            Ponce #69, Interior 101, Colonia Guadalupe Inn, C.P.
-                            01020, Alcaldía Álvaro Obregón, Ciudad de México,
-                            México, es responsable del tratamiento de sus datos
-                            personales.
+                            Reglamento y los Lineamientos del Aviso de
+                            Privacidad publicados en el Diario Oficial de la
+                            Federación, HISTORIAS POR CORREO, S.A.P.I. DE C.V.
+                            (en adelante &quot;HISTORIAS POR CORREO&quot; o
+                            &quot;el Responsable&quot;), con domicilio en Calle
+                            Manuel M. Ponce #69, Interior 101, Colonia Guadalupe
+                            Inn, C.P. 01020, Alcaldía Álvaro Obregón, Ciudad de
+                            México, México, es responsable del tratamiento de
+                            sus datos personales.
                         </p>
                         <p>
                             Para cualquier duda o aclaración respecto al
@@ -172,7 +168,8 @@ export default function AvisoDePrivacidad() {
                         <p>
                             Para las finalidades señaladas en el presente Aviso
                             de Privacidad, HISTORIAS POR CORREO podrá recabar y
-                            tratar las siguientes categorías de datos personales:
+                            tratar las siguientes categorías de datos
+                            personales:
                         </p>
                         <div className="space-y-3">
                             <p>
@@ -190,57 +187,60 @@ export default function AvisoDePrivacidad() {
                             <p>
                                 <strong>c) Datos de envío:</strong> Dirección de
                                 entrega (cuando sea diferente al domicilio de
-                                facturación), referencias de ubicación, nombre de
-                                quien recibe, instrucciones especiales de entrega.
+                                facturación), referencias de ubicación, nombre
+                                de quien recibe, instrucciones especiales de
+                                entrega.
                             </p>
                             <p>
                                 <strong>
                                     d) Datos financieros y de facturación:
                                 </strong>{' '}
-                                Número de tarjeta de crédito o débito (los últimos
-                                4 dígitos), fecha de vencimiento, nombre del
-                                titular de la tarjeta, dirección de facturación,
-                                Registro Federal de Contribuyentes (RFC), razón
-                                social y régimen fiscal (para efectos de
-                                facturación electrónica CFDI 4.0).
+                                Número de tarjeta de crédito o débito (los
+                                últimos 4 dígitos), fecha de vencimiento, nombre
+                                del titular de la tarjeta, dirección de
+                                facturación, Registro Federal de Contribuyentes
+                                (RFC), razón social y régimen fiscal (para
+                                efectos de facturación electrónica CFDI 4.0).
                             </p>
                             <p>
-                                <strong>e) Datos de la cuenta de usuario:</strong>{' '}
-                                Nombre de usuario, contraseña (cifrada), historial
-                                de compras y suscripciones, preferencias de
-                                contenido, historial de interacciones con el
-                                servicio al cliente.
+                                <strong>
+                                    e) Datos de la cuenta de usuario:
+                                </strong>{' '}
+                                Nombre de usuario, contraseña (cifrada),
+                                historial de compras y suscripciones,
+                                preferencias de contenido, historial de
+                                interacciones con el servicio al cliente.
                             </p>
                             <p>
                                 <strong>
                                     f) Datos de navegación y tecnológicos:
                                 </strong>{' '}
                                 Dirección IP, tipo de navegador, sistema
-                                operativo, dispositivo utilizado, páginas visitadas
-                                dentro del sitio, tiempo de permanencia, cookies,
-                                web beacons, píxeles de seguimiento y tecnologías
-                                similares.
+                                operativo, dispositivo utilizado, páginas
+                                visitadas dentro del sitio, tiempo de
+                                permanencia, cookies, web beacons, píxeles de
+                                seguimiento y tecnologías similares.
                             </p>
                         </div>
                         <p className="font-semibold text-[#1B3D6D]">
                             IMPORTANTE: HISTORIAS POR CORREO NO almacena
                             directamente los datos completos de tarjetas de
-                            crédito o débito. El procesamiento de pagos se realiza
-                            a través de plataformas de pago certificadas con
-                            estándar PCI-DSS (como Stripe, Mercado Pago, Conekta o
-                            PayPal), quienes son responsables del resguardo de
-                            dicha información financiera sensible.
+                            crédito o débito. El procesamiento de pagos se
+                            realiza a través de plataformas de pago certificadas
+                            con estándar PCI-DSS (como Stripe, Mercado Pago,
+                            Conekta o PayPal), quienes son responsables del
+                            resguardo de dicha información financiera sensible.
                         </p>
                     </Section>
 
                     <Section title="III. Datos personales sensibles">
                         <p>
                             HISTORIAS POR CORREO declara que NO recaba ni trata
-                            datos personales sensibles (tales como origen racial o
-                            étnico, estado de salud, información genética,
-                            creencias religiosas, opiniones políticas, preferencia
-                            sexual, entre otros) para la prestación de sus
-                            servicios.
+                            datos personales sensibles (tales como origen racial
+                            o étnico, estado de salud, información genética,
+                            creencias religiosas, opiniones políticas,
+                            preferencia sexual, entre otros) para la prestación
+                            de sus servicios.
                         </p>
                     </Section>
 
@@ -250,8 +250,8 @@ export default function AvisoDePrivacidad() {
                             siguientes finalidades:
                         </p>
                         <h3 className={h3}>
-                            A) Finalidades primarias (necesarias para la relación
-                            jurídica)
+                            A) Finalidades primarias (necesarias para la
+                            relación jurídica)
                         </h3>
                         <BulletList
                             items={[
@@ -281,14 +281,16 @@ export default function AvisoDePrivacidad() {
                             ]}
                         />
                         <p>
-                            En caso de que usted no desee que sus datos personales
-                            sean tratados para las finalidades secundarias, podrá
-                            manifestar su negativa enviando un correo electrónico
-                            a contacto@historiasporcorreo.com con el asunto
+                            En caso de que usted no desee que sus datos
+                            personales sean tratados para las finalidades
+                            secundarias, podrá manifestar su negativa enviando
+                            un correo electrónico a
+                            contacto@historiasporcorreo.com con el asunto
                             &quot;Negativa Finalidades Secundarias&quot;. La
                             negativa para el uso de sus datos personales para
-                            estas finalidades no será motivo para que le neguemos
-                            los servicios que solicita o contrata con nosotros.
+                            estas finalidades no será motivo para que le
+                            neguemos los servicios que solicita o contrata con
+                            nosotros.
                         </p>
                     </Section>
 
@@ -301,12 +303,12 @@ export default function AvisoDePrivacidad() {
                         </p>
                         <TransferenciasTable />
                         <p>
-                            HISTORIAS POR CORREO se asegurará de que los terceros
-                            receptores de datos personales cumplan con las medidas
-                            de seguridad y confidencialidad adecuadas, mediante la
-                            celebración de contratos, convenios o cláusulas
-                            contractuales que garanticen el tratamiento conforme
-                            a la legislación aplicable.
+                            HISTORIAS POR CORREO se asegurará de que los
+                            terceros receptores de datos personales cumplan con
+                            las medidas de seguridad y confidencialidad
+                            adecuadas, mediante la celebración de contratos,
+                            convenios o cláusulas contractuales que garanticen
+                            el tratamiento conforme a la legislación aplicable.
                         </p>
                     </Section>
 
@@ -314,21 +316,21 @@ export default function AvisoDePrivacidad() {
                         <p>
                             Usted tiene derecho a conocer qué datos personales
                             tenemos de usted, para qué los utilizamos y las
-                            condiciones del uso que les damos (Acceso). Asimismo,
-                            es su derecho solicitar la corrección de su información
-                            personal en caso de que esté desactualizada, sea
-                            inexacta o incompleta (Rectificación); que la
-                            eliminemos de nuestros registros o bases de datos
-                            cuando considere que la misma no está siendo utilizada
-                            adecuadamente (Cancelación); así como oponerse al uso
-                            de sus datos personales para fines específicos
-                            (Oposición). Estos derechos se conocen como derechos
-                            ARCO.
+                            condiciones del uso que les damos (Acceso).
+                            Asimismo, es su derecho solicitar la corrección de
+                            su información personal en caso de que esté
+                            desactualizada, sea inexacta o incompleta
+                            (Rectificación); que la eliminemos de nuestros
+                            registros o bases de datos cuando considere que la
+                            misma no está siendo utilizada adecuadamente
+                            (Cancelación); así como oponerse al uso de sus datos
+                            personales para fines específicos (Oposición). Estos
+                            derechos se conocen como derechos ARCO.
                         </p>
                         <p>
-                            Para el ejercicio de cualquiera de los derechos ARCO,
-                            usted deberá presentar la solicitud respectiva a través
-                            de los siguientes medios:
+                            Para el ejercicio de cualquiera de los derechos
+                            ARCO, usted deberá presentar la solicitud respectiva
+                            a través de los siguientes medios:
                         </p>
                         <BulletList
                             items={[
@@ -337,18 +339,20 @@ export default function AvisoDePrivacidad() {
                             ]}
                         />
                         <p>
-                            La solicitud deberá contener y acompañar lo siguiente:
+                            La solicitud deberá contener y acompañar lo
+                            siguiente:
                         </p>
                         <ol className="ml-1 list-decimal space-y-2 pl-5 marker:font-semibold marker:text-[#1B3D6D]">
                             <li>
                                 Nombre completo del titular y domicilio u otro
-                                medio para comunicarle la respuesta a su solicitud.
+                                medio para comunicarle la respuesta a su
+                                solicitud.
                             </li>
                             <li>
-                                Los documentos que acrediten la identidad o, en su
-                                caso, la representación legal del titular (copia de
-                                INE/IFE, pasaporte o documento oficial vigente con
-                                fotografía).
+                                Los documentos que acrediten la identidad o, en
+                                su caso, la representación legal del titular
+                                (copia de INE/IFE, pasaporte o documento oficial
+                                vigente con fotografía).
                             </li>
                             <li>
                                 La descripción clara y precisa de los datos
@@ -356,43 +360,45 @@ export default function AvisoDePrivacidad() {
                                 alguno de los derechos ARCO.
                             </li>
                             <li>
-                                Cualquier otro elemento o documento que facilite la
-                                localización de los datos personales.
+                                Cualquier otro elemento o documento que facilite
+                                la localización de los datos personales.
                             </li>
                         </ol>
                         <p>
-                            HISTORIAS POR CORREO comunicará al titular, en un plazo
-                            máximo de 20 (veinte) días hábiles contados desde la
-                            fecha en que se recibió la solicitud, la determinación
-                            adoptada, a efecto de que, si resulta procedente, se
-                            haga efectiva la misma dentro de los 15 (quince) días
-                            hábiles siguientes a la fecha en que se comunique la
-                            respuesta. Los plazos antes referidos podrán ser
-                            ampliados una sola vez por un periodo igual, siempre
-                            y cuando así lo justifiquen las circunstancias del caso.
+                            HISTORIAS POR CORREO comunicará al titular, en un
+                            plazo máximo de 20 (veinte) días hábiles contados
+                            desde la fecha en que se recibió la solicitud, la
+                            determinación adoptada, a efecto de que, si resulta
+                            procedente, se haga efectiva la misma dentro de los
+                            15 (quince) días hábiles siguientes a la fecha en
+                            que se comunique la respuesta. Los plazos antes
+                            referidos podrán ser ampliados una sola vez por un
+                            periodo igual, siempre y cuando así lo justifiquen
+                            las circunstancias del caso.
                         </p>
                     </Section>
 
                     <Section title="VII. Revocación del consentimiento">
                         <p>
-                            Usted puede revocar el consentimiento que, en su caso,
-                            nos haya otorgado para el tratamiento de sus datos
-                            personales. Sin embargo, es importante que tenga en
-                            cuenta que no en todos los casos podremos atender su
-                            solicitud o concluir el uso de forma inmediata, ya que
-                            es posible que por alguna obligación legal requiramos
-                            seguir tratando sus datos personales. Asimismo, usted
-                            deberá considerar que, para ciertos fines, la revocación
-                            de su consentimiento implicará que no le podamos seguir
-                            prestando el servicio que nos solicitó, o la conclusión
-                            de su relación con nosotros.
+                            Usted puede revocar el consentimiento que, en su
+                            caso, nos haya otorgado para el tratamiento de sus
+                            datos personales. Sin embargo, es importante que
+                            tenga en cuenta que no en todos los casos podremos
+                            atender su solicitud o concluir el uso de forma
+                            inmediata, ya que es posible que por alguna
+                            obligación legal requiramos seguir tratando sus
+                            datos personales. Asimismo, usted deberá considerar
+                            que, para ciertos fines, la revocación de su
+                            consentimiento implicará que no le podamos seguir
+                            prestando el servicio que nos solicitó, o la
+                            conclusión de su relación con nosotros.
                         </p>
                         <p>
                             Para revocar su consentimiento deberá presentar su
                             solicitud a través del correo electrónico
                             contacto@historiasporcorreo.com con el asunto
-                            &quot;Revocación de Consentimiento&quot;, siguiendo los
-                            mismos requisitos señalados en la Sección VI del
+                            &quot;Revocación de Consentimiento&quot;, siguiendo
+                            los mismos requisitos señalados en la Sección VI del
                             presente Aviso.
                         </p>
                     </Section>
@@ -400,8 +406,8 @@ export default function AvisoDePrivacidad() {
                     <Section title="VIII. Limitación de uso y divulgación de datos personales">
                         <p>
                             Con objeto de que usted pueda limitar el uso y
-                            divulgación de su información personal, le ofrecemos los
-                            siguientes medios:
+                            divulgación de su información personal, le ofrecemos
+                            los siguientes medios:
                         </p>
                         <ul className="ml-1 list-disc space-y-2 pl-5 marker:text-[#1B3D6D]">
                             <li>
@@ -420,13 +426,14 @@ export default function AvisoDePrivacidad() {
                             <li>
                                 Envío de correo electrónico a
                                 contacto@historiasporcorreo.com solicitando la
-                                inscripción en nuestra lista de exclusión para dejar
-                                de recibir mensajes promocionales.
+                                inscripción en nuestra lista de exclusión para
+                                dejar de recibir mensajes promocionales.
                             </li>
                             <li>
-                                Uso del enlace de &quot;Cancelar suscripción&quot; o
-                                &quot;Unsubscribe&quot; incluido en todos nuestros
-                                correos electrónicos de marketing.
+                                Uso del enlace de &quot;Cancelar
+                                suscripción&quot; o &quot;Unsubscribe&quot;
+                                incluido en todos nuestros correos electrónicos
+                                de marketing.
                             </li>
                         </ul>
                     </Section>
@@ -442,15 +449,17 @@ export default function AvisoDePrivacidad() {
                             >
                                 www.historiasporcorreo.com
                             </a>{' '}
-                            utiliza cookies, web beacons, píxeles de seguimiento y
-                            otras tecnologías similares para mejorar su experiencia
-                            de navegación, analizar el tráfico del sitio y
-                            personalizar el contenido y la publicidad.
+                            utiliza cookies, web beacons, píxeles de seguimiento
+                            y otras tecnologías similares para mejorar su
+                            experiencia de navegación, analizar el tráfico del
+                            sitio y personalizar el contenido y la publicidad.
                         </p>
                         <p>Las cookies que utilizamos se clasifican en:</p>
                         <div className="space-y-3">
                             <p>
-                                <strong>a) Cookies estrictamente necesarias:</strong>{' '}
+                                <strong>
+                                    a) Cookies estrictamente necesarias:
+                                </strong>{' '}
                                 Permiten la navegación del sitio web y el uso de
                                 sus funciones esenciales (carrito de compras,
                                 inicio de sesión, procesamiento de pagos). No
@@ -462,42 +471,42 @@ export default function AvisoDePrivacidad() {
                                 </strong>{' '}
                                 Recopilan información sobre cómo los visitantes
                                 utilizan el sitio web (páginas más visitadas,
-                                errores, tiempo de permanencia). Utilizamos Google
-                                Analytics y herramientas similares.
+                                errores, tiempo de permanencia). Utilizamos
+                                Google Analytics y herramientas similares.
                             </p>
                             <p>
                                 <strong>c) Cookies de funcionalidad:</strong>{' '}
-                                Permiten que el sitio recuerde las elecciones que
-                                usted hace (idioma, región, preferencias de
+                                Permiten que el sitio recuerde las elecciones
+                                que usted hace (idioma, región, preferencias de
                                 contenido).
                             </p>
                             <p>
                                 <strong>
                                     d) Cookies de publicidad y remarketing:
                                 </strong>{' '}
-                                Utilizamos el Píxel de Meta (Facebook), Google Ads
-                                y otras plataformas publicitarias para mostrarle
-                                anuncios relevantes basados en su visita a nuestro
-                                sitio. Estas cookies pueden rastrear su actividad en
-                                otros sitios web.
+                                Utilizamos el Píxel de Meta (Facebook), Google
+                                Ads y otras plataformas publicitarias para
+                                mostrarle anuncios relevantes basados en su
+                                visita a nuestro sitio. Estas cookies pueden
+                                rastrear su actividad en otros sitios web.
                             </p>
                         </div>
                         <p>
                             Usted puede deshabilitar o gestionar las cookies a
-                            través de la configuración de su navegador de internet.
-                            Sin embargo, la desactivación de ciertas cookies puede
-                            afectar la funcionalidad del sitio web y la experiencia
-                            de compra.
+                            través de la configuración de su navegador de
+                            internet. Sin embargo, la desactivación de ciertas
+                            cookies puede afectar la funcionalidad del sitio web
+                            y la experiencia de compra.
                         </p>
                     </Section>
 
                     <Section title="X. Política de suscripciones y pagos recurrentes">
                         <p>
-                            Al contratar una suscripción con HISTORIAS POR CORREO,
-                            usted autoriza expresamente el cargo recurrente mensual a
-                            su tarjeta de crédito o débito por el monto
-                            correspondiente al plan seleccionado. En relación con
-                            los pagos recurrentes:
+                            Al contratar una suscripción con HISTORIAS POR
+                            CORREO, usted autoriza expresamente el cargo
+                            recurrente mensual a su tarjeta de crédito o débito
+                            por el monto correspondiente al plan seleccionado.
+                            En relación con los pagos recurrentes:
                         </p>
                         <BulletList
                             items={[
@@ -512,12 +521,12 @@ export default function AvisoDePrivacidad() {
 
                     <Section title="XI. Medidas de seguridad">
                         <p>
-                            HISTORIAS POR CORREO ha implementado y mantiene medidas
-                            de seguridad administrativas, técnicas y físicas para
-                            proteger sus datos personales contra daño, pérdida,
-                            alteración, destrucción o el uso, acceso o tratamiento
-                            no autorizado. Entre las medidas implementadas se
-                            encuentran:
+                            HISTORIAS POR CORREO ha implementado y mantiene
+                            medidas de seguridad administrativas, técnicas y
+                            físicas para proteger sus datos personales contra
+                            daño, pérdida, alteración, destrucción o el uso,
+                            acceso o tratamiento no autorizado. Entre las
+                            medidas implementadas se encuentran:
                         </p>
                         <BulletList
                             items={[
@@ -534,41 +543,44 @@ export default function AvisoDePrivacidad() {
 
                     <Section title="XII. Vulneraciones de seguridad">
                         <p>
-                            En caso de que ocurra una vulneración de seguridad en
-                            cualquier fase del tratamiento de datos personales que
-                            afecte de forma significativa los derechos patrimoniales
-                            o morales de los titulares, HISTORIAS POR CORREO
-                            informará de forma inmediata al titular afectado, a fin
-                            de que este pueda tomar las medidas correspondientes
-                            para la defensa de sus derechos, de conformidad con el
-                            artículo 20 de la Ley.
+                            En caso de que ocurra una vulneración de seguridad
+                            en cualquier fase del tratamiento de datos
+                            personales que afecte de forma significativa los
+                            derechos patrimoniales o morales de los titulares,
+                            HISTORIAS POR CORREO informará de forma inmediata al
+                            titular afectado, a fin de que este pueda tomar las
+                            medidas correspondientes para la defensa de sus
+                            derechos, de conformidad con el artículo 20 de la
+                            Ley.
                         </p>
                     </Section>
 
                     <Section title="XIII. Protección de datos de menores de edad">
                         <p>
-                            Los servicios de HISTORIAS POR CORREO están dirigidos a
-                            personas mayores de 18 años. No recabamos
-                            intencionalmente datos personales de menores de edad.
-                            En caso de que un padre o tutor tenga conocimiento de
-                            que un menor ha proporcionado datos personales sin su
-                            consentimiento, deberá contactarnos a
-                            contacto@historiasporcorreo.com para proceder a la
-                            eliminación inmediata de dicha información.
+                            Los servicios de HISTORIAS POR CORREO están
+                            dirigidos a personas mayores de 18 años. No
+                            recabamos intencionalmente datos personales de
+                            menores de edad. En caso de que un padre o tutor
+                            tenga conocimiento de que un menor ha proporcionado
+                            datos personales sin su consentimiento, deberá
+                            contactarnos a contacto@historiasporcorreo.com para
+                            proceder a la eliminación inmediata de dicha
+                            información.
                         </p>
                     </Section>
 
                     <Section title="XIV. Modificaciones al aviso de privacidad">
                         <p>
-                            HISTORIAS POR CORREO se reserva el derecho de efectuar
-                            en cualquier momento modificaciones o actualizaciones al
-                            presente Aviso de Privacidad, para la atención de
-                            novedades legislativas, políticas internas, nuevas
-                            prácticas comerciales o cambios en el modelo de negocio.
+                            HISTORIAS POR CORREO se reserva el derecho de
+                            efectuar en cualquier momento modificaciones o
+                            actualizaciones al presente Aviso de Privacidad,
+                            para la atención de novedades legislativas,
+                            políticas internas, nuevas prácticas comerciales o
+                            cambios en el modelo de negocio.
                         </p>
                         <p>
-                            Las modificaciones estarán disponibles a través de los
-                            siguientes medios:
+                            Las modificaciones estarán disponibles a través de
+                            los siguientes medios:
                         </p>
                         <ul className="ml-1 list-disc space-y-2 pl-5 marker:text-[#1B3D6D]">
                             <li>
@@ -586,8 +598,8 @@ export default function AvisoDePrivacidad() {
                             </li>
                         </ul>
                         <p>
-                            El uso continuado de nuestros servicios después de la
-                            publicación de las modificaciones constituirá la
+                            El uso continuado de nuestros servicios después de
+                            la publicación de las modificaciones constituirá la
                             aceptación de las mismas.
                         </p>
                     </Section>
@@ -595,51 +607,54 @@ export default function AvisoDePrivacidad() {
                     <Section title="XV. Consentimiento">
                         <p>
                             Al proporcionar sus datos personales a través de
-                            nuestro sitio web, formularios de registro, proceso de
-                            compra o cualquier otro medio, y al aceptar los Términos
-                            y Condiciones del servicio, usted manifiesta su
-                            consentimiento expreso para que HISTORIAS POR CORREO
-                            trate sus datos personales conforme a lo descrito en el
-                            presente Aviso de Privacidad.
+                            nuestro sitio web, formularios de registro, proceso
+                            de compra o cualquier otro medio, y al aceptar los
+                            Términos y Condiciones del servicio, usted
+                            manifiesta su consentimiento expreso para que
+                            HISTORIAS POR CORREO trate sus datos personales
+                            conforme a lo descrito en el presente Aviso de
+                            Privacidad.
                         </p>
                         <p>
                             Si usted no está de acuerdo con los términos de este
-                            Aviso de Privacidad, le pedimos no proporcionar sus datos
-                            personales ni utilizar nuestros servicios.
+                            Aviso de Privacidad, le pedimos no proporcionar sus
+                            datos personales ni utilizar nuestros servicios.
                         </p>
                     </Section>
 
                     <Section title="XVI. Legislación aplicable y jurisdicción">
                         <p>
                             El presente Aviso de Privacidad se rige por la Ley
-                            Federal de Protección de Datos Personales en Posesión de
-                            los Particulares, su Reglamento, los Lineamientos del
-                            Aviso de Privacidad y demás normatividad aplicable en los
-                            Estados Unidos Mexicanos.
+                            Federal de Protección de Datos Personales en
+                            Posesión de los Particulares, su Reglamento, los
+                            Lineamientos del Aviso de Privacidad y demás
+                            normatividad aplicable en los Estados Unidos
+                            Mexicanos.
                         </p>
                         <p>
                             Para cualquier controversia derivada del presente
                             Aviso de Privacidad, las partes se someten a la
-                            jurisdicción de los tribunales competentes de la Ciudad
-                            de México, así como al Instituto Nacional de
-                            Transparencia, Acceso a la Información y Protección de
-                            Datos Personales (INAI) como autoridad garante en la
-                            materia.
+                            jurisdicción de los tribunales competentes de la
+                            Ciudad de México, así como al Instituto Nacional de
+                            Transparencia, Acceso a la Información y Protección
+                            de Datos Personales (INAI) como autoridad garante en
+                            la materia.
                         </p>
                     </Section>
 
                     <Section title="XVII. Autoridad garante">
                         <p>
                             Si usted considera que su derecho a la protección de
-                            datos personales ha sido lesionado por alguna conducta u
-                            omisión de nuestra parte, o presume alguna violación a
-                            las disposiciones previstas en la Ley Federal de
-                            Protección de Datos Personales en Posesión de los
-                            Particulares, su Reglamento y demás ordenamientos
-                            aplicables, podrá interponer su inconformidad o denuncia
-                            ante el Instituto Nacional de Transparencia, Acceso a
-                            la Información y Protección de Datos Personales (INAI).
-                            Para mayor información, visite{' '}
+                            datos personales ha sido lesionado por alguna
+                            conducta u omisión de nuestra parte, o presume
+                            alguna violación a las disposiciones previstas en la
+                            Ley Federal de Protección de Datos Personales en
+                            Posesión de los Particulares, su Reglamento y demás
+                            ordenamientos aplicables, podrá interponer su
+                            inconformidad o denuncia ante el Instituto Nacional
+                            de Transparencia, Acceso a la Información y
+                            Protección de Datos Personales (INAI). Para mayor
+                            información, visite{' '}
                             <a
                                 href="https://www.inai.org.mx"
                                 className={linkClass}
@@ -654,7 +669,7 @@ export default function AvisoDePrivacidad() {
                 </div>
 
                 <footer className="mt-12 rounded-lg border border-[#D7C181]/40 bg-[#FFFCF4] p-6 text-center md:mt-14 md:p-8">
-                    <p className="text-[14px] font-semibold leading-relaxed text-[#1B3D6D] md:text-[15px]">
+                    <p className="text-[14px] leading-relaxed font-semibold text-[#1B3D6D] md:text-[15px]">
                         HISTORIAS POR CORREO, S.A.P.I. DE C.V.
                         <br />
                         Calle Manuel M. Ponce #69, Int. 101, Col. Guadalupe Inn,

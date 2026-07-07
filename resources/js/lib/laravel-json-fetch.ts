@@ -1,5 +1,9 @@
 function readCookie(name: string): string | null {
-    const match = document.cookie.match(new RegExp(`(^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`));
+    const match = document.cookie.match(
+        new RegExp(
+            `(^|; )${name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1')}=([^;]*)`,
+        ),
+    );
     return match ? decodeURIComponent(match[2]) : null;
 }
 
@@ -8,13 +12,20 @@ export type JsonFetchErrorBody = {
     errors?: Record<string, string[]>;
 };
 
-export async function laravelJsonFetch<T>(input: RequestInfo | URL, init: RequestInit = {}): Promise<T> {
+export async function laravelJsonFetch<T>(
+    input: RequestInfo | URL,
+    init: RequestInit = {},
+): Promise<T> {
     const token = readCookie('XSRF-TOKEN');
     const headers = new Headers(init.headers);
     if (!headers.has('Accept')) {
         headers.set('Accept', 'application/json');
     }
-    if (init.method && init.method.toUpperCase() !== 'GET' && !headers.has('Content-Type')) {
+    if (
+        init.method &&
+        init.method.toUpperCase() !== 'GET' &&
+        !headers.has('Content-Type')
+    ) {
         headers.set('Content-Type', 'application/json');
     }
     if (token) {

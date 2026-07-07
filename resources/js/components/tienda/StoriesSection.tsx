@@ -104,7 +104,9 @@ function StoryHighlightCard({ story, variant }: StoryHighlightCardProps) {
                     <h4
                         className={cn(
                             "mt-1 font-['Playfair_Display',serif] font-bold text-white",
-                            isMobile ? 'text-[22px] leading-normal' : 'text-[20px] leading-[29px] lg:text-[22px]',
+                            isMobile
+                                ? 'text-[22px] leading-normal'
+                                : 'text-[20px] leading-[29px] lg:text-[22px]',
                         )}
                     >
                         {story.price}{' '}
@@ -297,8 +299,8 @@ function StoriesEmpty() {
                 </h2>
                 <div className="h-[4px] w-[200px] rounded-[4px] bg-[#1B3D6D] lg:w-[250px]" />
                 <p className="max-w-xl font-['Inter',sans-serif] text-[16px] leading-relaxed text-[#7B7B7B]">
-                    Pronto publicaremos historias destacadas aquí. Mientras tanto, explorá el catálogo
-                    completo.
+                    Pronto publicaremos historias destacadas aquí. Mientras
+                    tanto, explorá el catálogo completo.
                 </p>
                 <Link
                     href="/historias"

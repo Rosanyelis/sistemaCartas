@@ -35,7 +35,7 @@ export default function AboutSection() {
                             <h3 className="text-center font-['Playfair_Display',serif] text-[22px] leading-tight font-bold text-[#1B3D6D] md:text-[25px] md:leading-[33px]">
                                 Historias ambientadas antes de 1970
                             </h3>
-                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D] ">
+                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D]">
                                 Capturando la esencia de épocas doradas y
                                 momentos olvidados.
                             </p>
@@ -51,7 +51,7 @@ export default function AboutSection() {
                             <h3 className="text-center font-['Playfair_Display',serif] text-[22px] leading-tight font-bold text-[#1B3D6D] md:text-[25px] md:leading-[33px]">
                                 Recíbelas físicamente en tu hogar
                             </h3>
-                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D] ">
+                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D]">
                                 Siente el tacto del papel y la emoción de abrir
                                 un sobre real.
                             </p>
@@ -67,7 +67,7 @@ export default function AboutSection() {
                             <h3 className="text-center font-['Playfair_Display',serif] text-[22px] leading-tight font-bold text-[#1B3D6D] md:text-[25px] md:leading-[33px]">
                                 Nuevas entregas periódicas
                             </h3>
-                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D] ">
+                            <p className="text-center font-['Inter',sans-serif] text-[13px] leading-[16px] font-medium text-[#1B3D6D]">
                                 Que mantienen viva la narrativa y la sorpresa de
                                 una nueva aventura.
                             </p>

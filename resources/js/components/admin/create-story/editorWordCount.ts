@@ -16,7 +16,9 @@ export function countEditorWordsFromPlainText(plainText: string): number {
 
 /** Contador a partir del documento TipTap (texto que ve el usuario). */
 export function countEditorWords(editor: Editor): number {
-    return countEditorWordsFromPlainText(editor.getText({ blockSeparator: ' ' }));
+    return countEditorWordsFromPlainText(
+        editor.getText({ blockSeparator: ' ' }),
+    );
 }
 
 /** Antes de montar el editor: referencia visual a partir del HTML inicial. */

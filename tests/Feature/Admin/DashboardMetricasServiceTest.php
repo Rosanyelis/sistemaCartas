@@ -516,3 +516,79 @@ test('ventas del mes no duplica activacion y cobro de suscripcion en el mismo me
 
     Carbon::setTestNow();
 });
+
+test('ventas chart mes con anio explicito busca datos solo dentro de ese año', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-08-15 12:00:00'));
+
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-chart-anio',
+        'estado' => 'activo',
+    ]);
+
+    foreach ([2024, 2025, 2026] as $year) {
+        crearOrdenPagadaEnMes($producto, $year, 3, 'PAYPAL-CHART-ANIO-'.$year);
+    }
+
+    $service = app(DashboardMetricasService::class);
+
+    $chart2024 = $service->ventasChart('mes', null, null, 2024);
+    $chart2025 = $service->ventasChart('mes', null, null, 2025);
+    $chart2026 = $service->ventasChart('mes', null, null, 2026);
+
+    expect(collect($chart2024)->pluck('name')->all())->toBe([
+        'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+    ])
+        ->and(collect($chart2025)->pluck('name')->all())->toBe([
+            'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+        ])
+        ->and(collect($chart2026)->pluck('name')->all())->toContain('Mar')
+        ->and(collect($chart2026)->pluck('name')->count())->toBeGreaterThan(1);
+
+    Carbon::setTestNow();
+});
+
+test('ventas chart axis range con anio explicito refleja el rango del primer mes con datos hasta diciembre', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-08-15 12:00:00'));
+
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-chart-axis-anio',
+        'estado' => 'activo',
+    ]);
+
+    crearOrdenPagadaEnMes($producto, 2024, 3, 'PAYPAL-CHART-AXIS-2024');
+
+    $service = app(DashboardMetricasService::class);
+    $range = $service->ventasChartAxisRange('mes', null, null, 2024);
+
+    expect($range)->toBe([
+        'desde' => '2024-03-01',
+        'hasta' => '2024-12-31',
+    ]);
+
+    Carbon::setTestNow();
+});
+
+test('ventas chart con fechas explicitas ignora el parametro anio', function (): void {
+    Carbon::setTestNow(Carbon::parse('2026-08-15 12:00:00'));
+
+    $producto = Producto::factory()->create([
+        'slug' => 'producto-chart-fechas-anio',
+        'estado' => 'activo',
+    ]);
+
+    foreach ([2024, 2025] as $year) {
+        crearOrdenPagadaEnMes($producto, $year, 6, 'PAYPAL-CHART-FA-'.$year);
+    }
+
+    $desde = Carbon::parse('2024-01-01')->startOfDay();
+    $hasta = Carbon::parse('2024-12-31')->endOfDay();
+
+    $chart = app(DashboardMetricasService::class)->ventasChart('mes', $desde, $hasta, 2025);
+
+    $nombres = collect($chart)->pluck('name')->all();
+
+    expect($nombres)->toContain('Jun')
+        ->and($nombres)->not->toContain('Ene');
+
+    Carbon::setTestNow();
+});

@@ -108,7 +108,10 @@ export default function CatalogGridPagination({
                     className="flex shrink-0 items-center justify-center p-2 text-[#637381] transition-colors hover:text-[#1B3D6D]"
                     aria-label="Página anterior"
                 >
-                    <i className="fa-solid fa-chevron-left text-sm" aria-hidden />
+                    <i
+                        className="fa-solid fa-chevron-left text-sm"
+                        aria-hidden
+                    />
                 </Link>
             ) : (
                 <span
@@ -119,7 +122,7 @@ export default function CatalogGridPagination({
                 </span>
             )}
 
-            <div className="flex min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto scrollbar-hide font-['Inter',sans-serif] text-[15px] font-normal sm:gap-3 sm:text-[16px]">
+            <div className="scrollbar-hide flex min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto font-['Inter',sans-serif] text-[15px] font-normal sm:gap-3 sm:text-[16px]">
                 {pages.map((page) => {
                     const url = resolvePageUrl(pagination, page);
                     const isActive = page === pagination.current_page;
@@ -165,7 +168,10 @@ export default function CatalogGridPagination({
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#F3F4F6] text-[#1B3D6D] transition-colors hover:bg-[#E8EAED]"
                     aria-label="Página siguiente"
                 >
-                    <i className="fa-solid fa-chevron-right text-sm" aria-hidden />
+                    <i
+                        className="fa-solid fa-chevron-right text-sm"
+                        aria-hidden
+                    />
                 </Link>
             ) : (
                 <span

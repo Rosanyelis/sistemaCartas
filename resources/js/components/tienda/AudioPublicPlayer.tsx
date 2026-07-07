@@ -19,7 +19,10 @@ function formatTime(seconds: number): string {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-export function AudioPublicPlayer({ streamUrl, title }: AudioPublicPlayerProps) {
+export function AudioPublicPlayer({
+    streamUrl,
+    title,
+}: AudioPublicPlayerProps) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -90,7 +93,7 @@ export function AudioPublicPlayer({ streamUrl, title }: AudioPublicPlayerProps) 
     };
 
     return (
-        <div className="select-none rounded-[2px] border border-[#E8E8E8] bg-[#FAFAFA] p-5 md:p-6">
+        <div className="rounded-[2px] border border-[#E8E8E8] bg-[#FAFAFA] p-5 select-none md:p-6">
             <audio
                 ref={audioRef}
                 src={streamUrl}
@@ -109,7 +112,10 @@ export function AudioPublicPlayer({ streamUrl, title }: AudioPublicPlayerProps) 
                     aria-label={isPlaying ? 'Pausar audio' : 'Reproducir audio'}
                     className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#1B3D6D] text-white transition hover:bg-[#1B3D6D]/90"
                 >
-                    <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} className="text-sm" />
+                    <FontAwesomeIcon
+                        icon={isPlaying ? faPause : faPlay}
+                        className="text-sm"
+                    />
                 </button>
 
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -117,7 +123,10 @@ export function AudioPublicPlayer({ streamUrl, title }: AudioPublicPlayerProps) 
                         <span className="truncate font-['Inter',sans-serif] text-[14px] font-medium text-[#1B3D6D]">
                             {title}
                         </span>
-                        <Volume2 className="h-4 w-4 shrink-0 text-[#7B7B7B]" aria-hidden />
+                        <Volume2
+                            className="h-4 w-4 shrink-0 text-[#7B7B7B]"
+                            aria-hidden
+                        />
                     </div>
 
                     <input
@@ -135,7 +144,7 @@ export function AudioPublicPlayer({ streamUrl, title }: AudioPublicPlayerProps) 
                         className="h-1.5 w-full cursor-pointer appearance-none rounded-full bg-[#E5E7EB] accent-[#1B3D6D]"
                     />
 
-                    <div className="flex justify-between font-['Inter',sans-serif] text-[12px] tabular-nums text-[#7B7B7B]">
+                    <div className="flex justify-between font-['Inter',sans-serif] text-[12px] text-[#7B7B7B] tabular-nums">
                         <span>{formatTime(currentTime)}</span>
                         <span>{formatTime(duration)}</span>
                     </div>

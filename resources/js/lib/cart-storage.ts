@@ -1,5 +1,8 @@
 import { normalizeCartItemsHomogeneous } from '@/lib/cart-mode';
-import { HISTORIA_SUSCRIPCION_SUBTITLE, type CartLine } from '@/types/cart-line';
+import {
+    HISTORIA_SUSCRIPCION_SUBTITLE,
+    type CartLine,
+} from '@/types/cart-line';
 
 const STORAGE_KEY = 'sistemaCartas:cart_v2';
 const RESUME_KEY = 'sistemaCartas:cart_resume_v1';
@@ -11,7 +14,10 @@ type CartPayloadV2 = {
     savedAt: string;
 };
 
-function isProductLike(row: Record<string, unknown>): row is Record<string, unknown> & {
+function isProductLike(row: Record<string, unknown>): row is Record<
+    string,
+    unknown
+> & {
     slug: string;
     name: string;
     subtitle: string;
@@ -55,7 +61,10 @@ function normalizeCartLine(row: unknown): CartLine | null {
             image: r.image,
             quantity: 1,
             badge: r.badge,
-            duracion_meses: Math.max(1, Math.min(120, Math.floor(r.duracion_meses))),
+            duracion_meses: Math.max(
+                1,
+                Math.min(120, Math.floor(r.duracion_meses)),
+            ),
         };
     }
 

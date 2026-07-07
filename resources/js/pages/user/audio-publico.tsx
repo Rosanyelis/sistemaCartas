@@ -48,7 +48,9 @@ export default function AudioPublico({ audio }: AudioPublicoPageProps) {
                             <nav className="flex flex-wrap items-center gap-2 font-['Inter',sans-serif] text-[13px] font-semibold text-[#1E3E6C]">
                                 <Link href="/historias">Colecciones</Link>
                                 <span className="text-[#A4A4A4]">/</span>
-                                <span>{audio.historia.categoria || 'Historia'}</span>
+                                <span>
+                                    {audio.historia.categoria || 'Historia'}
+                                </span>
                             </nav>
 
                             <div className="flex flex-col gap-2">
@@ -76,7 +78,10 @@ export default function AudioPublico({ audio }: AudioPublicoPageProps) {
                                 )}
                             </div>
 
-                            <AudioPublicPlayer streamUrl={audio.stream_url} title={audio.titulo} />
+                            <AudioPublicPlayer
+                                streamUrl={audio.stream_url}
+                                title={audio.titulo}
+                            />
 
                             {audio.historia.show_url && (
                                 <Link

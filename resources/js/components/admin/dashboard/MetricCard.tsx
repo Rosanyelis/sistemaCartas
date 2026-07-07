@@ -51,8 +51,8 @@ export default function MetricCard({
         <div
             className={`${metricCardClassName} ${
                 compact
-                    ? 'min-w-[130px] max-w-[130px] lg:h-[94px] lg:min-w-0 lg:max-w-none lg:w-full'
-                    : 'min-w-[160px] max-w-[160px] lg:h-[94px] lg:min-w-0 lg:max-w-none lg:w-full'
+                    ? 'max-w-[130px] min-w-[130px] lg:h-[94px] lg:w-full lg:max-w-none lg:min-w-0'
+                    : 'max-w-[160px] min-w-[160px] lg:h-[94px] lg:w-full lg:max-w-none lg:min-w-0'
             } ${className}`}
         >
             <div
@@ -64,7 +64,7 @@ export default function MetricCard({
                     <IconComponent className="size-6" />
                 </div>
                 <div className="min-w-0 flex-1">
-                    <p className="text-[13px] font-semibold leading-none text-[#373737]">
+                    <p className="text-[13px] leading-none font-semibold text-[#373737]">
                         {title}
                     </p>
                     {subtitle ? (
@@ -78,14 +78,14 @@ export default function MetricCard({
             <div
                 className={`flex items-center gap-2 pl-[5px] ${compact ? 'justify-center' : ''}`}
             >
-                <span className="text-[25px] font-semibold leading-none text-[#A4A4A4]">
+                <span className="text-[25px] leading-none font-semibold text-[#A4A4A4]">
                     {value ?? 0}
                 </span>
 
                 {growthPercent !== undefined ? (
                     <div className="flex items-center gap-2">
                         <span
-                            className={`text-[13px] font-normal leading-none ${
+                            className={`text-[13px] leading-none font-normal ${
                                 growthPercent < 0
                                     ? 'text-[#DF0707]'
                                     : 'text-[#1DA534]'

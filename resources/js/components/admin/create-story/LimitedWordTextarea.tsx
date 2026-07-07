@@ -35,25 +35,33 @@ export function LimitedWordTextarea({
 
     return (
         <div className="flex flex-col gap-1.5">
-            <label htmlFor={id} className="text-[13px] font-semibold text-[#1B3D6D]">
+            <label
+                htmlFor={id}
+                className="text-[13px] font-semibold text-[#1B3D6D]"
+            >
                 {label}
             </label>
             <div
-                className={`rounded-[4px] border overflow-hidden shadow-sm ${error ? 'border-red-500' : 'border-[#DFE4EA]'}`}
+                className={`overflow-hidden rounded-[4px] border shadow-sm ${error ? 'border-red-500' : 'border-[#DFE4EA]'}`}
             >
                 <textarea
                     id={id}
                     value={value}
                     rows={rows}
                     placeholder={placeholder}
-                    onChange={(e) => onChange(clampToMaxWords(e.target.value, maxWords))}
-                    className={`${inputBase} border-0 rounded-none focus:ring-0`}
+                    onChange={(e) =>
+                        onChange(clampToMaxWords(e.target.value, maxWords))
+                    }
+                    className={`${inputBase} rounded-none border-0 focus:ring-0`}
                     aria-invalid={Boolean(error)}
                     aria-describedby={hint && !error ? `${id}-hint` : undefined}
                 />
                 <div className="flex items-center justify-between gap-2 border-t border-[#F3F4F6] bg-[#FAFBFC] px-3 py-1.5">
                     {hint && !error ? (
-                        <span id={`${id}-hint`} className="text-[11px] text-[#A0A0A0]">
+                        <span
+                            id={`${id}-hint`}
+                            className="text-[11px] text-[#A0A0A0]"
+                        >
                             {hint}
                         </span>
                     ) : (
@@ -66,7 +74,9 @@ export function LimitedWordTextarea({
                     </span>
                 </div>
             </div>
-            {error ? <span className="text-red-500 text-[11px]">{error}</span> : null}
+            {error ? (
+                <span className="text-[11px] text-red-500">{error}</span>
+            ) : null}
         </div>
     );
 }

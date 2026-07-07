@@ -136,14 +136,19 @@ export default function VerifyEmail({
                         : '¡Cuenta creada con éxito!'}
                 </h1>
                 <p className="mb-0 text-center text-[15px] leading-relaxed font-normal text-[#31374F] md:text-[16px] md:leading-[24px]">
-                    {step === 1 
-                        ? 'Hemos enviado un código de 6 dígitos a tu correo electrónico. Por favor, ingrésalo abajo para continuar.' 
-                        : (
-                            <>
-                                Bienvenido a <span className="font-bold text-[#385E88]">Historias por Correo</span>. Tu buzón está listo para llenarse de aventuras inolvidables. Ya puedes empezar a explorar todas nuestras historias.
-                            </>
-                        )
-                    }
+                    {step === 1 ? (
+                        'Hemos enviado un código de 6 dígitos a tu correo electrónico. Por favor, ingrésalo abajo para continuar.'
+                    ) : (
+                        <>
+                            Bienvenido a{' '}
+                            <span className="font-bold text-[#385E88]">
+                                Historias por Correo
+                            </span>
+                            . Tu buzón está listo para llenarse de aventuras
+                            inolvidables. Ya puedes empezar a explorar todas
+                            nuestras historias.
+                        </>
+                    )}
                 </p>
             </div>
 
@@ -227,9 +232,7 @@ export default function VerifyEmail({
                 <div className="flex w-full flex-col gap-6">
                     <Button
                         onClick={() =>
-                            router.visit(
-                                redirectAfterVerify ?? dashboard().url,
-                            )
+                            router.visit(redirectAfterVerify ?? dashboard().url)
                         }
                         className="h-[44px] w-full bg-[#385E88] text-[18px] font-bold text-white shadow-md transition-all hover:bg-[#4E76A0] md:h-[50px] md:text-[22px]"
                     >
@@ -242,7 +245,8 @@ export default function VerifyEmail({
 
                     <div className="border-t border-[#EEEEEE] pt-6">
                         <p className="text-center text-[15px] leading-relaxed text-[#636363] md:text-[16px]">
-                            Te hemos enviado un correo de bienvenida con los primeros pasos.
+                            Te hemos enviado un correo de bienvenida con los
+                            primeros pasos.
                         </p>
                     </div>
                 </div>

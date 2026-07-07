@@ -29,10 +29,7 @@ export default function FilterBarSection(props: FilterBarSectionProps) {
     );
 }
 
-function FilterBarSectionInner({
-    categories,
-    filters,
-}: FilterBarSectionProps) {
+function FilterBarSectionInner({ categories, filters }: FilterBarSectionProps) {
     const [searchDraft, setSearchDraft] = useState(filters.search);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -50,7 +47,10 @@ function FilterBarSectionInner({
     }, []);
 
     const buildQuery = useCallback(
-        (categoriaId: number | null, rawSearch: string): Record<string, string | number> => {
+        (
+            categoriaId: number | null,
+            rawSearch: string,
+        ): Record<string, string | number> => {
             const params: Record<string, string | number> = {};
             if (categoriaId !== null) {
                 params.categoria_id = categoriaId;
@@ -126,7 +126,7 @@ function FilterBarSectionInner({
                     />
                 </div>
 
-                <div className="scrollbar-hide order-2 flex w-full flex-row items-center gap-4 overflow-x-auto py-2 lg:order-1 lg:w-auto">
+                <div className="order-2 scrollbar-hide flex w-full flex-row items-center gap-4 overflow-x-auto py-2 lg:order-1 lg:w-auto">
                     <i className="fa-solid fa-filter flex h-6 w-6 shrink-0 items-center justify-center text-[#1B3D6D]"></i>
                     <div className="flex shrink-0 items-center gap-2 lg:gap-1">
                         {categories.map((cat, idx) => {
@@ -137,7 +137,11 @@ function FilterBarSectionInner({
 
                             return (
                                 <button
-                                    key={cat.id === null ? `todas-${idx}` : `cat-${cat.id}`}
+                                    key={
+                                        cat.id === null
+                                            ? `todas-${idx}`
+                                            : `cat-${cat.id}`
+                                    }
                                     type="button"
                                     onClick={() => onSelectCategory(cat.id)}
                                     className={`flex h-[32px] items-center justify-center rounded-[4px] px-[14px] py-[6px] transition lg:h-[22px] lg:rounded-[2px] lg:px-[10px] lg:py-[3px] ${
@@ -146,7 +150,7 @@ function FilterBarSectionInner({
                                             : 'bg-[rgba(27,61,109,0.1)] text-[#1B3D6D] hover:bg-gray-200'
                                     }`}
                                 >
-                                    <span className="whitespace-nowrap font-['Inter',sans-serif] text-[14px] leading-[1.2] font-medium lg:text-[13px] lg:leading-[16px] lg:font-normal">
+                                    <span className="font-['Inter',sans-serif] text-[14px] leading-[1.2] font-medium whitespace-nowrap lg:text-[13px] lg:leading-[16px] lg:font-normal">
                                         {cat.nombre}
                                     </span>
                                 </button>

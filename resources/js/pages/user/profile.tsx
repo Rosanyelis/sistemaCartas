@@ -542,7 +542,7 @@ export default function Profile({
                                         Tipo
                                     </label>
                                     <select
-                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] bg-white px-3 text-[#111928] focus:outline-none focus:ring-2 focus:ring-[#1B3D6D]/20"
+                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] bg-white px-3 text-[#111928] focus:ring-2 focus:ring-[#1B3D6D]/20 focus:outline-none"
                                         value={paymentMethodForm.data.tipo_id}
                                         onChange={(e) =>
                                             paymentMethodForm.setData(
@@ -577,7 +577,7 @@ export default function Profile({
                                                 e.target.value,
                                             )
                                         }
-                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] bg-white px-3 text-[#111928] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1B3D6D]/20"
+                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] bg-white px-3 text-[#111928] placeholder:text-[#9CA3AF] focus:ring-2 focus:ring-[#1B3D6D]/20 focus:outline-none"
                                         placeholder="Nombre visible"
                                     />
                                     {paymentMethodForm.errors.titular && (
@@ -600,7 +600,7 @@ export default function Profile({
                                                 e.target.value,
                                             )
                                         }
-                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] bg-white px-3 text-[#111928] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#1B3D6D]/20"
+                                        className="h-[48px] rounded-[4px] border border-[#E5E7EB] bg-white px-3 text-[#111928] placeholder:text-[#9CA3AF] focus:ring-2 focus:ring-[#1B3D6D]/20 focus:outline-none"
                                         placeholder="ej. cuenta@ejemplo.com"
                                     />
                                     {paymentMethodForm.errors.detalles && (
@@ -724,7 +724,7 @@ export default function Profile({
                     href="https://wa.link/89q8gx"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="fixed bottom-6 right-6 z-[90] flex items-center gap-2 rounded-[4px] bg-[#1B3D6D] px-4 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white shadow-[0px_0px_10px_rgba(36,16,167,0.15)] transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B3D6D] focus-visible:ring-offset-2"
+                    className="fixed right-6 bottom-6 z-[90] flex items-center gap-2 rounded-[4px] bg-[#1B3D6D] px-4 py-3 font-['Inter',sans-serif] text-[14px] font-semibold text-white shadow-[0px_0px_10px_rgba(36,16,167,0.15)] transition-transform hover:scale-[1.02] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B3D6D] focus-visible:ring-offset-2"
                     aria-label="Soporte"
                 >
                     <FontAwesomeIcon icon={faHeadset} className="size-5" />

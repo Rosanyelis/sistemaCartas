@@ -2,11 +2,9 @@
 
 export const dashboardPageBg = 'bg-[#F5F6F7]';
 
-export const cardShadow =
-    'shadow-[0px_0px_10px_rgba(36,16,167,0.15)]';
+export const cardShadow = 'shadow-[0px_0px_10px_rgba(36,16,167,0.15)]';
 
-export const chartFilterShadow =
-    'lg:shadow-[0px_0px_2px_rgba(0,0,0,0.1)]';
+export const chartFilterShadow = 'lg:shadow-[0px_0px_2px_rgba(0,0,0,0.1)]';
 
 export const iconStroke = 1.75;
 

@@ -1,4 +1,8 @@
-import { faEllipsisV, faPlus, faSearch } from '@fortawesome/free-solid-svg-icons';
+import {
+    faEllipsisV,
+    faPlus,
+    faSearch,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, router } from '@inertiajs/react';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -50,7 +54,9 @@ export default function Audios({ audios, historias, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const [audioToEdit, setAudioToEdit] = useState<AudioParaFormulario | null>(null);
+    const [audioToEdit, setAudioToEdit] = useState<AudioParaFormulario | null>(
+        null,
+    );
     const [deleteAudioSlug, setDeleteAudioSlug] = useState<string | null>(null);
 
     useEffect(() => {
@@ -63,7 +69,9 @@ export default function Audios({ audios, historias, filters }: Props) {
     const applyFilters = useCallback(
         (params: Record<string, string>) => {
             router.get(
-                adminAudiosList.url({ query: { ...filters, ...params, page: '1' } }),
+                adminAudiosList.url({
+                    query: { ...filters, ...params, page: '1' },
+                }),
                 {},
                 { preserveState: true, preserveScroll: true },
             );
@@ -108,10 +116,17 @@ export default function Audios({ audios, historias, filters }: Props) {
         });
     };
 
-    const { data: audioList, current_page, last_page, from, to, total } = audios;
+    const {
+        data: audioList,
+        current_page,
+        last_page,
+        from,
+        to,
+        total,
+    } = audios;
 
     const renderActionMenu = (audio: AudioRow) => (
-        <div className="absolute right-0 top-full z-20 mt-1 w-[170px] rounded-[6px] border border-[#F3F4F6] bg-white py-1 text-left shadow-[0_4px_15px_rgba(0,0,0,0.05)]">
+        <div className="absolute top-full right-0 z-20 mt-1 w-[170px] rounded-[6px] border border-[#F3F4F6] bg-white py-1 text-left shadow-[0_4px_15px_rgba(0,0,0,0.05)]">
             <button
                 type="button"
                 onClick={() => openEdit(audio)}
@@ -123,7 +138,11 @@ export default function Audios({ audios, historias, filters }: Props) {
                 type="button"
                 onClick={() => {
                     setOpenMenuId(null);
-                    window.open(audio.public_url, '_blank', 'noopener,noreferrer');
+                    window.open(
+                        audio.public_url,
+                        '_blank',
+                        'noopener,noreferrer',
+                    );
                 }}
                 className="flex w-full items-center justify-start px-4 py-2.5 text-[14px] text-[#4B5563] transition-colors hover:bg-gray-50"
             >
@@ -155,7 +174,9 @@ export default function Audios({ audios, historias, filters }: Props) {
 
             <div className="flex flex-col gap-6 px-4 py-6 font-['Inter'] md:px-8">
                 <div className="mb-2 flex flex-col items-center gap-1 text-center md:mb-0 md:items-start md:text-left">
-                    <h1 className="text-[25px] font-bold text-[#1B3D6D] md:text-2xl">Audios</h1>
+                    <h1 className="text-[25px] font-bold text-[#1B3D6D] md:text-2xl">
+                        Audios
+                    </h1>
                     <p className="text-[13.5px] text-[#1B3D6D] md:text-sm md:text-[#7B7B7B]">
                         Carga audios, asócialos a historias y genera códigos QR
                     </p>
@@ -174,7 +195,7 @@ export default function Audios({ audios, historias, filters }: Props) {
                             value={searchTerm}
                             onChange={handleSearch}
                             placeholder="Filtrar por título o historia"
-                            className="block w-full rounded-[4px] border border-[#DFE4EA] bg-white py-[10px] pl-[34px] pr-3 text-[13px] text-[#1B3D6D] placeholder:text-[#1B3D6D]/60 outline-none transition-all focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/15 md:rounded-md md:border-[#E5E7EB] md:py-2.5 md:pl-10 md:text-sm md:text-gray-900 md:placeholder:text-[#A0A0A0]"
+                            className="block w-full rounded-[4px] border border-[#DFE4EA] bg-white py-[10px] pr-3 pl-[34px] text-[13px] text-[#1B3D6D] transition-all outline-none placeholder:text-[#1B3D6D]/60 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/15 md:rounded-md md:border-[#E5E7EB] md:py-2.5 md:pl-10 md:text-sm md:text-gray-900 md:placeholder:text-[#A0A0A0]"
                         />
                     </div>
 
@@ -187,7 +208,10 @@ export default function Audios({ audios, historias, filters }: Props) {
                         className="flex w-full items-center justify-center gap-2 rounded-[4px] bg-[#1B3D6D] px-4 py-[10px] text-[14px] font-bold text-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-[#1B3D6D]/90 md:w-auto md:rounded-md md:py-2.5 md:font-semibold md:shadow-sm"
                     >
                         <span>Crear audio</span>
-                        <FontAwesomeIcon icon={faPlus} className="text-[12px] md:text-[14px]" />
+                        <FontAwesomeIcon
+                            icon={faPlus}
+                            className="text-[12px] md:text-[14px]"
+                        />
                     </button>
                 </div>
 
@@ -196,19 +220,19 @@ export default function Audios({ audios, historias, filters }: Props) {
                         <table className="w-full min-w-[900px] border-collapse text-left">
                             <thead>
                                 <tr className="border-b border-[#F3F4F6] bg-[#F9FAFB]">
-                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-[#7B7B7B]">
+                                    <th className="px-5 py-4 text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
                                         Título
                                     </th>
-                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-[#7B7B7B]">
+                                    <th className="px-5 py-4 text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
                                         Historia
                                     </th>
-                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-[#7B7B7B]">
+                                    <th className="px-5 py-4 text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
                                         Estado
                                     </th>
-                                    <th className="px-5 py-4 text-xs font-bold uppercase tracking-wider text-[#7B7B7B]">
+                                    <th className="px-5 py-4 text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
                                         Fecha creación
                                     </th>
-                                    <th className="px-5 py-4 text-center text-xs font-bold uppercase tracking-wider text-[#7B7B7B]">
+                                    <th className="px-5 py-4 text-center text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
                                         Acciones
                                     </th>
                                 </tr>
@@ -228,7 +252,7 @@ export default function Audios({ audios, historias, filters }: Props) {
                                                             '/images/placeholder.svg'
                                                         }
                                                         alt={audio.titulo}
-                                                        className="h-10 w-10 rounded object-cover bg-gray-100 shadow-sm"
+                                                        className="h-10 w-10 rounded bg-gray-100 object-cover shadow-sm"
                                                     />
                                                     <span className="text-sm font-medium text-[#111827]">
                                                         {audio.titulo}
@@ -255,15 +279,22 @@ export default function Audios({ audios, historias, filters }: Props) {
                                                         e.stopPropagation();
                                                         const menuKey = `desktop-${audio.id}`;
                                                         setOpenMenuId(
-                                                            openMenuId === menuKey ? null : menuKey,
+                                                            openMenuId ===
+                                                                menuKey
+                                                                ? null
+                                                                : menuKey,
                                                         );
                                                     }}
-                                                    className="rounded-full p-2 text-[#7B7B7B] outline-none transition-colors hover:bg-gray-100 hover:text-[#1B3D6D]"
+                                                    className="rounded-full p-2 text-[#7B7B7B] transition-colors outline-none hover:bg-gray-100 hover:text-[#1B3D6D]"
                                                     aria-label="Acciones"
                                                 >
-                                                    <FontAwesomeIcon icon={faEllipsisV} className="text-sm" />
+                                                    <FontAwesomeIcon
+                                                        icon={faEllipsisV}
+                                                        className="text-sm"
+                                                    />
                                                 </button>
-                                                {openMenuId === `desktop-${audio.id}` &&
+                                                {openMenuId ===
+                                                    `desktop-${audio.id}` &&
                                                     renderActionMenu(audio)}
                                             </td>
                                         </tr>
@@ -286,7 +317,10 @@ export default function Audios({ audios, historias, filters }: Props) {
                         <div className="flex w-full flex-col divide-y divide-[#F3F4F6] px-4">
                             {audioList.length > 0 ? (
                                 audioList.map((audio) => (
-                                    <div key={audio.id} className="relative flex gap-3 py-[18px]">
+                                    <div
+                                        key={audio.id}
+                                        className="relative flex gap-3 py-[18px]"
+                                    >
                                         <div className="shrink-0">
                                             <img
                                                 src={
@@ -300,18 +334,20 @@ export default function Audios({ audios, historias, filters }: Props) {
                                         <div className="flex min-w-0 flex-1 flex-col">
                                             <div className="relative flex w-full items-start justify-between gap-2">
                                                 <div className="min-w-0 pr-8">
-                                                    <div className="truncate text-[13.5px] font-medium leading-tight text-[#111827]">
+                                                    <div className="truncate text-[13.5px] leading-tight font-medium text-[#111827]">
                                                         {audio.titulo}
                                                     </div>
                                                     <div className="mt-1 text-[13px] text-[#4B5563]">
                                                         {audio.historia_nombre}
                                                     </div>
                                                 </div>
-                                                <div className="absolute right-0 top-0 flex items-center gap-2">
+                                                <div className="absolute top-0 right-0 flex items-center gap-2">
                                                     <span
                                                         className={`inline-flex items-center justify-center rounded px-[8px] py-[2px] text-[11.5px] font-medium tracking-wide ${estadoBadgeClass(audio.estado)}`}
                                                     >
-                                                        {estadoLabel(audio.estado)}
+                                                        {estadoLabel(
+                                                            audio.estado,
+                                                        )}
                                                     </span>
                                                     <button
                                                         type="button"
@@ -319,7 +355,8 @@ export default function Audios({ audios, historias, filters }: Props) {
                                                             e.stopPropagation();
                                                             const menuKey = `mobile-${audio.id}`;
                                                             setOpenMenuId(
-                                                                openMenuId === menuKey
+                                                                openMenuId ===
+                                                                    menuKey
                                                                     ? null
                                                                     : menuKey,
                                                             );
@@ -333,7 +370,8 @@ export default function Audios({ audios, historias, filters }: Props) {
                                                         />
                                                     </button>
                                                 </div>
-                                                {openMenuId === `mobile-${audio.id}` &&
+                                                {openMenuId ===
+                                                    `mobile-${audio.id}` &&
                                                     renderActionMenu(audio)}
                                             </div>
                                             <div className="mt-2 text-[12.5px] text-[#A0A0A0]">

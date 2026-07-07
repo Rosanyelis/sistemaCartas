@@ -243,7 +243,7 @@ export default function ForgotPasswordModal({
     }
 
     const modal = (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center isolate">
+        <div className="fixed inset-0 isolate z-[9999] flex items-center justify-center">
             {/* Overlay */}
             <div
                 className="absolute inset-0 bg-black/60"
@@ -352,9 +352,7 @@ export default function ForgotPasswordModal({
                                     onChange={(e) =>
                                         handleOtpChange(idx, e.target.value)
                                     }
-                                    onKeyDown={(e) =>
-                                        handleOtpKeyDown(idx, e)
-                                    }
+                                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                                     className="h-[44px] w-[40px] border-transparent bg-white p-0 text-center text-[18px] font-bold text-[#31374F] focus:border-white focus:ring-0 md:h-[50px] md:w-[48px] md:text-[20px]"
                                 />
                             ))}
@@ -372,9 +370,7 @@ export default function ForgotPasswordModal({
 
                         <Button
                             type="submit"
-                            disabled={
-                                processing || otp.join('').length < 6
-                            }
+                            disabled={processing || otp.join('').length < 6}
                             className="h-[44px] w-full bg-linear-to-r from-[#2C4A6B] to-[#3D5F82] text-[16px] font-bold text-white shadow-md transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 md:h-[48px] md:text-[18px]"
                         >
                             {processing && <Spinner />}
@@ -396,8 +392,8 @@ export default function ForgotPasswordModal({
                         </div>
 
                         <p className="mt-1 text-center text-[11px] text-white/50">
-                            *Si no ves el correo en tu bandeja de entrada
-                            revisa tu bandeja de spam
+                            *Si no ves el correo en tu bandeja de entrada revisa
+                            tu bandeja de spam
                         </p>
                     </form>
                 )}

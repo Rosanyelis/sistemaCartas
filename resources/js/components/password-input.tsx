@@ -24,11 +24,7 @@ export default function PasswordInput({
             )}
             <Input
                 type={showPassword ? 'text' : 'password'}
-                className={cn(
-                    'pr-10',
-                    leftIcon && 'pl-[46px]',
-                    className
-                )}
+                className={cn('pr-10', leftIcon && 'pl-[46px]', className)}
                 ref={ref}
                 {...props}
             />

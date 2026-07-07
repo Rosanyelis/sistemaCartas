@@ -12,12 +12,14 @@ use App\Models\Historia;
 final class HistoriaCatalogoSerializer
 {
     /**
-     * @return array{id: int, slug: string, title: string, desc: string, price: string, img: string, categoria: string}
+     * @return array{id: int, slug: string, title: string, desc: string, price: string, old_price: ?string, img: string, categoria: string}
      */
     public static function tarjeta(Historia $historia): array
     {
-        $precioMostrar = $historia->precio_promocional ?? $historia->precio_base;
-        $precioFmt = number_format((float) $precioMostrar, 2, ',', '.');
+        $promo = (float) ($historia->precio_promocional ?? 0);
+        $hasPromo = $promo > 0;
+        $precioMostrar = $hasPromo ? $promo : (float) $historia->precio_base;
+        $precioFmt = number_format($precioMostrar, 2, ',', '.');
 
         return [
             'id' => $historia->id,
@@ -25,6 +27,7 @@ final class HistoriaCatalogoSerializer
             'title' => $historia->nombre,
             'desc' => $historia->descripcion_corta,
             'price' => 'Desde $'.$precioFmt,
+            'old_price' => $hasPromo ? number_format((float) $historia->precio_base, 2, ',', '.') : null,
             'img' => $historia->imagen ?: '/images/story_cover.png',
             'categoria' => $historia->historiaCategoria?->nombre ?? '',
         ];
@@ -35,6 +38,9 @@ final class HistoriaCatalogoSerializer
      */
     public static function detallePublico(Historia $historia): array
     {
+        $promoVal = (float) ($historia->precio_promocional ?? 0);
+        $promoPayload = $promoVal > 0 ? (string) $promoVal : null;
+
         return [
             'nombre' => $historia->nombre,
             'slug' => $historia->slug,
@@ -45,7 +51,7 @@ final class HistoriaCatalogoSerializer
             'imagen' => $historia->imagen,
             'video' => $historia->video,
             'precio_base' => (string) $historia->precio_base,
-            'precio_promocional' => $historia->precio_promocional !== null ? (string) $historia->precio_promocional : null,
+            'precio_promocional' => $promoPayload,
             'precio_suscripcion' => $historia->precio_suscripcion !== null ? (string) $historia->precio_suscripcion : null,
             'duracion_meses' => $historia->duracion_meses,
             'subscription_unit_price' => (string) HistoriaSuscripcionPrecio::montoPorCiclo($historia),

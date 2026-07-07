@@ -16,7 +16,10 @@ import { HistoriaDetalleInclusionsEditor } from './create-story/HistoriaDetalleI
 import { HistoriaMultimediaPanel } from './create-story/HistoriaMultimediaPanel';
 import { LimitedWordRichEditor } from './create-story/LimitedWordRichEditor';
 import type { GallerySlot, HistoriaParaFormulario } from './create-story/types';
-import { store as historiasStore, update as historiasUpdate } from '@/routes/admin/historias';
+import {
+    store as historiasStore,
+    update as historiasUpdate,
+} from '@/routes/admin/historias';
 
 type CategoriaOption = { id: number; nombre: string };
 
@@ -48,14 +51,21 @@ export function CreateStoryModal({
     const destacadaRadioName = `${rootId}-destacada`;
 
     const initialForm = useMemo(() => buildHistoriaFormData(), []);
-    const { data, setData, post, processing, errors, reset, transform } = useForm(initialForm);
+    const { data, setData, post, processing, errors, reset, transform } =
+        useForm(initialForm);
 
     const [imgPreview, setImgPreview] = useState<string | null>(null);
     const [videoPreview, setVideoPreview] = useState<string | null>(null);
     const [galleryItems, setGalleryItems] = useState<GallerySlot[]>([]);
-    const [galeriaLimitMessage, setGaleriaLimitMessage] = useState<string | null>(null);
-    const [videoClientError, setVideoClientError] = useState<string | null>(null);
-    const [imagenClientError, setImagenClientError] = useState<string | null>(null);
+    const [galeriaLimitMessage, setGaleriaLimitMessage] = useState<
+        string | null
+    >(null);
+    const [videoClientError, setVideoClientError] = useState<string | null>(
+        null,
+    );
+    const [imagenClientError, setImagenClientError] = useState<string | null>(
+        null,
+    );
     /** Contenido inicial de los editores ricos solo tras hidratar en `useEffect` (evita flash vacío). */
     const [richEditors, setRichEditors] = useState<{
         seed: number;
@@ -74,7 +84,9 @@ export function CreateStoryModal({
             setData(next);
             setImgPreview(storyToEdit.imagen ?? null);
             setVideoPreview(storyToEdit.video ?? null);
-            const extras = (storyToEdit.galeria ?? []).filter((g) => !g.es_principal);
+            const extras = (storyToEdit.galeria ?? []).filter(
+                (g) => !g.es_principal,
+            );
             setGalleryItems(
                 extras.map((g) => ({
                     kind: 'existente' as const,
@@ -120,7 +132,10 @@ export function CreateStoryModal({
         };
     }, [isOpen]);
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'imagen' | 'video') => {
+    const handleFileChange = (
+        e: React.ChangeEvent<HTMLInputElement>,
+        field: 'imagen' | 'video',
+    ) => {
         const file = e.target.files?.[0];
         e.target.value = '';
 
@@ -189,12 +204,18 @@ export function CreateStoryModal({
         void Promise.all(
             slice.map(
                 (file) =>
-                    new Promise<{ file: File; preview: string }>((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve({ file, preview: reader.result as string });
-                        reader.onerror = () => reject(reader.error);
-                        reader.readAsDataURL(file);
-                    }),
+                    new Promise<{ file: File; preview: string }>(
+                        (resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () =>
+                                resolve({
+                                    file,
+                                    preview: reader.result as string,
+                                });
+                            reader.onerror = () => reject(reader.error);
+                            reader.readAsDataURL(file);
+                        },
+                    ),
             ),
         ).then((read) => {
             setGalleryItems((prev) => [
@@ -219,16 +240,29 @@ export function CreateStoryModal({
             const dm = parseInt(String(form.duracion_meses), 10);
             const duracion_meses =
                 Number.isFinite(dm) && dm >= 1 ? String(dm) : '12';
-            const nuevos = galleryItems.filter((x): x is Extract<GallerySlot, { kind: 'nuevo' }> => x.kind === 'nuevo');
+            const nuevos = galleryItems.filter(
+                (x): x is Extract<GallerySlot, { kind: 'nuevo' }> =>
+                    x.kind === 'nuevo',
+            );
             const files = nuevos.map((x) => x.file);
-            const allowedIcons = new Set<string>(HISTORIA_DETALLE_INCLUSION_ICONS);
-            const detalleCleaned = (Array.isArray(form.detalle) ? form.detalle : [])
+            const allowedIcons = new Set<string>(
+                HISTORIA_DETALLE_INCLUSION_ICONS,
+            );
+            const detalleCleaned = (
+                Array.isArray(form.detalle) ? form.detalle : []
+            )
                 .filter((r) => r.title.trim() !== '')
                 .map((r) => {
                     const d = r.description.trim();
                     const iconResolved =
-                        r.icon && allowedIcons.has(r.icon) ? r.icon : 'FileText';
-                    const item: { icon: string; title: string; description?: string } = {
+                        r.icon && allowedIcons.has(r.icon)
+                            ? r.icon
+                            : 'FileText';
+                    const item: {
+                        icon: string;
+                        title: string;
+                        description?: string;
+                    } = {
                         icon: iconResolved,
                         title: r.title.trim(),
                     };
@@ -248,7 +282,10 @@ export function CreateStoryModal({
 
             if (storyToEdit?.id != null) {
                 const keepIds = galleryItems
-                    .filter((x): x is Extract<GallerySlot, { kind: 'existente' }> => x.kind === 'existente')
+                    .filter(
+                        (x): x is Extract<GallerySlot, { kind: 'existente' }> =>
+                            x.kind === 'existente',
+                    )
                     .map((x) => x.id);
 
                 return {
@@ -305,291 +342,445 @@ export function CreateStoryModal({
             onClose={handleClose}
             title={storyToEdit ? 'Editar Historia' : 'Crear Historia'}
         >
-                <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                    <div className="custom-scrollbar flex-1 overflow-y-auto p-6 md:p-8">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
-                            <div className="flex flex-col gap-6">
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Nombre de la historia<span className="text-[#EF4444]">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.nombre}
-                                        onChange={(ev) => setData('nombre', ev.target.value)}
-                                        placeholder="Historia en Londres"
-                                        className={inputClass(Boolean(errors.nombre))}
-                                    />
-                                    {errors.nombre && <span className="text-red-500 text-[11px]">{errors.nombre}</span>}
-                                </div>
-
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Descripción corta<span className="text-[#EF4444]">*</span>
-                                    </label>
-                                    <textarea
-                                        value={data.descripcion_corta}
-                                        onChange={(ev) => setData('descripcion_corta', ev.target.value)}
-                                        placeholder="Una apasionante aventura"
-                                        rows={2}
-                                        className={`${inputClass(Boolean(errors.descripcion_corta))} resize-none`}
-                                    />
-                                    {errors.descripcion_corta ? (
-                                        <span className="text-red-500 text-[11px]">{errors.descripcion_corta}</span>
-                                    ) : (
-                                        <span className="text-[11.5px] text-[#A0A0A0]">
-                                            Se mostrará en la sección principal de historias
-                                        </span>
+            <form
+                onSubmit={handleSubmit}
+                className="flex min-h-0 flex-1 flex-col overflow-hidden"
+            >
+                <div className="custom-scrollbar flex-1 overflow-y-auto p-6 md:p-8">
+                    <div className="grid grid-cols-1 gap-x-12 gap-y-6 lg:grid-cols-2">
+                        <div className="flex flex-col gap-6">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                    Nombre de la historia
+                                    <span className="text-[#EF4444]">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.nombre}
+                                    onChange={(ev) =>
+                                        setData('nombre', ev.target.value)
+                                    }
+                                    placeholder="Historia en Londres"
+                                    className={inputClass(
+                                        Boolean(errors.nombre),
                                     )}
-                                </div>
-
-                                {richEditors ? (
-                                    <>
-                                        <LimitedWordRichEditor
-                                            key={`descripcion-larga-${richEditors.seed}`}
-                                            id={descripcionLargaId}
-                                            label={
-                                                <>
-                                                    Descripción larga<span className="text-[#EF4444]">*</span>
-                                                </>
-                                            }
-                                            initialHtml={richEditors.descripcion_larga}
-                                            onChange={(v) => setData('descripcion_larga', v)}
-                                            maxChars={MAX_CARACTERES_DESCRIPCION_LARGA}
-                                            placeholder="Una apasionante aventura por los rincones del Londres..."
-                                            rows={5}
-                                            error={errors.descripcion_larga}
-                                        />
-                                    </>
-                                ) : null}
-
-                                <HistoriaDetalleInclusionsEditor
-                                    items={data.detalle}
-                                    onChange={(items) => setData('detalle', items)}
-                                    errors={errors as Record<string, string | string[] | undefined>}
-                                    rootId={rootId}
                                 />
-
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex items-center gap-2">
-                                        <label htmlFor={`${rootId}-categoria`} className="text-[13px] font-semibold text-[#1B3D6D]">
-                                            Categoría<span className="text-[#EF4444]">*</span>
-                                        </label>
-                                        <button
-                                            type="button"
-                                            title="Gestionar categorías"
-                                            onClick={handleOpenCategoriaManage}
-                                            className="inline-flex size-7 items-center justify-center text-[#1B3D6D] hover:bg-[#F9FAFB]"
-                                        >
-                                            <FontAwesomeIcon icon={faPencil} className="text-[11px]" />
-                                        </button>
-                                    </div>
-                                    <select
-                                        id={`${rootId}-categoria`}
-                                        value={data.historia_categoria_id === '' ? '' : String(data.historia_categoria_id)}
-                                        onChange={(ev) => {
-                                            const v = ev.target.value;
-                                            setData('historia_categoria_id', v === '' ? '' : v);
-                                        }}
-                                        className={inputClass(Boolean(errors.historia_categoria_id))}
-                                    >
-                                        <option value="">Seleccione una categoría</option>
-                                        {categorias.map((c) => (
-                                            <option key={c.id} value={String(c.id)}>
-                                                {c.nombre}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.historia_categoria_id && (
-                                        <span className="text-red-500 text-[11px]">{errors.historia_categoria_id}</span>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Autor<span className="text-[#EF4444]">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={data.autor}
-                                        onChange={(ev) => setData('autor', ev.target.value)}
-                                        placeholder="Laura Pérez"
-                                        className={inputClass(Boolean(errors.autor))}
-                                    />
-                                    {errors.autor && <span className="text-red-500 text-[11px]">{errors.autor}</span>}
-                                </div>
-
-                                <div className="flex flex-col gap-4 mt-2">
-                                    <h3 className="text-[14px] font-bold text-[#1B3D6D]">Inventario</h3>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                            Código de historia<span className="text-[#EF4444]">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={data.codigo}
-                                            onChange={(ev) => setData('codigo', ev.target.value)}
-                                            placeholder="HST-135790"
-                                            className={inputClass(Boolean(errors.codigo))}
-                                        />
-                                        {errors.codigo && <span className="text-red-500 text-[11px]">{errors.codigo}</span>}
-                                    </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                            Duración (meses)<span className="text-[#EF4444]">*</span>
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min={1}
-                                            step={1}
-                                            value={data.duracion_meses}
-                                            onChange={(ev) => setData('duracion_meses', ev.target.value)}
-                                            onBlur={() => {
-                                                const n = parseInt(data.duracion_meses, 10);
-
-                                                if (!Number.isFinite(n) || n < 1) {
-                                                    setData('duracion_meses', '12');
-                                                }
-                                            }}
-                                            placeholder="12"
-                                            className={inputClass(Boolean(errors.duracion_meses))}
-                                        />
-                                        {errors.duracion_meses && (
-                                            <span className="text-red-500 text-[11px]">{errors.duracion_meses}</span>
-                                        )}
-                                    </div>
-                                </div>
-
+                                {errors.nombre && (
+                                    <span className="text-[11px] text-red-500">
+                                        {errors.nombre}
+                                    </span>
+                                )}
                             </div>
 
-                            <div className="flex flex-col gap-6">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                    Descripción corta
+                                    <span className="text-[#EF4444]">*</span>
+                                </label>
+                                <textarea
+                                    value={data.descripcion_corta}
+                                    onChange={(ev) =>
+                                        setData(
+                                            'descripcion_corta',
+                                            ev.target.value,
+                                        )
+                                    }
+                                    placeholder="Una apasionante aventura"
+                                    rows={2}
+                                    className={`${inputClass(Boolean(errors.descripcion_corta))} resize-none`}
+                                />
+                                {errors.descripcion_corta ? (
+                                    <span className="text-[11px] text-red-500">
+                                        {errors.descripcion_corta}
+                                    </span>
+                                ) : (
+                                    <span className="text-[11.5px] text-[#A0A0A0]">
+                                        Se mostrará en la sección principal de
+                                        historias
+                                    </span>
+                                )}
+                            </div>
+
+                            {richEditors ? (
+                                <>
+                                    <LimitedWordRichEditor
+                                        key={`descripcion-larga-${richEditors.seed}`}
+                                        id={descripcionLargaId}
+                                        label={
+                                            <>
+                                                Descripción larga
+                                                <span className="text-[#EF4444]">
+                                                    *
+                                                </span>
+                                            </>
+                                        }
+                                        initialHtml={
+                                            richEditors.descripcion_larga
+                                        }
+                                        onChange={(v) =>
+                                            setData('descripcion_larga', v)
+                                        }
+                                        maxChars={
+                                            MAX_CARACTERES_DESCRIPCION_LARGA
+                                        }
+                                        placeholder="Una apasionante aventura por los rincones del Londres..."
+                                        rows={5}
+                                        error={errors.descripcion_larga}
+                                    />
+                                </>
+                            ) : null}
+
+                            <HistoriaDetalleInclusionsEditor
+                                items={data.detalle}
+                                onChange={(items) => setData('detalle', items)}
+                                errors={
+                                    errors as Record<
+                                        string,
+                                        string | string[] | undefined
+                                    >
+                                }
+                                rootId={rootId}
+                            />
+
+                            <div className="flex flex-col gap-1.5">
+                                <div className="flex items-center gap-2">
+                                    <label
+                                        htmlFor={`${rootId}-categoria`}
+                                        className="text-[13px] font-semibold text-[#1B3D6D]"
+                                    >
+                                        Categoría
+                                        <span className="text-[#EF4444]">
+                                            *
+                                        </span>
+                                    </label>
+                                    <button
+                                        type="button"
+                                        title="Gestionar categorías"
+                                        onClick={handleOpenCategoriaManage}
+                                        className="inline-flex size-7 items-center justify-center text-[#1B3D6D] hover:bg-[#F9FAFB]"
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={faPencil}
+                                            className="text-[11px]"
+                                        />
+                                    </button>
+                                </div>
+                                <select
+                                    id={`${rootId}-categoria`}
+                                    value={
+                                        data.historia_categoria_id === ''
+                                            ? ''
+                                            : String(data.historia_categoria_id)
+                                    }
+                                    onChange={(ev) => {
+                                        const v = ev.target.value;
+                                        setData(
+                                            'historia_categoria_id',
+                                            v === '' ? '' : v,
+                                        );
+                                    }}
+                                    className={inputClass(
+                                        Boolean(errors.historia_categoria_id),
+                                    )}
+                                >
+                                    <option value="">
+                                        Seleccione una categoría
+                                    </option>
+                                    {categorias.map((c) => (
+                                        <option key={c.id} value={String(c.id)}>
+                                            {c.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.historia_categoria_id && (
+                                    <span className="text-[11px] text-red-500">
+                                        {errors.historia_categoria_id}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                    Autor
+                                    <span className="text-[#EF4444]">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.autor}
+                                    onChange={(ev) =>
+                                        setData('autor', ev.target.value)
+                                    }
+                                    placeholder="Laura Pérez"
+                                    className={inputClass(
+                                        Boolean(errors.autor),
+                                    )}
+                                />
+                                {errors.autor && (
+                                    <span className="text-[11px] text-red-500">
+                                        {errors.autor}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="mt-2 flex flex-col gap-4">
+                                <h3 className="text-[14px] font-bold text-[#1B3D6D]">
+                                    Inventario
+                                </h3>
                                 <div className="flex flex-col gap-1.5">
                                     <label className="text-[13px] font-semibold text-[#1B3D6D]">
-                                        Precio Base<span className="text-[#EF4444]">*</span>
+                                        Código de historia
+                                        <span className="text-[#EF4444]">
+                                            *
+                                        </span>
                                     </label>
                                     <input
                                         type="text"
-                                        value={data.precio_base}
-                                        onChange={(ev) => setData('precio_base', ev.target.value)}
-                                        placeholder="25.00"
-                                        className={inputClass(Boolean(errors.precio_base))}
+                                        value={data.codigo}
+                                        onChange={(ev) =>
+                                            setData('codigo', ev.target.value)
+                                        }
+                                        placeholder="HST-135790"
+                                        className={inputClass(
+                                            Boolean(errors.codigo),
+                                        )}
                                     />
-                                    {errors.precio_base && <span className="text-red-500 text-[11px]">{errors.precio_base}</span>}
-                                </div>
-
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">Precio promocional</label>
-                                    <input
-                                        type="text"
-                                        value={data.precio_promocional}
-                                        onChange={(ev) => setData('precio_promocional', ev.target.value)}
-                                        placeholder="0"
-                                        className={inputClass(Boolean(errors.precio_promocional))}
-                                    />
-                                    {errors.precio_promocional && (
-                                        <span className="text-red-500 text-[11px]">{errors.precio_promocional}</span>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-col gap-1.5">
-                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">Impuesto</label>
-                                    <input
-                                        type="text"
-                                        value={data.impuesto}
-                                        onChange={(ev) => setData('impuesto', ev.target.value)}
-                                        placeholder="16"
-                                        className={inputClass(Boolean(errors.impuesto))}
-                                    />
-                                    {errors.impuesto ? (
-                                        <span className="text-red-500 text-[11px]">{errors.impuesto}</span>
-                                    ) : (
-                                        <span className="text-[11.5px] text-[#A0A0A0]">
-                                            IVA aplicado en tienda: 16&nbsp;%
+                                    {errors.codigo && (
+                                        <span className="text-[11px] text-red-500">
+                                            {errors.codigo}
                                         </span>
                                     )}
                                 </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                        Duración (meses)
+                                        <span className="text-[#EF4444]">
+                                            *
+                                        </span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        step={1}
+                                        value={data.duracion_meses}
+                                        onChange={(ev) =>
+                                            setData(
+                                                'duracion_meses',
+                                                ev.target.value,
+                                            )
+                                        }
+                                        onBlur={() => {
+                                            const n = parseInt(
+                                                data.duracion_meses,
+                                                10,
+                                            );
 
-                                <div className="flex flex-col gap-4 mt-2">
-                                    <h3 className="text-[14px] font-bold text-[#1B3D6D]">Información de envío</h3>
-                                    <div className="flex flex-col gap-1.5">
-                                        <label className="text-[13px] font-semibold text-[#1B3D6D]">Peso</label>
-                                        <input
-                                            type="text"
-                                            value={data.peso}
-                                            onChange={(ev) => setData('peso', ev.target.value)}
-                                            placeholder="0kg"
-                                            className={inputClass(Boolean(errors.peso))}
-                                        />
-                                        {errors.peso && <span className="text-red-500 text-[11px]">{errors.peso}</span>}
-                                    </div>
-                                    <div className="flex flex-col gap-1.5 mt-1">
-                                        <label className="text-[13px] font-semibold text-[#1B3D6D]">Dimensiones</label>
-                                        <input
-                                            type="text"
-                                            value={data.dimensiones}
-                                            onChange={(ev) => setData('dimensiones', ev.target.value)}
-                                            placeholder="0x0x0"
-                                            className={inputClass(Boolean(errors.dimensiones))}
-                                        />
-                                        {errors.dimensiones && (
-                                            <span className="text-red-500 text-[11px]">{errors.dimensiones}</span>
+                                            if (!Number.isFinite(n) || n < 1) {
+                                                setData('duracion_meses', '12');
+                                            }
+                                        }}
+                                        placeholder="12"
+                                        className={inputClass(
+                                            Boolean(errors.duracion_meses),
                                         )}
-                                    </div>
-                                </div>
-
-                                <HistoriaMultimediaPanel
-                                    imgPreview={imgPreview}
-                                    videoPreview={videoPreview}
-                                    galleryPreviews={galleryItems.map((g) => g.preview)}
-                                    galleryPreviewKeys={galleryItems.map((g) =>
-                                        g.kind === 'existente' ? `e-${g.id}` : g.clientKey,
+                                    />
+                                    {errors.duracion_meses && (
+                                        <span className="text-[11px] text-red-500">
+                                            {errors.duracion_meses}
+                                        </span>
                                     )}
-                                    galeriaLength={galleryItems.length}
-                                    estado={data.estado}
-                                    estadoRadioName={estadoRadioName}
-                                    onEstadoChange={(v) => setData('estado', v)}
-                                    destacada={data.destacada}
-                                    destacadaRadioName={destacadaRadioName}
-                                    onDestacadaChange={(v) => setData('destacada', v)}
-                                    onImageChange={(ev) => handleFileChange(ev, 'imagen')}
-                                    onVideoChange={(ev) => handleFileChange(ev, 'video')}
-                                    onGalleryChange={handleGalleryChange}
-                                    onRemoveGalleryImage={removeGalleryImage}
-                                    galeriaLimitMessage={galeriaLimitMessage}
-                                    errors={{
-                                        imagen: imagenClientError ?? errors.imagen,
-                                        video: videoClientError ?? errors.video,
-                                        galeria: errors.galeria,
-                                        estado: errors.estado,
-                                        destacada: errors.destacada,
-                                    }}
-                                    fieldIds={{
-                                        imagen: `${rootId}-imagen`,
-                                        video: `${rootId}-video`,
-                                    }}
-                                />
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="sticky bottom-0 mt-auto flex shrink-0 justify-end gap-3 border-t border-[#F3F4F6] bg-white px-6 py-4 md:px-8 md:py-5">
-                        <button
-                            type="button"
-                            onClick={handleClose}
-                            disabled={processing}
-                            className="py-[9px] px-[22px] rounded-[4px] border border-[#1B3D6D] text-[14px] font-semibold text-[#1B3D6D] hover:bg-[#F9FAFB] transition-colors disabled:opacity-50"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="py-[9px] px-[22px] rounded-[4px] bg-[#1B3D6D] text-[14px] font-semibold text-white shadow-sm hover:bg-[#1B3D6D]/90 transition-colors disabled:opacity-50 flex items-center gap-2"
-                        >
-                            {processing ? 'Guardando...' : 'Guardar Historia'}
-                        </button>
+                        <div className="flex flex-col gap-6">
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                    Precio Base
+                                    <span className="text-[#EF4444]">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.precio_base}
+                                    onChange={(ev) =>
+                                        setData('precio_base', ev.target.value)
+                                    }
+                                    placeholder="25.00"
+                                    className={inputClass(
+                                        Boolean(errors.precio_base),
+                                    )}
+                                />
+                                {errors.precio_base && (
+                                    <span className="text-[11px] text-red-500">
+                                        {errors.precio_base}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                    Precio promocional
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.precio_promocional}
+                                    onChange={(ev) =>
+                                        setData(
+                                            'precio_promocional',
+                                            ev.target.value,
+                                        )
+                                    }
+                                    placeholder="0"
+                                    className={inputClass(
+                                        Boolean(errors.precio_promocional),
+                                    )}
+                                />
+                                {errors.precio_promocional && (
+                                    <span className="text-[11px] text-red-500">
+                                        {errors.precio_promocional}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                    Impuesto
+                                </label>
+                                <input
+                                    type="text"
+                                    value={data.impuesto}
+                                    onChange={(ev) =>
+                                        setData('impuesto', ev.target.value)
+                                    }
+                                    placeholder="16"
+                                    className={inputClass(
+                                        Boolean(errors.impuesto),
+                                    )}
+                                />
+                                {errors.impuesto ? (
+                                    <span className="text-[11px] text-red-500">
+                                        {errors.impuesto}
+                                    </span>
+                                ) : (
+                                    <span className="text-[11.5px] text-[#A0A0A0]">
+                                        IVA aplicado en tienda: 16&nbsp;%
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="mt-2 flex flex-col gap-4">
+                                <h3 className="text-[14px] font-bold text-[#1B3D6D]">
+                                    Información de envío
+                                </h3>
+                                <div className="flex flex-col gap-1.5">
+                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                        Peso
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.peso}
+                                        onChange={(ev) =>
+                                            setData('peso', ev.target.value)
+                                        }
+                                        placeholder="0kg"
+                                        className={inputClass(
+                                            Boolean(errors.peso),
+                                        )}
+                                    />
+                                    {errors.peso && (
+                                        <span className="text-[11px] text-red-500">
+                                            {errors.peso}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="mt-1 flex flex-col gap-1.5">
+                                    <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                                        Dimensiones
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={data.dimensiones}
+                                        onChange={(ev) =>
+                                            setData(
+                                                'dimensiones',
+                                                ev.target.value,
+                                            )
+                                        }
+                                        placeholder="0x0x0"
+                                        className={inputClass(
+                                            Boolean(errors.dimensiones),
+                                        )}
+                                    />
+                                    {errors.dimensiones && (
+                                        <span className="text-[11px] text-red-500">
+                                            {errors.dimensiones}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            <HistoriaMultimediaPanel
+                                imgPreview={imgPreview}
+                                videoPreview={videoPreview}
+                                galleryPreviews={galleryItems.map(
+                                    (g) => g.preview,
+                                )}
+                                galleryPreviewKeys={galleryItems.map((g) =>
+                                    g.kind === 'existente'
+                                        ? `e-${g.id}`
+                                        : g.clientKey,
+                                )}
+                                galeriaLength={galleryItems.length}
+                                estado={data.estado}
+                                estadoRadioName={estadoRadioName}
+                                onEstadoChange={(v) => setData('estado', v)}
+                                destacada={data.destacada}
+                                destacadaRadioName={destacadaRadioName}
+                                onDestacadaChange={(v) =>
+                                    setData('destacada', v)
+                                }
+                                onImageChange={(ev) =>
+                                    handleFileChange(ev, 'imagen')
+                                }
+                                onVideoChange={(ev) =>
+                                    handleFileChange(ev, 'video')
+                                }
+                                onGalleryChange={handleGalleryChange}
+                                onRemoveGalleryImage={removeGalleryImage}
+                                galeriaLimitMessage={galeriaLimitMessage}
+                                errors={{
+                                    imagen: imagenClientError ?? errors.imagen,
+                                    video: videoClientError ?? errors.video,
+                                    galeria: errors.galeria,
+                                    estado: errors.estado,
+                                    destacada: errors.destacada,
+                                }}
+                                fieldIds={{
+                                    imagen: `${rootId}-imagen`,
+                                    video: `${rootId}-video`,
+                                }}
+                            />
+                        </div>
                     </div>
-                </form>
+                </div>
+
+                <div className="sticky bottom-0 mt-auto flex shrink-0 justify-end gap-3 border-t border-[#F3F4F6] bg-white px-6 py-4 md:px-8 md:py-5">
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        disabled={processing}
+                        className="rounded-[4px] border border-[#1B3D6D] px-[22px] py-[9px] text-[14px] font-semibold text-[#1B3D6D] transition-colors hover:bg-[#F9FAFB] disabled:opacity-50"
+                    >
+                        Cancelar
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={processing}
+                        className="flex items-center gap-2 rounded-[4px] bg-[#1B3D6D] px-[22px] py-[9px] text-[14px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1B3D6D]/90 disabled:opacity-50"
+                    >
+                        {processing ? 'Guardando...' : 'Guardar Historia'}
+                    </button>
+                </div>
+            </form>
         </AdminFormSidePanel>
     );
 }

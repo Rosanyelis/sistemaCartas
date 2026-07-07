@@ -103,7 +103,7 @@ function HistoriasFilterBarSectionInner({
                     />
                 </div>
 
-                <div className="scrollbar-hide order-2 flex w-full flex-row items-center gap-4 overflow-x-auto py-2 lg:order-1 lg:w-auto">
+                <div className="order-2 scrollbar-hide flex w-full flex-row items-center gap-4 overflow-x-auto py-2 lg:order-1 lg:w-auto">
                     <i className="fa-solid fa-filter flex h-6 w-6 shrink-0 items-center justify-center text-[#1B3D6D]"></i>
                     <div className="flex shrink-0 items-center gap-2 lg:gap-1">
                         {categories.map((cat) => {

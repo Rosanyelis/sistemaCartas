@@ -45,7 +45,7 @@ export default function FeaturedStoriesSection({
                 <div className="relative w-full">
                     <div
                         ref={scrollerRef}
-                        className="flex w-full snap-x snap-mandatory gap-6 overflow-x-auto overscroll-x-contain pb-0 scrollbar-hide lg:gap-8"
+                        className="scrollbar-hide flex w-full snap-x snap-mandatory gap-6 overflow-x-auto overscroll-x-contain pb-0 lg:gap-8"
                         tabIndex={0}
                         aria-label="Historias destacadas"
                     >

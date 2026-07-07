@@ -103,7 +103,7 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
             </Head>
             {/* Header / Navegación */}
             <header className="fixed top-0 z-[70] w-full border-b border-[#e8e4d9] bg-white shadow-[0px_0px_16px_rgba(0,0,0,0.04)]">
-                <div className="mx-auto flex h-[80px] max-w-8xl items-center justify-between px-4 ">
+                <div className="max-w-8xl mx-auto flex h-[80px] items-center justify-between px-4">
                     {/* Izquierda mobile: hamburger + texto marca */}
                     <div className="flex items-center gap-2 md:hidden">
                         <button
@@ -149,24 +149,24 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                     {/* Nav desktop + Icons */}
                     <div className="hidden items-center gap-[36px] md:flex">
                         <nav className="flex items-center gap-[34px] pt-[5px]">
-                        <Link
-                            href={STOREFRONT_PATHS.home}
-                            className={desktopNavClass(navActive.home)}
-                        >
-                            Inicio
-                        </Link>
-                        <Link
-                            href={STOREFRONT_PATHS.historias}
-                            className={desktopNavClass(navActive.historias)}
-                        >
-                            Historias
-                        </Link>
-                        <Link
-                            href={STOREFRONT_PATHS.productos}
-                            className={desktopNavClass(navActive.productos)}
-                        >
-                            Productos
-                        </Link>
+                            <Link
+                                href={STOREFRONT_PATHS.home}
+                                className={desktopNavClass(navActive.home)}
+                            >
+                                Inicio
+                            </Link>
+                            <Link
+                                href={STOREFRONT_PATHS.historias}
+                                className={desktopNavClass(navActive.historias)}
+                            >
+                                Historias
+                            </Link>
+                            <Link
+                                href={STOREFRONT_PATHS.productos}
+                                className={desktopNavClass(navActive.productos)}
+                            >
+                                Productos
+                            </Link>
                         </nav>
 
                         {/* Icons */}
@@ -192,9 +192,9 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                                     />
                                 </Link>
                             )}
-                                    <button
-                                        type="button"
-                                        onClick={() => openCart()}
+                            <button
+                                type="button"
+                                onClick={() => openCart()}
                                 className={`relative flex h-10 w-10 items-center justify-center transition duration-300 ${isDrawerOpen ? 'bg-[#D7C181] text-[#1B3D6D] shadow-md' : 'bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] hover:bg-[#eae4d3]'}`}
                             >
                                 {itemCount > 0 && (
@@ -233,9 +233,9 @@ function ClienteLayoutShell({ children }: { children: ReactNode }) {
                                 />
                             </Link>
                         )}
-                                <button
-                                    type="button"
-                                    onClick={() => openCart()}
+                        <button
+                            type="button"
+                            onClick={() => openCart()}
                             className={`relative flex h-10 w-10 items-center justify-center transition duration-300 ${isDrawerOpen ? 'bg-[#D7C181] text-[#1B3D6D] shadow-md' : 'bg-[rgba(229,229,229,0.2)] text-[#1B3D6D] hover:bg-[#eae4d3]'}`}
                         >
                             {itemCount > 0 && (

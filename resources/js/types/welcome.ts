@@ -5,6 +5,8 @@ export interface Story {
     title: string;
     desc: string;
     price: string;
+    /** Precio base formateado ("$10,00"). `null` cuando no hay promoción visible. */
+    old_price?: string | null;
     img: string;
     categoria: string;
 }
@@ -16,6 +18,8 @@ export interface Product {
     slug: string;
     name: string;
     price: string;
+    /** Precio base numérico (12,2). `null` cuando no hay promoción visible. */
+    old_price?: number | null;
     desc: string;
     img: string;
     /** Precio unitario (servidor); el cobro PayPal se recalcula en backend */

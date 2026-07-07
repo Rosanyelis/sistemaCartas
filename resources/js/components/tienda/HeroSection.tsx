@@ -63,11 +63,17 @@ export default function HeroSection() {
                     >
                         {/* Texto descriptivo: estático en mobile, animado en desktop */}
                         <p className="w-full font-['Cormorant_Garamond',serif] text-[20px] leading-[26px] font-bold text-white italic lg:hidden">
-                            Recibe cartas impresas que revelan historias apasionantes y enigmáticas. Una experiencia inmersiva escrita por profesionales para transportarte a otra época.
+                            Recibe cartas impresas que revelan historias
+                            apasionantes y enigmáticas. Una experiencia
+                            inmersiva escrita por profesionales para
+                            transportarte a otra época.
                         </p>
                         <div className="hidden lg:flex">
                             <p className="min-h-[90px] w-[265px] text-left font-['Cormorant_Garamond',serif] text-xl leading-[22px] font-bold text-white/90 italic drop-shadow-sm">
-                            Recibe cartas impresas que revelan historias apasionantes y enigmáticas. Una experiencia inmersiva escrita por profesionales para transportarte a otra época.
+                                Recibe cartas impresas que revelan historias
+                                apasionantes y enigmáticas. Una experiencia
+                                inmersiva escrita por profesionales para
+                                transportarte a otra época.
                             </p>
                         </div>
 

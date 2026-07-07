@@ -66,10 +66,7 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
     }, [suscripciones, searchTerm, startDate, endDate]);
 
     const filteredTotal = filteredSuscripciones.length;
-    const clientLastPage = Math.max(
-        1,
-        Math.ceil(filteredTotal / itemsPerPage),
-    );
+    const clientLastPage = Math.max(1, Math.ceil(filteredTotal / itemsPerPage));
 
     useEffect(() => {
         if (currentPage > clientLastPage) {
@@ -101,8 +98,18 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
             return '—';
         }
         const months = [
-            'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-            'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
+            'Ene',
+            'Feb',
+            'Mar',
+            'Abr',
+            'May',
+            'Jun',
+            'Jul',
+            'Ago',
+            'Sep',
+            'Oct',
+            'Nov',
+            'Dic',
         ];
         return `${date.getUTCDate()} ${months[date.getUTCMonth()]} ${date.getUTCFullYear()}`;
     };
@@ -343,13 +350,19 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                                                 {sub.tipo}
                                             </td>
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-[12px] text-[#7B7B7B]">
-                                                {formatIsoDateTable(sub.fecha_adquisicion)}
+                                                {formatIsoDateTable(
+                                                    sub.fecha_adquisicion,
+                                                )}
                                             </td>
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-[12px] text-[#7B7B7B]">
-                                                {formatIsoDateTable(sub.fecha_finalizacion)}
+                                                {formatIsoDateTable(
+                                                    sub.fecha_finalizacion,
+                                                )}
                                             </td>
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-[12px] text-[#7B7B7B]">
-                                                {formatIsoDateTable(sub.proximo_cobro)}
+                                                {formatIsoDateTable(
+                                                    sub.proximo_cobro,
+                                                )}
                                             </td>
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-center">
                                                 <span
@@ -369,7 +382,9 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                                             <td className="border-b border-[#F2F2F2] px-3 py-4 text-center">
                                                 <button
                                                     type="button"
-                                                    disabled={!canDarDeBaja(sub)}
+                                                    disabled={
+                                                        !canDarDeBaja(sub)
+                                                    }
                                                     onClick={() =>
                                                         openCancelModal(sub)
                                                     }
@@ -406,17 +421,19 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                                 >
                                     {/* Row 1: ID, Status, Actions */}
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[14px] font-bold text-[#111928] leading-none">
+                                        <span className="text-[14px] leading-none font-bold text-[#111928]">
                                             {sub.id}
                                         </span>
                                         <div className="flex items-center gap-2">
                                             <span
                                                 className={`rounded-[6px] px-3 py-1 text-[11px] font-semibold ${
-                                                    sub.estado_color === 'success'
+                                                    sub.estado_color ===
+                                                    'success'
                                                         ? 'bg-[#DAF8E6] text-[#1A8245]'
-                                                        : sub.estado_color === 'warning'
-                                                        ? 'bg-[#FEF3E2] text-[#B45309]'
-                                                        : 'bg-[#FEEBEB] text-[#E10E0E]'
+                                                        : sub.estado_color ===
+                                                            'warning'
+                                                          ? 'bg-[#FEF3E2] text-[#B45309]'
+                                                          : 'bg-[#FEEBEB] text-[#E10E0E]'
                                                 }`}
                                             >
                                                 {sub.estado}
@@ -424,7 +441,9 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                                             <div className="relative">
                                                 <button
                                                     type="button"
-                                                    disabled={!canDarDeBaja(sub)}
+                                                    disabled={
+                                                        !canDarDeBaja(sub)
+                                                    }
                                                     onClick={() =>
                                                         setActiveMenuSuscripcionId(
                                                             activeMenuSuscripcionId ===
@@ -435,72 +454,89 @@ export default function Subscriptions({ suscripciones }: SubscriptionsProps) {
                                                     }
                                                     className="flex size-8 items-center justify-center text-[#111928] opacity-60 hover:opacity-100 disabled:opacity-30"
                                                 >
-                                                    <FontAwesomeIcon icon={faEllipsisVertical} className="size-4" />
+                                                    <FontAwesomeIcon
+                                                        icon={
+                                                            faEllipsisVertical
+                                                        }
+                                                        className="size-4"
+                                                    />
                                                 </button>
                                                 {activeMenuSuscripcionId ===
                                                     sub.suscripcion_id &&
                                                     canDarDeBaja(sub) && (
-                                                    <>
-                                                        <div
-                                                            className="fixed inset-0 z-10"
-                                                            onClick={() =>
-                                                                setActiveMenuSuscripcionId(
-                                                                    null,
-                                                                )
-                                                            }
-                                                        />
-                                                        <div className="absolute right-0 top-full z-20 mt-1 w-[120px] rounded-[6px] bg-white p-1.5 shadow-[0px_4px_15px_rgba(0,0,0,0.15)] animate-in fade-in slide-in-from-top-1 duration-150">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    openCancelModal(
-                                                                        sub,
-                                                                    );
+                                                        <>
+                                                            <div
+                                                                className="fixed inset-0 z-10"
+                                                                onClick={() =>
                                                                     setActiveMenuSuscripcionId(
                                                                         null,
-                                                                    );
-                                                                }}
-                                                                className="w-full rounded-[4px] px-3 py-2 text-left text-[12px] font-medium text-[#1B3D6D] hover:bg-gray-50 active:bg-gray-100"
-                                                            >
-                                                                Dar de baja
-                                                            </button>
-                                                        </div>
-                                                    </>
-                                                )}
+                                                                    )
+                                                                }
+                                                            />
+                                                            <div className="absolute top-full right-0 z-20 mt-1 w-[120px] animate-in rounded-[6px] bg-white p-1.5 shadow-[0px_4px_15px_rgba(0,0,0,0.15)] duration-150 fade-in slide-in-from-top-1">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        openCancelModal(
+                                                                            sub,
+                                                                        );
+                                                                        setActiveMenuSuscripcionId(
+                                                                            null,
+                                                                        );
+                                                                    }}
+                                                                    className="w-full rounded-[4px] px-3 py-2 text-left text-[12px] font-medium text-[#1B3D6D] hover:bg-gray-50 active:bg-gray-100"
+                                                                >
+                                                                    Dar de baja
+                                                                </button>
+                                                            </div>
+                                                        </>
+                                                    )}
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Row 2: Name, Quantity */}
-                                    <div className="flex items-center justify-between mt-0.5">
-                                        <span className="text-[14px] font-medium text-[#111928] leading-tight max-w-[70%]">
+                                    <div className="mt-0.5 flex items-center justify-between">
+                                        <span className="max-w-[70%] text-[14px] leading-tight font-medium text-[#111928]">
                                             {sub.historia}
                                         </span>
                                         <div className="flex items-center gap-1.5 whitespace-nowrap">
-                                            <span className="text-[12px] font-medium text-[#1B3D6D]">Cantidad:</span>
-                                            <span className="text-[12px] font-bold text-[#1B3D6D]">{sub.cantidad}</span>
+                                            <span className="text-[12px] font-medium text-[#1B3D6D]">
+                                                Cantidad:
+                                            </span>
+                                            <span className="text-[12px] font-bold text-[#1B3D6D]">
+                                                {sub.cantidad}
+                                            </span>
                                         </div>
                                     </div>
 
                                     {/* Row 3: Subscription Type */}
-                                    <div className="flex -mt-1.5">
+                                    <div className="-mt-1.5 flex">
                                         <span className="text-[14px] font-medium text-[#111928]">
                                             {sub.tipo}
                                         </span>
                                     </div>
 
                                     {/* Row 4: Dates Grid */}
-                                    <div className="grid grid-cols-2 gap-x-4 mt-1">
+                                    <div className="mt-1 grid grid-cols-2 gap-x-4">
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-[11px] font-medium text-[#BBBBBB]">Adquisición</span>
+                                            <span className="text-[11px] font-medium text-[#BBBBBB]">
+                                                Adquisición
+                                            </span>
                                             <span className="text-[13px] font-bold text-[#111928]">
-                                                {formatDateDisplay(sub.fecha_adquisicion)}
+                                                {formatDateDisplay(
+                                                    sub.fecha_adquisicion,
+                                                )}
                                             </span>
                                         </div>
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-[11px] font-medium text-[#BBBBBB]">Finalización</span>
+                                            <span className="text-[11px] font-medium text-[#BBBBBB]">
+                                                Finalización
+                                            </span>
                                             <span className="text-[13px] font-bold text-[#111928]">
-                                                {formatDateDisplay(sub.fecha_finalizacion)}
+                                                {formatDateDisplay(
+                                                    sub.fecha_finalizacion,
+                                                )}
                                             </span>
                                         </div>
                                     </div>

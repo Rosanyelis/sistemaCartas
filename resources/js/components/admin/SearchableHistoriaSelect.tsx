@@ -31,7 +31,10 @@ export function SearchableHistoriaSelect({
     const [search, setSearch] = useState('');
 
     const historiasOrdenadas = useMemo(
-        () => [...historias].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es')),
+        () =>
+            [...historias].sort((a, b) =>
+                a.nombre.localeCompare(b.nombre, 'es'),
+            ),
         [historias],
     );
 
@@ -44,19 +47,25 @@ export function SearchableHistoriaSelect({
             return historiasOrdenadas;
         }
 
-        return historiasOrdenadas.filter((h) => h.nombre.toLowerCase().includes(term));
+        return historiasOrdenadas.filter((h) =>
+            h.nombre.toLowerCase().includes(term),
+        );
     }, [historiasOrdenadas, search]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+            if (
+                containerRef.current &&
+                !containerRef.current.contains(event.target as Node)
+            ) {
                 setIsOpen(false);
             }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
 
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        return () =>
+            document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
     const handleSelect = (historiaId: number) => {
@@ -89,14 +98,14 @@ export function SearchableHistoriaSelect({
                         <div className="relative">
                             <FontAwesomeIcon
                                 icon={faSearch}
-                                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[12px] text-[#A0A0A0]"
+                                className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[12px] text-[#A0A0A0]"
                             />
                             <input
                                 type="text"
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 placeholder="Buscar historia..."
-                                className="w-full rounded-[4px] border border-[#DFE4EA] py-2 pl-8 pr-3 text-[13px] outline-none focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/15"
+                                className="w-full rounded-[4px] border border-[#DFE4EA] py-2 pr-3 pl-8 text-[13px] text-[#111111] outline-none focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/15 [&:-webkit-autofill]:!text-[#111111] [&:-webkit-autofill]:![-webkit-text-fill-color:#111111]"
                                 autoFocus
                             />
                         </div>
@@ -112,7 +121,8 @@ export function SearchableHistoriaSelect({
                             </li>
                         ) : (
                             filtered.map((historia) => {
-                                const isSelected = String(historia.id) === value;
+                                const isSelected =
+                                    String(historia.id) === value;
 
                                 return (
                                     <li key={historia.id}>
@@ -120,7 +130,9 @@ export function SearchableHistoriaSelect({
                                             type="button"
                                             role="option"
                                             aria-selected={isSelected}
-                                            onClick={() => handleSelect(historia.id)}
+                                            onClick={() =>
+                                                handleSelect(historia.id)
+                                            }
                                             className={`flex w-full items-center px-4 py-2.5 text-left text-[14px] transition-colors hover:bg-[#F9FAFB] ${
                                                 isSelected
                                                     ? 'bg-[#1B3D6D]/10 font-semibold text-[#1B3D6D]'

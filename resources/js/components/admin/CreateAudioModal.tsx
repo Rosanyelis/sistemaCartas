@@ -47,14 +47,17 @@ export function CreateAudioModal({
     const rootId = useId();
     const estadoRadioName = `${rootId}-estado`;
 
-    const { data, setData, post, processing, errors, reset, transform } = useForm({
-        historia_id: '',
-        titulo: '',
-        estado: 'activo',
-        audio: null as File | null,
-    });
+    const { data, setData, post, processing, errors, reset, transform } =
+        useForm({
+            historia_id: '',
+            titulo: '',
+            estado: 'activo',
+            audio: null as File | null,
+        });
 
-    const [audioClientError, setAudioClientError] = useState<string | null>(null);
+    const [audioClientError, setAudioClientError] = useState<string | null>(
+        null,
+    );
     const [audioFileName, setAudioFileName] = useState<string | null>(null);
 
     useEffect(() => {
@@ -98,12 +101,20 @@ export function CreateAudioModal({
             return;
         }
 
-        if (!AUDIO_ALLOWED_TYPES.includes(file.type as (typeof AUDIO_ALLOWED_TYPES)[number])) {
+        if (
+            !AUDIO_ALLOWED_TYPES.includes(
+                file.type as (typeof AUDIO_ALLOWED_TYPES)[number],
+            )
+        ) {
             setAudioClientError(MENSAJE_AUDIO_TIPO);
             return;
         }
 
-        const sizeError = validateMediaFileSize(file, MAX_AUDIO_BYTES, MENSAJE_MAX_AUDIO);
+        const sizeError = validateMediaFileSize(
+            file,
+            MAX_AUDIO_BYTES,
+            MENSAJE_MAX_AUDIO,
+        );
         if (sizeError) {
             setAudioClientError(sizeError);
             return;
@@ -159,7 +170,10 @@ export function CreateAudioModal({
             onClose={onClose}
             title={audioToEdit ? 'Editar audio' : 'Crear audio'}
         >
-            <form onSubmit={handleSubmit} className="flex flex-1 flex-col overflow-hidden">
+            <form
+                onSubmit={handleSubmit}
+                className="flex flex-1 flex-col overflow-hidden"
+            >
                 <div className="flex-1 overflow-y-auto px-6 py-5 md:px-8">
                     <div className="flex flex-col gap-5">
                         <div>
@@ -169,7 +183,9 @@ export function CreateAudioModal({
                             <SearchableHistoriaSelect
                                 historias={historias}
                                 value={data.historia_id}
-                                onChange={(historiaId) => setData('historia_id', historiaId)}
+                                onChange={(historiaId) =>
+                                    setData('historia_id', historiaId)
+                                }
                                 error={errors.historia_id}
                             />
                         </div>
@@ -181,12 +197,16 @@ export function CreateAudioModal({
                             <input
                                 type="text"
                                 value={data.titulo}
-                                onChange={(e) => setData('titulo', e.target.value)}
+                                onChange={(e) =>
+                                    setData('titulo', e.target.value)
+                                }
                                 className={inputClass(!!errors.titulo)}
                                 placeholder="Título corto del audio"
                             />
                             {errors.titulo && (
-                                <p className="mt-1 text-[12px] text-red-500">{errors.titulo}</p>
+                                <p className="mt-1 text-[12px] text-red-500">
+                                    {errors.titulo}
+                                </p>
                             )}
                         </div>
 
@@ -195,24 +215,32 @@ export function CreateAudioModal({
                                 Estado *
                             </span>
                             <div className="flex gap-6">
-                                {(['activo', 'pausado'] as const).map((value) => (
-                                    <label
-                                        key={value}
-                                        className="flex cursor-pointer items-center gap-2 text-[14px] text-gray-700"
-                                    >
-                                        <input
-                                            type="radio"
-                                            name={estadoRadioName}
-                                            checked={data.estado === value}
-                                            onChange={() => setData('estado', value)}
-                                            className="text-[#1B3D6D]"
-                                        />
-                                        {value === 'activo' ? 'Activo' : 'Pausado'}
-                                    </label>
-                                ))}
+                                {(['activo', 'pausado'] as const).map(
+                                    (value) => (
+                                        <label
+                                            key={value}
+                                            className="flex cursor-pointer items-center gap-2 text-[14px] text-gray-700"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name={estadoRadioName}
+                                                checked={data.estado === value}
+                                                onChange={() =>
+                                                    setData('estado', value)
+                                                }
+                                                className="text-[#1B3D6D]"
+                                            />
+                                            {value === 'activo'
+                                                ? 'Activo'
+                                                : 'Pausado'}
+                                        </label>
+                                    ),
+                                )}
                             </div>
                             {errors.estado && (
-                                <p className="mt-1 text-[12px] text-red-500">{errors.estado}</p>
+                                <p className="mt-1 text-[12px] text-red-500">
+                                    {errors.estado}
+                                </p>
                             )}
                         </div>
 
@@ -221,9 +249,13 @@ export function CreateAudioModal({
                                 Archivo de audio {!audioToEdit && '*'}
                             </label>
                             <label className="flex cursor-pointer items-center gap-2 rounded-[4px] border border-dashed border-[#DFE4EA] bg-[#F9FAFB] px-4 py-6 text-center transition-colors hover:border-[#1B3D6D]/40">
-                                <FontAwesomeIcon icon={faPencil} className="text-[#1B3D6D]" />
+                                <FontAwesomeIcon
+                                    icon={faPencil}
+                                    className="text-[#1B3D6D]"
+                                />
                                 <span className="text-[13px] text-[#4B5563]">
-                                    {audioFileName ?? 'Seleccionar archivo (MP3, M4A, WAV, OGG)'}
+                                    {audioFileName ??
+                                        'Seleccionar archivo (MP3, M4A, WAV, OGG)'}
                                 </span>
                                 <input
                                     type="file"
@@ -265,7 +297,11 @@ export function CreateAudioModal({
                         disabled={processing}
                         className="w-full rounded-[4px] bg-[#1B3D6D] py-2.5 text-[14px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
                     >
-                        {processing ? 'Guardando…' : audioToEdit ? 'Guardar cambios' : 'Crear audio'}
+                        {processing
+                            ? 'Guardando…'
+                            : audioToEdit
+                              ? 'Guardar cambios'
+                              : 'Crear audio'}
                     </button>
                 </div>
             </form>

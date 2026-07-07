@@ -1,5 +1,11 @@
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState, type ReactElement } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+    type ReactElement,
+} from 'react';
 
 type ReviewMock = {
     name: string;
@@ -152,7 +158,7 @@ export function HistoriaTrustpilotReviews(): ReactElement {
 
             <div
                 ref={trackRef}
-                className="flex w-full max-w-[1296px] gap-6 overflow-x-auto scroll-smooth pb-2 scrollbar-hide"
+                className="scrollbar-hide flex w-full max-w-[1296px] gap-6 overflow-x-auto scroll-smooth pb-2"
             >
                 {MOCK_REVIEWS.map((review, i) => (
                     <article

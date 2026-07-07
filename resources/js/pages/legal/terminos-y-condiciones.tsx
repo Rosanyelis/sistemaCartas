@@ -3,18 +3,14 @@ import type { ReactNode } from 'react';
 import ClienteLayout from '@/layouts/cliente-layout';
 import { STOREFRONT_PATHS } from '@/constants/storefront-paths';
 
-const prose = 'text-[15px] leading-[1.65] text-[#3e352f] md:text-[16px] md:leading-[1.7]';
+const prose =
+    'text-[15px] leading-[1.65] text-[#3e352f] md:text-[16px] md:leading-[1.7]';
 const h2 =
     "mb-4 font-['Playfair_Display',serif] text-[20px] font-bold tracking-tight text-[#1B3D6D] md:text-[22px]";
-const linkClass = 'font-medium text-[#49637F] underline underline-offset-2 transition hover:opacity-80';
+const linkClass =
+    'font-medium text-[#49637F] underline underline-offset-2 transition hover:opacity-80';
 
-function Section({
-    title,
-    children,
-}: {
-    title: string;
-    children: ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: ReactNode }) {
     return (
         <section className="mb-10 border-b border-[#e8e4d9] pb-10 last:mb-0 last:border-b-0 last:pb-0">
             <h2 className={h2}>{title}</h2>
@@ -44,9 +40,9 @@ export default function TerminosYCondiciones() {
                 />
             </Head>
 
-            <article className="mx-auto max-w-3xl px-5 pb-20 pt-[100px] md:px-8 md:pb-28 md:pt-[120px]">
+            <article className="mx-auto max-w-3xl px-5 pt-[100px] pb-20 md:px-8 md:pt-[120px] md:pb-28">
                 <header className="mb-12 text-center md:mb-14">
-                    <h1 className="mb-4 font-['Playfair_Display',serif] text-[22px] font-bold leading-tight tracking-tight text-[#1B3D6D] uppercase md:text-[26px]">
+                    <h1 className="mb-4 font-['Playfair_Display',serif] text-[22px] leading-tight font-bold tracking-tight text-[#1B3D6D] uppercase md:text-[26px]">
                         Términos y condiciones de uso y contratación
                     </h1>
                     <p className="text-[15px] font-semibold text-[#3e352f] md:text-[16px]">
@@ -72,8 +68,8 @@ export default function TerminosYCondiciones() {
                         <p>
                             Los presentes Términos y Condiciones de Uso y
                             Contratación (en adelante, los &quot;Términos y
-                            Condiciones&quot;) regulan el acceso, navegación, uso
-                            y contratación de los productos y servicios
+                            Condiciones&quot;) regulan el acceso, navegación,
+                            uso y contratación de los productos y servicios
                             ofrecidos a través del sitio web{' '}
                             <a
                                 href="https://www.historiasporcorreo.com"
@@ -83,9 +79,9 @@ export default function TerminosYCondiciones() {
                             >
                                 www.historiasporcorreo.com
                             </a>{' '}
-                            (en adelante, el &quot;Sitio Web&quot;), propiedad de
-                            HISTORIAS POR CORREO, S.A.P.I. DE C.V. (en adelante,
-                            &quot;HISTORIAS POR CORREO&quot;, &quot;la
+                            (en adelante, el &quot;Sitio Web&quot;), propiedad
+                            de HISTORIAS POR CORREO, S.A.P.I. DE C.V. (en
+                            adelante, &quot;HISTORIAS POR CORREO&quot;, &quot;la
                             Empresa&quot; o &quot;el Prestador&quot;).
                         </p>
                         <p>
@@ -118,9 +114,10 @@ export default function TerminosYCondiciones() {
                         </p>
                         <p>
                             Si el Usuario no está de acuerdo total o
-                            parcialmente con los presentes Términos y Condiciones,
-                            deberá abstenerse de acceder, utilizar o contratar
-                            los servicios ofrecidos por HISTORIAS POR CORREO.
+                            parcialmente con los presentes Términos y
+                            Condiciones, deberá abstenerse de acceder, utilizar
+                            o contratar los servicios ofrecidos por HISTORIAS
+                            POR CORREO.
                         </p>
                     </Section>
 
@@ -129,12 +126,12 @@ export default function TerminosYCondiciones() {
                             HISTORIAS POR CORREO ofrece una experiencia de
                             suscripción literaria y de entretenimiento inmersivo
                             que incluye el envío periódico de materiales físicos
-                            y/o digitales, tales como cartas, textos
-                            narrativos, recortes, pistas, impresos, objetos
-                            temáticos, tarjetas con instrucciones de audio,
-                            contenidos complementarios y demás elementos
-                            relacionados con una narrativa o historia desarrollada
-                            por la Empresa.
+                            y/o digitales, tales como cartas, textos narrativos,
+                            recortes, pistas, impresos, objetos temáticos,
+                            tarjetas con instrucciones de audio, contenidos
+                            complementarios y demás elementos relacionados con
+                            una narrativa o historia desarrollada por la
+                            Empresa.
                         </p>
                         <p>
                             La contratación del servicio puede consistir en
@@ -175,12 +172,12 @@ export default function TerminosYCondiciones() {
 
                     <Section title="V. Registro de cuenta y responsabilidad sobre credenciales">
                         <p>
-                            Para acceder a determinadas funcionalidades del Sitio
-                            Web o contratar ciertos servicios, el Usuario podrá
-                            requerir crear una cuenta personal proporcionando
-                            información como nombre, correo electrónico,
-                            domicilio, teléfono, contraseña y datos de pago o
-                            facturación.
+                            Para acceder a determinadas funcionalidades del
+                            Sitio Web o contratar ciertos servicios, el Usuario
+                            podrá requerir crear una cuenta personal
+                            proporcionando información como nombre, correo
+                            electrónico, domicilio, teléfono, contraseña y datos
+                            de pago o facturación.
                         </p>
                         <p>
                             El Usuario será el único responsable de mantener la
@@ -207,17 +204,18 @@ export default function TerminosYCondiciones() {
                             Todos los precios mostrados en el Sitio Web están
                             expresados en pesos mexicanos (MXN), salvo que se
                             indique expresamente otra moneda, e incluyen o
-                            excluyen los impuestos aplicables según se especifique
-                            en la página de compra correspondiente.
+                            excluyen los impuestos aplicables según se
+                            especifique en la página de compra correspondiente.
                         </p>
                         <p>
                             HISTORIAS POR CORREO podrá actualizar en cualquier
                             momento los precios, promociones, descuentos, costos
-                            de envío, costos por reexpedición y demás condiciones
-                            económicas del servicio. Dichos cambios no afectarán
-                            retroactivamente los pedidos ya confirmados o los
-                            periodos de suscripción ya pagados, salvo disposición
-                            expresa en sentido contrario aceptada por el Usuario.
+                            de envío, costos por reexpedición y demás
+                            condiciones económicas del servicio. Dichos cambios
+                            no afectarán retroactivamente los pedidos ya
+                            confirmados o los periodos de suscripción ya
+                            pagados, salvo disposición expresa en sentido
+                            contrario aceptada por el Usuario.
                         </p>
                         <p>Las formas de pago podrán incluir, entre otras:</p>
                         <BulletList
@@ -256,11 +254,11 @@ export default function TerminosYCondiciones() {
                         />
                         <p>
                             El Usuario reconoce y acepta que, debido a la
-                            naturaleza del servicio, la preparación, producción y
-                            logística de cada envío puede iniciar con anticipación
-                            a la fecha de entrega, por lo que la cancelación
-                            posterior a cierto corte operativo podrá surtir efectos
-                            hasta el siguiente periodo.
+                            naturaleza del servicio, la preparación, producción
+                            y logística de cada envío puede iniciar con
+                            anticipación a la fecha de entrega, por lo que la
+                            cancelación posterior a cierto corte operativo podrá
+                            surtir efectos hasta el siguiente periodo.
                         </p>
                     </Section>
 
@@ -269,8 +267,8 @@ export default function TerminosYCondiciones() {
                             Los productos físicos contratados serán enviados al
                             domicilio proporcionado por el Usuario durante el
                             proceso de compra o en su perfil de cuenta. Es
-                            responsabilidad exclusiva del Usuario proporcionar una
-                            dirección completa, correcta y actualizada,
+                            responsabilidad exclusiva del Usuario proporcionar
+                            una dirección completa, correcta y actualizada,
                             incluyendo referencias suficientes para facilitar la
                             entrega.
                         </p>
@@ -286,12 +284,12 @@ export default function TerminosYCondiciones() {
 
                     <Section title="IX. Devoluciones, reembolsos, aclaraciones y garantías limitadas">
                         <p>
-                            Por la naturaleza personalizada, editorial, temática,
-                            de colección o de producción por pedido de los
-                            productos de HISTORIAS POR CORREO, en principio no se
-                            aceptan devoluciones ni se realizan reembolsos una vez
-                            confirmado el pedido o procesado el periodo de
-                            suscripción, salvo en los siguientes supuestos:
+                            Por la naturaleza personalizada, editorial,
+                            temática, de colección o de producción por pedido de
+                            los productos de HISTORIAS POR CORREO, en principio
+                            no se aceptan devoluciones ni se realizan reembolsos
+                            una vez confirmado el pedido o procesado el periodo
+                            de suscripción, salvo en los siguientes supuestos:
                         </p>
                         <BulletList
                             items={[
@@ -303,17 +301,18 @@ export default function TerminosYCondiciones() {
                         <p>
                             Toda aclaración deberá presentarse dentro de los 5
                             (cinco) días hábiles siguientes a la recepción del
-                            paquete o a la fecha en que debió haberse efectuado el
-                            cargo, acompañando evidencia suficiente, como
+                            paquete o a la fecha en que debió haberse efectuado
+                            el cargo, acompañando evidencia suficiente, como
                             fotografías, número de pedido, guía de envío y
                             descripción clara de la incidencia.
                         </p>
                         <p>
                             HISTORIAS POR CORREO evaluará cada caso de manera
                             individual y, en su caso, podrá optar por: (i)
-                            reenviar el producto, (ii) otorgar crédito en tienda,
-                            (iii) aplicar un descuento futuro o (iv) realizar un
-                            reembolso parcial o total, según corresponda.
+                            reenviar el producto, (ii) otorgar crédito en
+                            tienda, (iii) aplicar un descuento futuro o (iv)
+                            realizar un reembolso parcial o total, según
+                            corresponda.
                         </p>
                     </Section>
 
@@ -321,27 +320,29 @@ export default function TerminosYCondiciones() {
                         <p>
                             Todos los derechos de propiedad intelectual e
                             industrial sobre el Sitio Web, su diseño, código
-                            fuente, textos, personajes, historias, cartas, nombres
-                            comerciales, marcas, logotipos, ilustraciones,
-                            composiciones gráficas, audios, grabaciones, guiones,
-                            conceptos narrativos, contenido editorial,
-                            fotografías, videos, materiales promocionales y
-                            cualesquiera elementos asociados a HISTORIAS POR
-                            CORREO, son propiedad exclusiva de la Empresa y/o de
-                            sus licenciantes, y se encuentran protegidos por las
-                            leyes mexicanas e internacionales aplicables.
+                            fuente, textos, personajes, historias, cartas,
+                            nombres comerciales, marcas, logotipos,
+                            ilustraciones, composiciones gráficas, audios,
+                            grabaciones, guiones, conceptos narrativos,
+                            contenido editorial, fotografías, videos, materiales
+                            promocionales y cualesquiera elementos asociados a
+                            HISTORIAS POR CORREO, son propiedad exclusiva de la
+                            Empresa y/o de sus licenciantes, y se encuentran
+                            protegidos por las leyes mexicanas e internacionales
+                            aplicables.
                         </p>
                         <p>
-                            La contratación del servicio no transfiere al Usuario
-                            ningún derecho de propiedad sobre los contenidos. El
-                            Usuario únicamente adquiere un derecho limitado,
-                            personal, revocable, no exclusivo e intransferible
-                            para disfrutar de la experiencia contratada para fines
-                            estrictamente personales y no comerciales.
+                            La contratación del servicio no transfiere al
+                            Usuario ningún derecho de propiedad sobre los
+                            contenidos. El Usuario únicamente adquiere un
+                            derecho limitado, personal, revocable, no exclusivo
+                            e intransferible para disfrutar de la experiencia
+                            contratada para fines estrictamente personales y no
+                            comerciales.
                         </p>
                         <p>
-                            Queda estrictamente prohibido, sin autorización previa
-                            y por escrito de HISTORIAS POR CORREO:
+                            Queda estrictamente prohibido, sin autorización
+                            previa y por escrito de HISTORIAS POR CORREO:
                         </p>
                         <BulletList
                             items={[
@@ -353,8 +354,9 @@ export default function TerminosYCondiciones() {
                         />
                         <p>
                             La infracción a esta cláusula facultará a HISTORIAS
-                            POR CORREO a ejercer las acciones civiles, mercantiles,
-                            administrativas y penales que resulten procedentes.
+                            POR CORREO a ejercer las acciones civiles,
+                            mercantiles, administrativas y penales que resulten
+                            procedentes.
                         </p>
                     </Section>
 
@@ -363,46 +365,50 @@ export default function TerminosYCondiciones() {
                             Sin perjuicio de lo anterior, HISTORIAS POR CORREO
                             podrá permitir, a su sola discreción, ciertos usos
                             personales del contenido por parte del Usuario, como
-                            la lectura, conservación física, exhibición privada o
-                            compartición limitada en redes sociales con fines no
-                            comerciales, siempre que ello no implique reproducción
-                            integral, desnaturalización de la experiencia,
-                            afectación de secretos narrativos o explotación
-                            económica de los contenidos.
+                            la lectura, conservación física, exhibición privada
+                            o compartición limitada en redes sociales con fines
+                            no comerciales, siempre que ello no implique
+                            reproducción integral, desnaturalización de la
+                            experiencia, afectación de secretos narrativos o
+                            explotación económica de los contenidos.
                         </p>
                         <p>
                             La Empresa podrá solicitar en cualquier momento la
                             remoción de publicaciones o contenidos generados por
-                            el Usuario que afecten sus derechos, revelen elementos
-                            clave de la experiencia narrativa o perjudiquen sus
-                            intereses comerciales.
+                            el Usuario que afecten sus derechos, revelen
+                            elementos clave de la experiencia narrativa o
+                            perjudiquen sus intereses comerciales.
                         </p>
                     </Section>
 
                     <Section title="XII. Contenidos generados por el usuario y testimoniales">
                         <p>
                             Si el Usuario publica reseñas, testimonios,
-                            comentarios, fotografías, videos, mensajes, etiquetas
-                            o cualquier otro contenido relativo a HISTORIAS POR
-                            CORREO en el Sitio Web o en redes sociales, garantiza
-                            que cuenta con los derechos y autorizaciones
-                            necesarios para hacerlo y que dicho contenido no
-                            infringe derechos de terceros ni normas aplicables.
+                            comentarios, fotografías, videos, mensajes,
+                            etiquetas o cualquier otro contenido relativo a
+                            HISTORIAS POR CORREO en el Sitio Web o en redes
+                            sociales, garantiza que cuenta con los derechos y
+                            autorizaciones necesarios para hacerlo y que dicho
+                            contenido no infringe derechos de terceros ni normas
+                            aplicables.
                         </p>
                         <p>
-                            El Usuario otorga a HISTORIAS POR CORREO una licencia
-                            no exclusiva, gratuita, revocable, mundial y por el
-                            plazo máximo permitido por la ley para reproducir,
-                            comunicar, publicar, adaptar y utilizar dicho
-                            contenido con fines promocionales, publicitarios,
-                            editoriales o comerciales, salvo que el Usuario
-                            solicite expresamente su retiro cuando ello sea
-                            procedente.
+                            El Usuario otorga a HISTORIAS POR CORREO una
+                            licencia no exclusiva, gratuita, revocable, mundial
+                            y por el plazo máximo permitido por la ley para
+                            reproducir, comunicar, publicar, adaptar y utilizar
+                            dicho contenido con fines promocionales,
+                            publicitarios, editoriales o comerciales, salvo que
+                            el Usuario solicite expresamente su retiro cuando
+                            ello sea procedente.
                         </p>
                     </Section>
 
                     <Section title="XIII. Usos prohibidos del sitio web">
-                        <p>El Usuario se obliga a no realizar, entre otras, las siguientes conductas:</p>
+                        <p>
+                            El Usuario se obliga a no realizar, entre otras, las
+                            siguientes conductas:
+                        </p>
                         <BulletList
                             items={[
                                 'Utilizar el Sitio Web para fines ilícitos, fraudulentos, engañosos o contrarios a la moral, el orden público o las buenas costumbres.',
@@ -417,32 +423,33 @@ export default function TerminosYCondiciones() {
 
                     <Section title="XIV. Disponibilidad del sitio web y exclusión de garantías">
                         <p>
-                            HISTORIAS POR CORREO procurará mantener disponible el
-                            Sitio Web de manera continua; no obstante, no garantiza
-                            que el acceso sea ininterrumpido, oportuno, seguro o
-                            libre de errores. El Sitio Web y los servicios se
-                            ofrecen en el estado en que se encuentran y según
-                            disponibilidad.
+                            HISTORIAS POR CORREO procurará mantener disponible
+                            el Sitio Web de manera continua; no obstante, no
+                            garantiza que el acceso sea ininterrumpido,
+                            oportuno, seguro o libre de errores. El Sitio Web y
+                            los servicios se ofrecen en el estado en que se
+                            encuentran y según disponibilidad.
                         </p>
                         <p>
-                            En la máxima medida permitida por la ley, la Empresa no
-                            garantiza que el Sitio Web esté libre de virus,
-                            vulnerabilidades o fallas técnicas, aunque implementa
-                            medidas razonables de seguridad. El Usuario reconoce
-                            que el uso del Sitio Web implica riesgos inherentes
-                            propios del entorno digital.
+                            En la máxima medida permitida por la ley, la Empresa
+                            no garantiza que el Sitio Web esté libre de virus,
+                            vulnerabilidades o fallas técnicas, aunque
+                            implementa medidas razonables de seguridad. El
+                            Usuario reconoce que el uso del Sitio Web implica
+                            riesgos inherentes propios del entorno digital.
                         </p>
                     </Section>
 
                     <Section title="XV. Limitación de responsabilidad">
                         <p>
                             En la máxima medida permitida por la legislación
-                            aplicable, HISTORIAS POR CORREO no será responsable por
-                            daños indirectos, incidentales, especiales, punitivos o
-                            consecuenciales, incluyendo pérdida de ingresos,
-                            pérdida de datos, lucro cesante, pérdida de oportunidad
-                            o afectaciones reputacionales derivadas del uso o
-                            imposibilidad de uso del Sitio Web o del servicio.
+                            aplicable, HISTORIAS POR CORREO no será responsable
+                            por daños indirectos, incidentales, especiales,
+                            punitivos o consecuenciales, incluyendo pérdida de
+                            ingresos, pérdida de datos, lucro cesante, pérdida
+                            de oportunidad o afectaciones reputacionales
+                            derivadas del uso o imposibilidad de uso del Sitio
+                            Web o del servicio.
                         </p>
                         <p>
                             La responsabilidad total acumulada de HISTORIAS POR
@@ -462,35 +469,38 @@ export default function TerminosYCondiciones() {
                             ejecución derivados de caso fortuito, fuerza mayor o
                             eventos fuera de su control razonable, incluyendo
                             fallas de proveedores, interrupciones logísticas,
-                            conflictos laborales, desastres naturales, pandemias,
-                            actos de autoridad, disturbios civiles, incendios,
-                            inundaciones, ataques cibernéticos generalizados o
-                            fallas en servicios de telecomunicaciones.
+                            conflictos laborales, desastres naturales,
+                            pandemias, actos de autoridad, disturbios civiles,
+                            incendios, inundaciones, ataques cibernéticos
+                            generalizados o fallas en servicios de
+                            telecomunicaciones.
                         </p>
                     </Section>
 
                     <Section title="XVII. Protección de datos personales">
                         <p>
-                            El tratamiento de los datos personales del Usuario se
-                            regirá por el Aviso de Privacidad Integral de HISTORIAS
-                            POR CORREO, disponible en el Sitio Web, el cual forma
-                            parte integrante de los presentes Términos y
-                            Condiciones para todos los efectos legales conducentes.
+                            El tratamiento de los datos personales del Usuario
+                            se regirá por el Aviso de Privacidad Integral de
+                            HISTORIAS POR CORREO, disponible en el Sitio Web, el
+                            cual forma parte integrante de los presentes
+                            Términos y Condiciones para todos los efectos
+                            legales conducentes.
                         </p>
                     </Section>
 
                     <Section title="XVIII. Modificaciones a los términos y condiciones">
                         <p>
                             HISTORIAS POR CORREO podrá modificar o actualizar en
-                            cualquier momento los presentes Términos y Condiciones
-                            para adaptarlos a cambios legislativos, operativos,
-                            tecnológicos o comerciales. Las modificaciones surtirán
-                            efectos a partir de su publicación en el Sitio Web,
-                            salvo que se indique expresamente una fecha distinta.
+                            cualquier momento los presentes Términos y
+                            Condiciones para adaptarlos a cambios legislativos,
+                            operativos, tecnológicos o comerciales. Las
+                            modificaciones surtirán efectos a partir de su
+                            publicación en el Sitio Web, salvo que se indique
+                            expresamente una fecha distinta.
                         </p>
                         <p>
-                            Cuando las modificaciones afecten sustancialmente los
-                            derechos u obligaciones del Usuario, la Empresa
+                            Cuando las modificaciones afecten sustancialmente
+                            los derechos u obligaciones del Usuario, la Empresa
                             procurará notificarlo por medios razonables, como
                             correo electrónico o avisos dentro de la cuenta.
                         </p>
@@ -499,12 +509,12 @@ export default function TerminosYCondiciones() {
                     <Section title="XIX. Legislación aplicable y jurisdicción">
                         <p>
                             Los presentes Términos y Condiciones se regirán e
-                            interpretarán de conformidad con las leyes federales y
-                            locales aplicables en los Estados Unidos Mexicanos,
-                            particularmente en materia civil, mercantil, de
-                            protección al consumidor, comercio electrónico,
-                            propiedad intelectual y protección de datos
-                            personales.
+                            interpretarán de conformidad con las leyes federales
+                            y locales aplicables en los Estados Unidos
+                            Mexicanos, particularmente en materia civil,
+                            mercantil, de protección al consumidor, comercio
+                            electrónico, propiedad intelectual y protección de
+                            datos personales.
                         </p>
                         <p>
                             Para la interpretación, cumplimiento y ejecución de
@@ -541,10 +551,10 @@ export default function TerminosYCondiciones() {
                     <p className={`${prose} mx-auto max-w-2xl`}>
                         Al utilizar el Sitio Web y/o contratar cualquiera de los
                         servicios de HISTORIAS POR CORREO, el Usuario reconoce
-                        expresamente que ha leído, entendido y aceptado íntegramente
-                        estos Términos y Condiciones.
+                        expresamente que ha leído, entendido y aceptado
+                        íntegramente estos Términos y Condiciones.
                     </p>
-                    <p className="mt-6 text-[14px] font-semibold leading-relaxed text-[#1B3D6D] md:text-[15px]">
+                    <p className="mt-6 text-[14px] leading-relaxed font-semibold text-[#1B3D6D] md:text-[15px]">
                         HISTORIAS POR CORREO, S.A.P.I. DE C.V.
                         <br />
                         Calle Manuel M. Ponce #69, Int. 101, Col. Guadalupe Inn,

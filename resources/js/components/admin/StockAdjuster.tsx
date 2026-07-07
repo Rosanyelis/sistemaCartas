@@ -36,23 +36,27 @@ export function StockAdjuster({
         }
     }, [isOpen, currentStock]);
 
-    const handleIncrement = () => setStock(s => s + 1);
-    const handleDecrement = () => setStock(s => Math.max(0, s - 1));
+    const handleIncrement = () => setStock((s) => s + 1);
+    const handleDecrement = () => setStock((s) => Math.max(0, s - 1));
 
     const handleSave = () => {
         setIsProcessing(true);
-        router.patch(productoStock.url(productoId), {
-            stock: stock,
-        }, {
-            preserveState: false,
-            preserveScroll: true,
-            onSuccess: () => {
-                onOpenChange(false);
+        router.patch(
+            productoStock.url(productoId),
+            {
+                stock: stock,
             },
-            onFinish: () => {
-                setIsProcessing(false);
-            }
-        });
+            {
+                preserveState: false,
+                preserveScroll: true,
+                onSuccess: () => {
+                    onOpenChange(false);
+                },
+                onFinish: () => {
+                    setIsProcessing(false);
+                },
+            },
+        );
     };
 
     return (
@@ -63,7 +67,10 @@ export function StockAdjuster({
                         Ajustar Stock
                     </DialogTitle>
                     <DialogDescription className="text-sm text-gray-500">
-                        Ajusta el stock actual para: <span className="font-semibold text-gray-800">{productoNombre}</span>
+                        Ajusta el stock actual para:{' '}
+                        <span className="font-semibold text-gray-800">
+                            {productoNombre}
+                        </span>
                     </DialogDescription>
                 </DialogHeader>
 
@@ -81,9 +88,13 @@ export function StockAdjuster({
                         </Button>
                         <input
                             type="number"
-                            className="w-24 text-center text-3xl font-bold border-none focus:ring-0"
+                            className="w-24 border-none text-center text-3xl font-bold focus:ring-0"
                             value={stock}
-                            onChange={(e) => setStock(Math.max(0, parseInt(e.target.value) || 0))}
+                            onChange={(e) =>
+                                setStock(
+                                    Math.max(0, parseInt(e.target.value) || 0),
+                                )
+                            }
                             min="0"
                             disabled={isProcessing}
                         />
@@ -106,13 +117,13 @@ export function StockAdjuster({
                         variant="ghost"
                         onClick={() => onOpenChange(false)}
                         disabled={isProcessing}
-                        className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                        className="text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                     >
                         Cancelar
                     </Button>
                     <Button
                         type="button"
-                        className="bg-[#1B3D6D] hover:bg-[#1B3D6D]/90 text-white"
+                        className="bg-[#1B3D6D] text-white hover:bg-[#1B3D6D]/90"
                         onClick={handleSave}
                         disabled={isProcessing || stock === currentStock}
                     >

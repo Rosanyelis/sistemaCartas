@@ -57,7 +57,9 @@ function ProductHighlightCard({ product, variant }: ProductHighlightCardProps) {
         <div
             className={cn(
                 'group relative flex shrink-0 flex-col overflow-hidden border border-[#F2F2F2] bg-white shadow-sm transition-shadow duration-300 hover:shadow-md',
-                isMobile ? 'w-full' : 'w-[calc(100vw-48px)] max-w-[416px] lg:w-[416px]',
+                isMobile
+                    ? 'w-full'
+                    : 'w-[calc(100vw-48px)] max-w-[416px] lg:w-[416px]',
             )}
         >
             <div className="h-[260px] w-full overflow-hidden">
@@ -255,8 +257,8 @@ function ProductsEmpty({ title }: { title: string }) {
                 </h2>
                 <div className="h-[4px] w-[200px] rounded-[4px] bg-[#1B3D6D] lg:w-[250px]" />
                 <p className="max-w-xl font-['Inter',sans-serif] text-[16px] leading-relaxed text-[#7B7B7B]">
-                    Pronto publicaremos objetos que acompañen tus historias. Mientras tanto, explorá el
-                    catálogo completo.
+                    Pronto publicaremos objetos que acompañen tus historias.
+                    Mientras tanto, explorá el catálogo completo.
                 </p>
                 <Link
                     href="/productos"

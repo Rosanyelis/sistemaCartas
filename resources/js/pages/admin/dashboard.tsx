@@ -1,6 +1,6 @@
-import DashboardMetricCards from '@/components/admin/dashboard/DashboardMetricCards';
-import DashboardSalesChart from '@/components/admin/dashboard/DashboardSalesChart';
-import DashboardSalesSidebar from '@/components/admin/dashboard/DashboardSalesSidebar';
+import type { PageProps as BasePageProps } from '@inertiajs/core';
+import { Deferred, Head, router, usePage } from '@inertiajs/react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     dashboardPageBg,
     formatIsoDate,
@@ -11,11 +11,11 @@ import type {
     DashboardMetricas,
     VentasChartPoint,
 } from '@/components/admin/dashboard/dashboard-types';
+import DashboardMetricCards from '@/components/admin/dashboard/DashboardMetricCards';
+import DashboardSalesChart from '@/components/admin/dashboard/DashboardSalesChart';
+import DashboardSalesSidebar from '@/components/admin/dashboard/DashboardSalesSidebar';
 import UserLayout from '@/layouts/user-layout';
 import { dashboard as adminDashboard } from '@/routes/admin';
-import { Deferred, Head, router, usePage } from '@inertiajs/react';
-import { PageProps as BasePageProps } from '@inertiajs/core';
-import { useEffect, useMemo, useRef, useState } from 'react';
 
 interface PageProps extends BasePageProps {
     metricas?: DashboardMetricas;
@@ -49,7 +49,7 @@ function formatChartRangeLabel(filters: DashboardFilters): string {
     }
 
     if (filters.periodo === 'mes') {
-        const year = new Date().getFullYear();
+        const year = filters.anio ?? new Date().getFullYear();
 
         return `01/01/${year} - 31/12/${year}`;
     }
@@ -69,11 +69,13 @@ export default function Dashboard() {
 
     const [fechaDesde, setFechaDesde] = useState(filters.fecha_desde ?? '');
     const [fechaHasta, setFechaHasta] = useState(filters.fecha_hasta ?? '');
+    const [anio, setAnio] = useState<number | null>(filters.anio ?? null);
 
     useEffect(() => {
         setFechaDesde(filters.fecha_desde ?? '');
         setFechaHasta(filters.fecha_hasta ?? '');
-    }, [filters.fecha_desde, filters.fecha_hasta]);
+        setAnio(filters.anio ?? null);
+    }, [filters.fecha_desde, filters.fecha_hasta, filters.anio]);
 
     const periodRangeLabel = useMemo(
         () => formatChartRangeLabel(filters),
@@ -117,8 +119,7 @@ export default function Dashboard() {
 
         const total = ventasChart.reduce(
             (acc, point) =>
-                acc +
-                chartSeriesKeys.reduce((sum, key) => sum + point[key], 0),
+                acc + chartSeriesKeys.reduce((sum, key) => sum + point[key], 0),
             0,
         );
 
@@ -136,6 +137,7 @@ export default function Dashboard() {
         if (!scrollContainerRef.current) {
             return;
         }
+
         setIsDragging(true);
         setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
         setScrollLeft(scrollContainerRef.current.scrollLeft);
@@ -153,6 +155,7 @@ export default function Dashboard() {
         if (!isDragging || !scrollContainerRef.current) {
             return;
         }
+
         e.preventDefault();
         const x = e.pageX - scrollContainerRef.current.offsetLeft;
         const walk = (x - startX) * 2;
@@ -161,7 +164,23 @@ export default function Dashboard() {
 
     const handlePeriodChange = (period: string) => {
         router.get(
-            adminDashboard.url({ query: { periodo: period } }),
+            adminDashboard.url({
+                query: { periodo: period, ...(anio !== null ? { anio } : {}) },
+            }),
+            {},
+            { preserveState: true, preserveScroll: true },
+        );
+    };
+
+    const handleAnioChange = (year: number | null) => {
+        setAnio(year);
+        router.get(
+            adminDashboard.url({
+                query: {
+                    periodo: filters.periodo,
+                    ...(year !== null ? { anio: year } : {}),
+                },
+            }),
             {},
             { preserveState: true, preserveScroll: true },
         );
@@ -189,7 +208,12 @@ export default function Dashboard() {
         setFechaDesde('');
         setFechaHasta('');
         router.get(
-            adminDashboard.url({ query: { periodo: filters.periodo } }),
+            adminDashboard.url({
+                query: {
+                    periodo: filters.periodo,
+                    ...(anio !== null ? { anio } : {}),
+                },
+            }),
             {},
             { preserveState: true, preserveScroll: true },
         );
@@ -200,14 +224,14 @@ export default function Dashboard() {
             <Head title="Admin Dashboard" />
 
             <div
-                className={`flex min-w-0 flex-col gap-6 px-3 pb-10 pt-3 font-['Inter',sans-serif] md:px-6 md:pt-4 lg:gap-6 lg:px-8 ${dashboardPageBg}`}
+                className={`flex min-w-0 flex-col gap-6 px-3 pt-3 pb-10 font-['Inter',sans-serif] md:px-6 md:pt-4 lg:gap-6 lg:px-8 ${dashboardPageBg}`}
             >
                 <div className="flex w-full flex-col gap-1 lg:flex-row lg:items-center lg:gap-5">
-                    <h1 className="text-[25px] font-semibold leading-normal text-[#1B3D6D]">
+                    <h1 className="text-[25px] leading-normal font-semibold text-[#1B3D6D]">
                         ¡Hola, Admin bienvenido!{' '}
                         <span className="text-[24px]">👋</span>
                     </h1>
-                    <p className="text-lg font-normal leading-7 text-[#7B7B7B] lg:text-[16px] lg:leading-[22px]">
+                    <p className="text-lg leading-7 font-normal text-[#7B7B7B] lg:text-[16px] lg:leading-[22px]">
                         Dale un vistazo a tu resumen
                     </p>
                 </div>
@@ -239,6 +263,8 @@ export default function Dashboard() {
                             periodRangeLabel={periodRangeLabel}
                             fechaDesde={fechaDesde}
                             fechaHasta={fechaHasta}
+                            anio={anio}
+                            onAnioChange={handleAnioChange}
                             onFechaDesdeChange={setFechaDesde}
                             onFechaHastaChange={setFechaHasta}
                             onPeriodChange={handlePeriodChange}

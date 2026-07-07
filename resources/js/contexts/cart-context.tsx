@@ -102,8 +102,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
      */
     useLayoutEffect(() => {
         const loaded = loadCartFromStorage();
-        const next =
-            loaded !== null && loaded.length > 0 ? loaded : [];
+        const next = loaded !== null && loaded.length > 0 ? loaded : [];
         setItems(next);
         itemsRef.current = next;
         setRestored(true);
@@ -298,7 +297,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setDrawerOpen(false);
     }, []);
 
-    const consumePendingDrawerView = useCallback((): 'cart' | 'checkout' | null => {
+    const consumePendingDrawerView = useCallback(():
+        | 'cart'
+        | 'checkout'
+        | null => {
         const v = pendingDrawerView;
 
         if (v !== null) {
@@ -312,10 +314,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setPendingDrawerView(null);
     }, []);
 
-    const derivedCartMode = useMemo(
-        () => getDerivedCartMode(items),
-        [items],
-    );
+    const derivedCartMode = useMemo(() => getDerivedCartMode(items), [items]);
 
     const itemCount = useMemo(
         () => items.reduce((n, l) => n + l.quantity, 0),

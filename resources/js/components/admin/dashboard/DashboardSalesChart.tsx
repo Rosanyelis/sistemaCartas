@@ -1,23 +1,3 @@
-import {
-    cardShadow,
-    CHART_COLORS,
-    chartFilterShadow,
-    formatMxn,
-    iconBoxClass,
-    iconStroke,
-} from '@/components/admin/dashboard/dashboard-tokens';
-import {
-    CHART_FILTER_OPTIONS,
-    type ChartSerieFilter,
-    type DashboardFilters,
-    type VentasChartPoint,
-} from '@/components/admin/dashboard/dashboard-types';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Deferred } from '@inertiajs/react';
 import { AlignJustify, CalendarDays, ChevronDown } from 'lucide-react';
 import {
@@ -29,6 +9,26 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
+import {
+    cardShadow,
+    CHART_COLORS,
+    chartFilterShadow,
+    formatMxn,
+    iconBoxClass,
+    iconStroke,
+} from '@/components/admin/dashboard/dashboard-tokens';
+import { CHART_FILTER_OPTIONS } from '@/components/admin/dashboard/dashboard-types';
+import type {
+    ChartSerieFilter,
+    DashboardFilters,
+    VentasChartPoint,
+} from '@/components/admin/dashboard/dashboard-types';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type DashboardSalesChartProps = {
     ventasChart?: VentasChartPoint[];
@@ -38,6 +38,8 @@ type DashboardSalesChartProps = {
     periodRangeLabel: string;
     fechaDesde: string;
     fechaHasta: string;
+    anio: number | null;
+    onAnioChange: (year: number | null) => void;
     onFechaDesdeChange: (value: string) => void;
     onFechaHastaChange: (value: string) => void;
     onPeriodChange: (period: string) => void;
@@ -49,6 +51,24 @@ type DashboardSalesChartProps = {
     showCanceladosLine: boolean;
 };
 
+function buildYearOptions(
+    referenceYear: number,
+    currentAnio: number | null,
+): number[] {
+    const candidates = [
+        referenceYear - 2,
+        referenceYear - 1,
+        referenceYear,
+        referenceYear + 1,
+    ];
+
+    if (currentAnio !== null && !candidates.includes(currentAnio)) {
+        candidates.push(currentAnio);
+    }
+
+    return Array.from(new Set(candidates)).sort((a, b) => a - b);
+}
+
 export default function DashboardSalesChart({
     ventasChart,
     filters,
@@ -57,6 +77,8 @@ export default function DashboardSalesChart({
     periodRangeLabel,
     fechaDesde,
     fechaHasta,
+    anio,
+    onAnioChange,
     onFechaDesdeChange,
     onFechaHastaChange,
     onPeriodChange,
@@ -70,8 +92,14 @@ export default function DashboardSalesChart({
     const hasCustomRange =
         Boolean(filters.fecha_desde) || Boolean(filters.fecha_hasta);
 
+    const showYearSelector = filters.periodo === 'mes';
+    const referenceYear = new Date().getFullYear();
+    const yearOptions = buildYearOptions(referenceYear, anio);
+
     return (
-        <div className={`min-w-0 rounded-[4px] bg-white p-4 ${cardShadow} lg:gap-4 lg:p-4`}>
+        <div
+            className={`min-w-0 rounded-[4px] bg-white p-4 ${cardShadow} lg:gap-4 lg:p-4`}
+        >
             <div className="mb-4 flex flex-col gap-4 max-lg:gap-4 lg:mb-4 lg:gap-4">
                 <div className="flex flex-col gap-3 max-lg:gap-3 lg:h-10 lg:flex-row lg:items-center lg:justify-between lg:gap-4">
                     <div className="flex min-w-0 items-center gap-3">
@@ -116,7 +144,7 @@ export default function DashboardSalesChart({
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         </div>
-                        <h2 className="shrink-0 text-[20px] font-semibold leading-none text-[#7B7B7B]">
+                        <h2 className="shrink-0 text-[20px] leading-none font-semibold text-[#7B7B7B]">
                             Rendimientos de ventas
                         </h2>
                     </div>
@@ -129,9 +157,7 @@ export default function DashboardSalesChart({
                             />
                             <select
                                 value={filters.periodo}
-                                onChange={(e) =>
-                                    onPeriodChange(e.target.value)
-                                }
+                                onChange={(e) => onPeriodChange(e.target.value)}
                                 className="cursor-pointer appearance-none bg-transparent pr-5 outline-none"
                             >
                                 <option value="semana">Semana</option>
@@ -142,6 +168,38 @@ export default function DashboardSalesChart({
                                 strokeWidth={iconStroke}
                             />
                         </label>
+
+                        {showYearSelector ? (
+                            <label className="flex h-10 shrink-0 items-center gap-2.5 rounded-[6px] border border-[#DFE4EA] bg-white px-5 py-3 text-[13px] leading-none text-[#1B3D6D]">
+                                <CalendarDays
+                                    className="size-4 shrink-0"
+                                    strokeWidth={iconStroke}
+                                />
+                                <select
+                                    value={anio === null ? '' : String(anio)}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+
+                                        onAnioChange(
+                                            raw === '' ? null : Number(raw),
+                                        );
+                                    }}
+                                    aria-label="Año"
+                                    className="cursor-pointer appearance-none bg-transparent pr-5 outline-none"
+                                >
+                                    <option value="">Todos los años</option>
+                                    {yearOptions.map((year) => (
+                                        <option key={year} value={year}>
+                                            {year}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown
+                                    className="pointer-events-none -ml-4 size-4 shrink-0 text-[#1B3D6D]"
+                                    strokeWidth={iconStroke}
+                                />
+                            </label>
+                        ) : null}
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -434,7 +492,7 @@ export default function DashboardSalesChart({
                         </div>
                     </Deferred>
 
-                    <p className="mt-4 text-center text-[13px] font-semibold leading-none text-[#7B7B7B] lg:text-left">
+                    <p className="mt-4 text-center text-[13px] leading-none font-semibold text-[#7B7B7B] lg:text-left">
                         Promedio de los últimos 30 Días:{' '}
                         {formatMxn(chartPromedio)}
                     </p>

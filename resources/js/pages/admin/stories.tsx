@@ -5,7 +5,7 @@ import {
     faFilter,
     faPlus,
     faEllipsisV,
-    faTimes
+    faTimes,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Head, router } from '@inertiajs/react';
@@ -78,7 +78,9 @@ interface Props {
 
 export default function Stories({ historias, categorias, filters }: Props) {
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
-    const [selectedCategory, setSelectedCategory] = useState(filters.categoria_id || '');
+    const [selectedCategory, setSelectedCategory] = useState(
+        filters.categoria_id || '',
+    );
     const [isCategoriaManageOpen, setIsCategoriaManageOpen] = useState(false);
     const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
     const categoryMenuRef = useRef<HTMLDivElement>(null);
@@ -91,24 +93,29 @@ export default function Stories({ historias, categorias, filters }: Props) {
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
-            if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target as Node)) {
+            if (
+                categoryMenuRef.current &&
+                !categoryMenuRef.current.contains(event.target as Node)
+            ) {
                 setIsCategoryMenuOpen(false);
             }
         }
-        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener('mousedown', handleClickOutside);
         const closeActionMenu = () => setOpenMenuId(null);
-        document.addEventListener("click", closeActionMenu);
+        document.addEventListener('click', closeActionMenu);
 
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("click", closeActionMenu);
-        }
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('click', closeActionMenu);
+        };
     }, []);
 
     const applyFilters = useCallback(
         (params: Record<string, string>) => {
             router.get(
-                adminHistoriasList.url({ query: { ...filters, ...params, page: '1' } }),
+                adminHistoriasList.url({
+                    query: { ...filters, ...params, page: '1' },
+                }),
                 {},
                 { preserveState: true, preserveScroll: true },
             );
@@ -137,7 +144,9 @@ export default function Stories({ historias, categorias, filters }: Props) {
 
     const goToPage = (page: number) => {
         router.get(
-            adminHistoriasList.url({ query: { ...filters, page: String(page) } }),
+            adminHistoriasList.url({
+                query: { ...filters, page: String(page) },
+            }),
             {},
             { preserveState: true, preserveScroll: true },
         );
@@ -148,7 +157,11 @@ export default function Stories({ historias, categorias, filters }: Props) {
     };
 
     const handleToggleStatus = (id: number) => {
-        router.patch(historiasToggleStatus.url(id), {}, { preserveScroll: true });
+        router.patch(
+            historiasToggleStatus.url(id),
+            {},
+            { preserveScroll: true },
+        );
     };
 
     const handleDeleteClick = (id: number) => {
@@ -165,28 +178,57 @@ export default function Stories({ historias, categorias, filters }: Props) {
         setIsPreviewModalOpen(true);
     };
 
-
     const handleDeleteConfirm = () => {
         if (deleteStoryId !== null) {
             router.delete(historiasDestroy.url(deleteStoryId), {
                 preserveScroll: true,
-                onSuccess: () => setDeleteStoryId(null)
+                onSuccess: () => setDeleteStoryId(null),
             });
         }
     };
 
-    const { data: storyList, current_page, last_page, from, to, total } = historias;
+    const {
+        data: storyList,
+        current_page,
+        last_page,
+        from,
+        to,
+        total,
+    } = historias;
 
     const renderActionMenu = (story: Story) => (
-        <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-[#E5E7EB] rounded-md shadow-lg z-20 py-1 text-left">
-            <button onClick={() => handlePreview(story)} className="w-full text-left px-4 py-2 text-[13px] text-[#4B5563] hover:bg-gray-50 transition-colors">Vista Previa</button>
-            <button onClick={() => handleEdit(story)} className="w-full text-left px-4 py-2 text-[13px] text-[#4B5563] hover:bg-gray-50 transition-colors">Editar</button>
-            <div className="h-[1px] bg-[#F3F4F6] mx-2 my-1"></div>
-            <button onClick={() => handleDuplicate(story.id)} className="w-full text-left px-4 py-2 text-[13px] text-[#4B5563] hover:bg-gray-50 transition-colors">Duplicar</button>
-            <button onClick={() => handleToggleStatus(story.id)} className="w-full text-left px-4 py-2 text-[13px] text-[#4B5563] hover:bg-gray-50 transition-colors">
+        <div className="absolute top-full right-0 z-20 mt-1 w-40 rounded-md border border-[#E5E7EB] bg-white py-1 text-left shadow-lg">
+            <button
+                onClick={() => handlePreview(story)}
+                className="w-full px-4 py-2 text-left text-[13px] text-[#4B5563] transition-colors hover:bg-gray-50"
+            >
+                Vista Previa
+            </button>
+            <button
+                onClick={() => handleEdit(story)}
+                className="w-full px-4 py-2 text-left text-[13px] text-[#4B5563] transition-colors hover:bg-gray-50"
+            >
+                Editar
+            </button>
+            <div className="mx-2 my-1 h-[1px] bg-[#F3F4F6]"></div>
+            <button
+                onClick={() => handleDuplicate(story.id)}
+                className="w-full px-4 py-2 text-left text-[13px] text-[#4B5563] transition-colors hover:bg-gray-50"
+            >
+                Duplicar
+            </button>
+            <button
+                onClick={() => handleToggleStatus(story.id)}
+                className="w-full px-4 py-2 text-left text-[13px] text-[#4B5563] transition-colors hover:bg-gray-50"
+            >
                 {story.estado === 'activo' ? 'Pausar' : 'Activar'}
             </button>
-            <button onClick={() => handleDeleteClick(story.id)} className="w-full text-left px-4 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors">Eliminar</button>
+            <button
+                onClick={() => handleDeleteClick(story.id)}
+                className="w-full px-4 py-2 text-left text-[13px] text-red-500 transition-colors hover:bg-red-50"
+            >
+                Eliminar
+            </button>
         </div>
     );
 
@@ -194,48 +236,68 @@ export default function Stories({ historias, categorias, filters }: Props) {
         <UserLayout title="Historias">
             <Head title="Gestión de Historias publicadas" />
 
-            <div className="flex flex-col gap-6 px-4 md:px-8 py-6 font-['Inter']">
+            <div className="flex flex-col gap-6 px-4 py-6 font-['Inter'] md:px-8">
                 {/* Header Section */}
-                <div className="flex flex-col gap-1 items-center text-center md:items-start md:text-left mb-2 md:mb-0">
-                    <h1 className="text-[25px] md:text-2xl font-bold text-[#1B3D6D]">
+                <div className="mb-2 flex flex-col items-center gap-1 text-center md:mb-0 md:items-start md:text-left">
+                    <h1 className="text-[25px] font-bold text-[#1B3D6D] md:text-2xl">
                         Historias publicadas
                     </h1>
-                    <p className="text-[13.5px] md:text-sm text-[#1B3D6D] md:text-[#7B7B7B]">
+                    <p className="text-[13.5px] text-[#1B3D6D] md:text-sm md:text-[#7B7B7B]">
                         Crea y gestiona las historias de la página
                     </p>
                 </div>
 
                 {/* Filters/Actions Bar */}
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between w-full">
-                    <div className="flex gap-2 w-full lg:max-w-xl lg:flex-1">
+                <div className="flex w-full flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex w-full gap-2 lg:max-w-xl lg:flex-1">
                         <div className="relative flex-1">
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none">
-                                <FontAwesomeIcon icon={faSearch} className="text-[#1B3D6D] md:text-[#A0A0A0] opacity-60 md:opacity-100 text-[13px] md:text-sm" />
+                            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                                <FontAwesomeIcon
+                                    icon={faSearch}
+                                    className="text-[13px] text-[#1B3D6D] opacity-60 md:text-sm md:text-[#A0A0A0] md:opacity-100"
+                                />
                             </div>
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={handleSearch}
                                 placeholder="Filtrar por nombre de la historia..."
-                                className="block w-full rounded-[4px] md:rounded-md border border-[#DFE4EA] md:border-[#E5E7EB] bg-white py-[10px] md:py-2.5 pl-[34px] md:pl-10 pr-3 text-[13px] md:text-sm text-[#1B3D6D] md:text-gray-900 placeholder:text-[#1B3D6D]/60 md:placeholder:text-[#A0A0A0] focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/15 outline-none transition-all shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-none"
+                                className="block w-full rounded-[4px] border border-[#DFE4EA] bg-white py-[10px] pr-3 pl-[34px] text-[13px] text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-all outline-none placeholder:text-[#1B3D6D]/60 focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D]/15 md:rounded-md md:border-[#E5E7EB] md:py-2.5 md:pl-10 md:text-sm md:text-gray-900 md:shadow-none md:placeholder:text-[#A0A0A0]"
                             />
                         </div>
                         {/* Mobile category button */}
-                        <div className="md:hidden relative" ref={categoryMenuRef}>
-                            <button 
-                                onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                                className="flex justify-center items-center rounded-[4px] border border-[#DFE4EA] bg-white w-10 h-full text-[#A0A0A0] shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
+                        <div
+                            className="relative md:hidden"
+                            ref={categoryMenuRef}
+                        >
+                            <button
+                                onClick={() =>
+                                    setIsCategoryMenuOpen(!isCategoryMenuOpen)
+                                }
+                                className="flex h-full w-10 items-center justify-center rounded-[4px] border border-[#DFE4EA] bg-white text-[#A0A0A0] shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
                             >
-                                <FontAwesomeIcon icon={faFilter} className="text-[14px]" />
+                                <FontAwesomeIcon
+                                    icon={faFilter}
+                                    className="text-[14px]"
+                                />
                             </button>
                             {isCategoryMenuOpen && (
-                                <div className="absolute top-full right-0 mt-2 z-10 w-48 rounded-md border border-[#E5E7EB] bg-white py-1 shadow-lg">
-                                    <button onClick={() => handleCategorySelect('')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Todas</button>
+                                <div className="absolute top-full right-0 z-10 mt-2 w-48 rounded-md border border-[#E5E7EB] bg-white py-1 shadow-lg">
+                                    <button
+                                        onClick={() => handleCategorySelect('')}
+                                        className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                        Todas
+                                    </button>
                                     {categorias.map((cat) => (
                                         <button
                                             key={cat.id}
-                                            onClick={() => handleCategorySelect(String(cat.id))}
-                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            onClick={() =>
+                                                handleCategorySelect(
+                                                    String(cat.id),
+                                                )
+                                            }
+                                            className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                                         >
                                             {cat.nombre}
                                         </button>
@@ -244,27 +306,51 @@ export default function Stories({ historias, categorias, filters }: Props) {
                             )}
                         </div>
                         {/* Categoría Filter Desktop */}
-                        <div className="hidden md:block relative shrink-0" ref={categoryMenuRef}>
-                            <button 
-                                onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                                className="flex w-full md:w-auto justify-center md:justify-start items-center gap-2 rounded-[4px] md:rounded-md border border-[#DFE4EA] md:border-[#E5E7EB] bg-white px-4 py-[10px] md:py-2.5 text-[13px] md:text-sm text-[#4B5563] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] cursor-pointer hover:bg-gray-50 transition-colors"
+                        <div
+                            className="relative hidden shrink-0 md:block"
+                            ref={categoryMenuRef}
+                        >
+                            <button
+                                onClick={() =>
+                                    setIsCategoryMenuOpen(!isCategoryMenuOpen)
+                                }
+                                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-[4px] border border-[#DFE4EA] bg-white px-4 py-[10px] text-[13px] text-[#4B5563] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-gray-50 md:w-auto md:justify-start md:rounded-md md:border-[#E5E7EB] md:py-2.5 md:text-sm"
                             >
-                                <FontAwesomeIcon icon={faFilter} className="text-[#A0A0A0]" />
+                                <FontAwesomeIcon
+                                    icon={faFilter}
+                                    className="text-[#A0A0A0]"
+                                />
                                 <span className="font-medium opacity-80 md:opacity-100">
                                     {selectedCategory
-                                        ? categorias.find((c) => String(c.id) === selectedCategory)?.nombre ?? 'Categoría'
+                                        ? (categorias.find(
+                                              (c) =>
+                                                  String(c.id) ===
+                                                  selectedCategory,
+                                          )?.nombre ?? 'Categoría')
                                         : 'Categoría'}
                                 </span>
-                                <FontAwesomeIcon icon={faChevronDown} className={`text-[#A0A0A0] ml-1 text-[10px] md:text-xs transition-transform ${isCategoryMenuOpen ? 'rotate-180' : ''}`} />
+                                <FontAwesomeIcon
+                                    icon={faChevronDown}
+                                    className={`ml-1 text-[10px] text-[#A0A0A0] transition-transform md:text-xs ${isCategoryMenuOpen ? 'rotate-180' : ''}`}
+                                />
                             </button>
                             {isCategoryMenuOpen && (
-                                <div className="absolute top-full left-0 mt-2 z-10 w-full md:w-48 rounded-md border border-[#E5E7EB] bg-white py-1 shadow-lg">
-                                    <button onClick={() => handleCategorySelect('')} className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Todas</button>
+                                <div className="absolute top-full left-0 z-10 mt-2 w-full rounded-md border border-[#E5E7EB] bg-white py-1 shadow-lg md:w-48">
+                                    <button
+                                        onClick={() => handleCategorySelect('')}
+                                        className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                        Todas
+                                    </button>
                                     {categorias.map((cat) => (
                                         <button
                                             key={cat.id}
-                                            onClick={() => handleCategorySelect(String(cat.id))}
-                                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                            onClick={() =>
+                                                handleCategorySelect(
+                                                    String(cat.id),
+                                                )
+                                            }
+                                            className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                                         >
                                             {cat.nombre}
                                         </button>
@@ -274,90 +360,151 @@ export default function Stories({ historias, categorias, filters }: Props) {
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row w-full lg:w-auto items-center gap-3">
-                            <button 
-                                onClick={() => {
-                                    window.location.href = historiasExport.url({
-                                        query: buildExportQuery(filters),
-                                    });
-                                }}
-                                className="flex w-full md:w-auto justify-center items-center gap-2 rounded-[4px] md:rounded-md border border-[#1B3D6D] bg-white px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#F8F9FA] transition-colors"
-                            >
-                                <span>Exportar a excel</span>
-                                <FontAwesomeIcon icon={faFileExcel} className="text-[12px] md:text-[14px]" />
-                            </button>
+                    <div className="flex w-full flex-col items-center gap-3 md:flex-row lg:w-auto">
+                        <button
+                            onClick={() => {
+                                window.location.href = historiasExport.url({
+                                    query: buildExportQuery(filters),
+                                });
+                            }}
+                            className="flex w-full items-center justify-center gap-2 rounded-[4px] border border-[#1B3D6D] bg-white px-4 py-[10px] text-[14px] font-bold text-[#1B3D6D] shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-[#F8F9FA] md:w-auto md:rounded-md md:py-2.5 md:text-sm md:font-semibold md:shadow-sm"
+                        >
+                            <span>Exportar a excel</span>
+                            <FontAwesomeIcon
+                                icon={faFileExcel}
+                                className="text-[12px] md:text-[14px]"
+                            />
+                        </button>
 
-                            <button onClick={() => setIsCreateModalOpen(true)} className="flex w-full md:w-auto justify-center items-center gap-2 rounded-[4px] md:rounded-md bg-[#1B3D6D] px-4 py-[10px] md:py-2.5 text-[14px] md:text-sm font-bold md:font-semibold text-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] md:shadow-sm hover:bg-[#1B3D6D]/90 transition-colors">
-                                <span>Crear historia</span>
-                                <FontAwesomeIcon icon={faPlus} className="text-[12px] md:text-[14px]" />
-                            </button>
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="flex w-full items-center justify-center gap-2 rounded-[4px] bg-[#1B3D6D] px-4 py-[10px] text-[14px] font-bold text-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)] transition-colors hover:bg-[#1B3D6D]/90 md:w-auto md:rounded-md md:py-2.5 md:text-sm md:font-semibold md:shadow-sm"
+                        >
+                            <span>Crear historia</span>
+                            <FontAwesomeIcon
+                                icon={faPlus}
+                                className="text-[12px] md:text-[14px]"
+                            />
+                        </button>
                     </div>
                 </div>
 
                 {/* Main Content Container */}
-                <div className="flex flex-col bg-transparent md:bg-white md:shadow-[0px_0px_15px_rgba(36,16,167,0.08)] md:rounded-lg w-full">
-                    
+                <div className="flex w-full flex-col bg-transparent md:rounded-lg md:bg-white md:shadow-[0px_0px_15px_rgba(36,16,167,0.08)]">
                     {/* Desktop Table View */}
-                    <div className="hidden md:block overflow-visible">
-                        <table className="w-full text-left border-collapse min-w-[1000px]">
+                    <div className="hidden overflow-visible md:block">
+                        <table className="w-full min-w-[1000px] border-collapse text-left">
                             <thead>
                                 <tr className="border-b border-[#F3F4F6] bg-[#F9FAFB]">
-                                    <th className="px-5 py-4 text-xs font-bold text-[#7B7B7B] uppercase tracking-wider w-[120px]">Código</th>
-                                    <th className="px-5 py-4 text-xs font-bold text-[#7B7B7B] uppercase tracking-wider">Historia</th>
-                                    <th className="px-5 py-4 text-xs font-bold text-[#7B7B7B] uppercase tracking-wider">Categoría</th>
-                                    <th className="px-5 py-4 text-xs font-bold text-[#7B7B7B] uppercase tracking-wider">Autor</th>
-                                    <th className="px-5 py-4 text-xs font-bold text-[#7B7B7B] uppercase tracking-wider">Precio</th>
-                                    <th className="px-5 py-4 text-xs font-bold text-[#7B7B7B] uppercase tracking-wider">
+                                    <th className="w-[120px] px-5 py-4 text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
+                                        Código
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
+                                        Historia
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
+                                        Categoría
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
+                                        Autor
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
+                                        Precio
+                                    </th>
+                                    <th className="px-5 py-4 text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
                                         <div className="flex items-center gap-2">
-                                            Estado <FontAwesomeIcon icon={faFilter} className="text-[10px] opacity-50" />
+                                            Estado{' '}
+                                            <FontAwesomeIcon
+                                                icon={faFilter}
+                                                className="text-[10px] opacity-50"
+                                            />
                                         </div>
                                     </th>
-                                    <th className="px-5 py-4 text-xs font-bold text-[#7B7B7B] uppercase tracking-wider text-center">Acciones</th>
+                                    <th className="px-5 py-4 text-center text-xs font-bold tracking-wider text-[#7B7B7B] uppercase">
+                                        Acciones
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-[#F3F4F6]">
                                 {storyList.length > 0 ? (
                                     storyList.map((story) => (
-                                        <tr key={story.id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-5 py-4 text-sm font-semibold text-[#1B3D6D]">{story.codigo}</td>
+                                        <tr
+                                            key={story.id}
+                                            className="transition-colors hover:bg-gray-50"
+                                        >
+                                            <td className="px-5 py-4 text-sm font-semibold text-[#1B3D6D]">
+                                                {story.codigo}
+                                            </td>
                                             <td className="px-5 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <img 
-                                                        src={story.imagen || '/images/placeholder.svg'} 
-                                                        alt={story.nombre} 
-                                                        className="w-10 h-10 rounded object-cover shadow-sm bg-gray-100"
+                                                    <img
+                                                        src={
+                                                            story.imagen ||
+                                                            '/images/placeholder.svg'
+                                                        }
+                                                        alt={story.nombre}
+                                                        className="h-10 w-10 rounded bg-gray-100 object-cover shadow-sm"
                                                     />
-                                                    <span className="text-sm font-medium text-[#111827]">{story.nombre}</span>
+                                                    <span className="text-sm font-medium text-[#111827]">
+                                                        {story.nombre}
+                                                    </span>
                                                 </div>
                                             </td>
-                                            <td className="px-5 py-4 text-sm text-[#4B5563]">{story.categoria}</td>
-                                            <td className="px-5 py-4 text-sm text-[#4B5563]">{story.autor}</td>
-                                            <td className="px-5 py-4 text-sm text-[#4B5563]">${Number(story.precio_base).toFixed(2)}</td>
+                                            <td className="px-5 py-4 text-sm text-[#4B5563]">
+                                                {story.categoria}
+                                            </td>
+                                            <td className="px-5 py-4 text-sm text-[#4B5563]">
+                                                {story.autor}
+                                            </td>
+                                            <td className="px-5 py-4 text-sm text-[#4B5563]">
+                                                $
+                                                {Number(
+                                                    story.precio_base,
+                                                ).toFixed(2)}
+                                            </td>
                                             <td className="px-5 py-4">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded text-[11.5px] font-semibold tracking-wide
-                                                    ${story.estado === 'activo' ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#E0F2FE] text-[#0284C7]'}`}>
-                                                    {story.estado.charAt(0).toUpperCase() + story.estado.slice(1)}
+                                                <span
+                                                    className={`inline-flex items-center rounded px-2.5 py-0.5 text-[11.5px] font-semibold tracking-wide ${story.estado === 'activo' ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#E0F2FE] text-[#0284C7]'}`}
+                                                >
+                                                    {story.estado
+                                                        .charAt(0)
+                                                        .toUpperCase() +
+                                                        story.estado.slice(1)}
                                                 </span>
                                             </td>
-                                            <td className="px-5 py-4 text-center relative">
-                                                <button 
+                                            <td className="relative px-5 py-4 text-center">
+                                                <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         const menuKey = `desktop-${story.id}`;
-                                                        setOpenMenuId(openMenuId === menuKey ? null : menuKey);
+                                                        setOpenMenuId(
+                                                            openMenuId ===
+                                                                menuKey
+                                                                ? null
+                                                                : menuKey,
+                                                        );
                                                     }}
-                                                    className="p-2 text-[#7B7B7B] hover:text-[#1B3D6D] transition-colors rounded-full hover:bg-gray-100 outline-none"
+                                                    className="rounded-full p-2 text-[#7B7B7B] transition-colors outline-none hover:bg-gray-100 hover:text-[#1B3D6D]"
                                                 >
-                                                    <FontAwesomeIcon icon={faEllipsisV} className="text-sm" />
+                                                    <FontAwesomeIcon
+                                                        icon={faEllipsisV}
+                                                        className="text-sm"
+                                                    />
                                                 </button>
-                                                {openMenuId === `desktop-${story.id}` && renderActionMenu(story)}
+                                                {openMenuId ===
+                                                    `desktop-${story.id}` &&
+                                                    renderActionMenu(story)}
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={7} className="px-5 py-10 text-center text-sm text-[#7B7B7B]">
-                                            No se encontraron historias que coincidan con la búsqueda.
+                                        <td
+                                            colSpan={7}
+                                            className="px-5 py-10 text-center text-sm text-[#7B7B7B]"
+                                        >
+                                            No se encontraron historias que
+                                            coincidan con la búsqueda.
                                         </td>
                                     </tr>
                                 )}
@@ -366,49 +513,88 @@ export default function Stories({ historias, categorias, filters }: Props) {
                     </div>
 
                     {/* Mobile Cards View */}
-                    <div className="flex flex-col bg-white rounded-[10px] shadow-[0px_0px_10px_rgba(0,0,0,0.04)] block md:hidden mb-4">
-                        <div className="flex flex-col divide-y divide-[#F3F4F6] w-full px-4">
+                    <div className="mb-4 block flex flex-col rounded-[10px] bg-white shadow-[0px_0px_10px_rgba(0,0,0,0.04)] md:hidden">
+                        <div className="flex w-full flex-col divide-y divide-[#F3F4F6] px-4">
                             {storyList.length > 0 ? (
                                 storyList.map((story) => (
-                                    <div key={story.id} className="flex py-[18px] gap-3 relative">
+                                    <div
+                                        key={story.id}
+                                        className="relative flex gap-3 py-[18px]"
+                                    >
                                         <div className="shrink-0">
-                                            <img 
-                                                src={story.imagen || '/images/placeholder.svg'} 
-                                                alt={story.nombre} 
-                                                className="w-[88px] h-[88px] rounded-[6px] object-cover shadow-sm bg-gray-100 border border-gray-100"
+                                            <img
+                                                src={
+                                                    story.imagen ||
+                                                    '/images/placeholder.svg'
+                                                }
+                                                alt={story.nombre}
+                                                className="h-[88px] w-[88px] rounded-[6px] border border-gray-100 bg-gray-100 object-cover shadow-sm"
                                             />
                                         </div>
-                                        <div className="flex flex-col flex-1 min-w-0">
-                                            <div className="flex justify-between items-center w-full relative">
-                                                <span className="text-[13px] text-[#4B5563]">{story.codigo}</span>
-                                                <div className="flex items-center gap-2 absolute right-0">
-                                                    <span className={`inline-flex items-center justify-center px-[8px] py-[2px] rounded text-[11.5px] font-medium tracking-wide
-                                                        ${story.estado === 'activo' ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#E0F2FE] text-[#0284C7]'}`}>
-                                                        {story.estado.charAt(0).toUpperCase() + story.estado.slice(1)}
+                                        <div className="flex min-w-0 flex-1 flex-col">
+                                            <div className="relative flex w-full items-center justify-between">
+                                                <span className="text-[13px] text-[#4B5563]">
+                                                    {story.codigo}
+                                                </span>
+                                                <div className="absolute right-0 flex items-center gap-2">
+                                                    <span
+                                                        className={`inline-flex items-center justify-center rounded px-[8px] py-[2px] text-[11.5px] font-medium tracking-wide ${story.estado === 'activo' ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#E0F2FE] text-[#0284C7]'}`}
+                                                    >
+                                                        {story.estado
+                                                            .charAt(0)
+                                                            .toUpperCase() +
+                                                            story.estado.slice(
+                                                                1,
+                                                            )}
                                                     </span>
-                                                    <button 
+                                                    <button
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             const menuKey = `mobile-${story.id}`;
-                                                            setOpenMenuId(openMenuId === menuKey ? null : menuKey);
+                                                            setOpenMenuId(
+                                                                openMenuId ===
+                                                                    menuKey
+                                                                    ? null
+                                                                    : menuKey,
+                                                            );
                                                         }}
                                                         className="text-[#4B5563] outline-none"
                                                     >
-                                                        <FontAwesomeIcon icon={faEllipsisV} className="text-sm" />
+                                                        <FontAwesomeIcon
+                                                            icon={faEllipsisV}
+                                                            className="text-sm"
+                                                        />
                                                     </button>
                                                 </div>
-                                                {openMenuId === `mobile-${story.id}` && renderActionMenu(story)}
+                                                {openMenuId ===
+                                                    `mobile-${story.id}` &&
+                                                    renderActionMenu(story)}
                                             </div>
-                                            <div className="text-[13.5px] text-[#4B5563] mt-1 pr-6 leading-tight max-w-[95%]">{story.nombre}</div>
-                                            <div className="text-[13px] text-[#4B5563] mt-1">Precio: ${Number(story.precio_base).toFixed(2)}</div>
-                                            <div className="grid grid-cols-2 mt-2 gap-2">
+                                            <div className="mt-1 max-w-[95%] pr-6 text-[13.5px] leading-tight text-[#4B5563]">
+                                                {story.nombre}
+                                            </div>
+                                            <div className="mt-1 text-[13px] text-[#4B5563]">
+                                                Precio: $
+                                                {Number(
+                                                    story.precio_base,
+                                                ).toFixed(2)}
+                                            </div>
+                                            <div className="mt-2 grid grid-cols-2 gap-2">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[10.5px] text-[#A0A0A0]">Categoría</span>
-                                                    <span className="text-[12.5px] text-[#4B5563]">{story.categoria}</span>
+                                                    <span className="text-[10.5px] text-[#A0A0A0]">
+                                                        Categoría
+                                                    </span>
+                                                    <span className="text-[12.5px] text-[#4B5563]">
+                                                        {story.categoria}
+                                                    </span>
                                                 </div>
                                                 <div className="flex flex-col items-end text-right">
-                                                    <span className="text-[10.5px] text-[#A0A0A0]">Autor</span>
-                                                    <span className="text-[12.5px] text-[#4B5563] truncate w-full">{story.autor}</span>
+                                                    <span className="text-[10.5px] text-[#A0A0A0]">
+                                                        Autor
+                                                    </span>
+                                                    <span className="w-full truncate text-[12.5px] text-[#4B5563]">
+                                                        {story.autor}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
@@ -416,7 +602,8 @@ export default function Stories({ historias, categorias, filters }: Props) {
                                 ))
                             ) : (
                                 <div className="p-10 text-center text-[13px] text-[#7B7B7B]">
-                                    No se encontraron historias que coincidan con la búsqueda.
+                                    No se encontraron historias que coincidan
+                                    con la búsqueda.
                                 </div>
                             )}
                         </div>
@@ -435,40 +622,40 @@ export default function Stories({ historias, categorias, filters }: Props) {
                 </div>
             </div>
 
-                {/* Modals */}
-                <CreateStoryModal
-                    isOpen={isCreateModalOpen}
-                    onClose={() => setIsCreateModalOpen(false)}
-                    categorias={categorias}
-                    onOpenCategoriaManage={handleOpenCategoriaManage}
-                />
+            {/* Modals */}
+            <CreateStoryModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                categorias={categorias}
+                onOpenCategoriaManage={handleOpenCategoriaManage}
+            />
 
-                <CreateStoryModal
-                    isOpen={isEditModalOpen}
+            <CreateStoryModal
+                isOpen={isEditModalOpen}
+                onClose={() => {
+                    setIsEditModalOpen(false);
+                    setSelectedStory(null);
+                }}
+                categorias={categorias}
+                storyToEdit={selectedStory}
+                onOpenCategoriaManage={handleOpenCategoriaManage}
+            />
+
+            <HistoriaCategoriaManageModal
+                isOpen={isCategoriaManageOpen}
+                onClose={() => setIsCategoriaManageOpen(false)}
+                onSaved={() => router.reload({ only: ['categorias'] })}
+            />
+
+            {isPreviewModalOpen && selectedStory && (
+                <PreviewStoryModal
+                    story={selectedStory}
                     onClose={() => {
-                        setIsEditModalOpen(false);
+                        setIsPreviewModalOpen(false);
                         setSelectedStory(null);
                     }}
-                    categorias={categorias}
-                    storyToEdit={selectedStory}
-                    onOpenCategoriaManage={handleOpenCategoriaManage}
                 />
-
-                <HistoriaCategoriaManageModal
-                    isOpen={isCategoriaManageOpen}
-                    onClose={() => setIsCategoriaManageOpen(false)}
-                    onSaved={() => router.reload({ only: ['categorias'] })}
-                />
-
-                {isPreviewModalOpen && selectedStory && (
-                    <PreviewStoryModal 
-                        story={selectedStory}
-                        onClose={() => {
-                            setIsPreviewModalOpen(false);
-                            setSelectedStory(null);
-                        }}
-                    />
-                )}
+            )}
 
             <ConfirmDialog
                 isOpen={deleteStoryId !== null}
@@ -482,10 +669,16 @@ export default function Stories({ historias, categorias, filters }: Props) {
 }
 
 // Pantalla de Vista Previa Minimalista (contenedor desplazable + altura máxima para no desbordar en viewport)
-function PreviewStoryModal({ story, onClose }: { story: any; onClose: () => void }) {
+function PreviewStoryModal({
+    story,
+    onClose,
+}: {
+    story: any;
+    onClose: () => void;
+}) {
     return (
         <div
-            className="fixed inset-0 z-[60] overflow-y-auto overflow-x-hidden bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] overflow-x-hidden overflow-y-auto bg-black/60 backdrop-blur-sm"
             style={{
                 paddingTop: 'max(1rem, env(safe-area-inset-top))',
                 paddingBottom: 'max(1rem, env(safe-area-inset-bottom))',
@@ -493,7 +686,7 @@ function PreviewStoryModal({ story, onClose }: { story: any; onClose: () => void
         >
             <div className="flex min-h-[min(calc(100dvh-2rem),calc(100svh-2rem))] items-center justify-center p-4 sm:p-6">
                 <div
-                    className="my-auto flex w-full max-w-2xl max-h-[min(calc(100dvh-2rem),calc(100svh-2rem))] flex-col overflow-hidden rounded-lg bg-white shadow-2xl animate-in fade-in zoom-in duration-200"
+                    className="my-auto flex max-h-[min(calc(100dvh-2rem),calc(100svh-2rem))] w-full max-w-2xl animate-in flex-col overflow-hidden rounded-lg bg-white shadow-2xl duration-200 fade-in zoom-in"
                     onClick={(e) => e.stopPropagation()}
                 >
                     <div className="relative h-36 shrink-0 bg-gray-200 sm:h-48 md:h-56">
@@ -505,7 +698,7 @@ function PreviewStoryModal({ story, onClose }: { story: any; onClose: () => void
                         <button
                             type="button"
                             onClick={onClose}
-                            className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/40 sm:right-4 sm:top-4 sm:size-10"
+                            className="absolute top-3 right-3 flex size-9 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/40 sm:top-4 sm:right-4 sm:size-10"
                             aria-label="Cerrar vista previa"
                         >
                             <FontAwesomeIcon icon={faTimes} />
@@ -515,15 +708,18 @@ function PreviewStoryModal({ story, onClose }: { story: any; onClose: () => void
                     <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 sm:px-8 sm:py-8">
                         <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                             <div className="min-w-0 flex-1">
-                                <h2 className="text-xl font-bold tracking-tight text-[#1B3D6D] sm:text-2xl">{story.nombre}</h2>
+                                <h2 className="text-xl font-bold tracking-tight text-[#1B3D6D] sm:text-2xl">
+                                    {story.nombre}
+                                </h2>
                                 <p className="mt-0.5 text-[13px] text-[#7B7B7B] sm:text-[14px]">
                                     {story.categoria} • Por{' '}
-                                    <span className="font-semibold text-[#1B3D6D]">{story.autor}</span>
+                                    <span className="font-semibold text-[#1B3D6D]">
+                                        {story.autor}
+                                    </span>
                                 </p>
                             </div>
                             <span
-                                className={`shrink-0 self-start rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider sm:self-auto
-                            ${story.estado === 'activo' ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#E0F2FE] text-[#0284C7]'}`}
+                                className={`shrink-0 self-start rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase sm:self-auto ${story.estado === 'activo' ? 'bg-[#D1F4E0] text-[#12A05B]' : 'bg-[#E0F2FE] text-[#0284C7]'}`}
                             >
                                 {story.estado}
                             </span>
@@ -531,8 +727,10 @@ function PreviewStoryModal({ story, onClose }: { story: any; onClose: () => void
 
                         <div className="mb-6 grid grid-cols-1 gap-4 border-y border-gray-100 py-5 sm:grid-cols-2">
                             <div className="text-center sm:border-r sm:border-gray-100">
-                                <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#A0A0A0]">Precio Base</p>
-                                <p className="font-mono text-sm font-bold leading-none text-[#4B5563]">
+                                <p className="mb-1 text-[10px] font-bold tracking-widest text-[#A0A0A0] uppercase">
+                                    Precio Base
+                                </p>
+                                <p className="font-mono text-sm leading-none font-bold text-[#4B5563]">
                                     $
                                     {Number(story.precio_base)
                                         .toFixed(2)
@@ -540,23 +738,33 @@ function PreviewStoryModal({ story, onClose }: { story: any; onClose: () => void
                                 </p>
                             </div>
                             <div className="text-center">
-                                <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#A0A0A0]">Código</p>
-                                <p className="break-all text-sm font-bold text-[#4B5563]">{story.codigo}</p>
+                                <p className="mb-1 text-[10px] font-bold tracking-widest text-[#A0A0A0] uppercase">
+                                    Código
+                                </p>
+                                <p className="text-sm font-bold break-all text-[#4B5563]">
+                                    {story.codigo}
+                                </p>
                             </div>
                         </div>
 
                         <div className="space-y-5">
                             <div>
-                                <h4 className="mb-2 text-[12px] font-bold uppercase tracking-wider text-[#1B3D6D]">Resumen</h4>
-                                <p className="text-[13px] italic leading-relaxed text-[#4B5563] sm:text-[14px]">
+                                <h4 className="mb-2 text-[12px] font-bold tracking-wider text-[#1B3D6D] uppercase">
+                                    Resumen
+                                </h4>
+                                <p className="text-[13px] leading-relaxed text-[#4B5563] italic sm:text-[14px]">
                                     &ldquo;{story.descripcion_corta}&rdquo;
                                 </p>
                             </div>
                             <div>
-                                <h4 className="mb-2 text-[12px] font-bold uppercase tracking-wider text-[#1B3D6D]">Descripción Completa</h4>
+                                <h4 className="mb-2 text-[12px] font-bold tracking-wider text-[#1B3D6D] uppercase">
+                                    Descripción Completa
+                                </h4>
                                 <div
-                                    className="max-w-none break-words text-[13px] leading-relaxed text-[#6B7280] line-clamp-6 sm:line-clamp-none sm:max-h-[min(40vh,320px)] sm:overflow-y-auto sm:overscroll-contain"
-                                    dangerouslySetInnerHTML={{ __html: story.descripcion_larga }}
+                                    className="line-clamp-6 max-w-none text-[13px] leading-relaxed break-words text-[#6B7280] sm:line-clamp-none sm:max-h-[min(40vh,320px)] sm:overflow-y-auto sm:overscroll-contain"
+                                    dangerouslySetInnerHTML={{
+                                        __html: story.descripcion_larga,
+                                    }}
                                 />
                             </div>
                         </div>

@@ -5,12 +5,20 @@ import type { ChangeEvent, FormEvent, MouseEvent } from 'react';
 import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { AdminFormSidePanel } from '@/components/admin/AdminFormSidePanel';
 import { ProductoMultimediaPanel } from '@/components/admin/create-product/ProductoMultimediaPanel';
-import { pickGalleryFiles, validateMediaFileSize, MAX_IMAGEN_BYTES, MENSAJE_MAX_IMAGEN } from '@/components/admin/constants/media-limits';
+import {
+    pickGalleryFiles,
+    validateMediaFileSize,
+    MAX_IMAGEN_BYTES,
+    MENSAJE_MAX_IMAGEN,
+} from '@/components/admin/constants/media-limits';
 import { MAX_PALABRAS_TEXTO_LARGO } from '@/components/admin/create-story/constants';
 import { normalizeDetalleInclusiones } from '@/components/admin/create-story/formDefaults';
 import { HistoriaDetalleInclusionsEditor } from '@/components/admin/create-story/HistoriaDetalleInclusionsEditor';
 import { LimitedWordRichEditor } from '@/components/admin/create-story/LimitedWordRichEditor';
-import type { GallerySlot, HistoriaDetalleInclusionRow } from '@/components/admin/create-story/types';
+import type {
+    GallerySlot,
+    HistoriaDetalleInclusionRow,
+} from '@/components/admin/create-story/types';
 import type { TaxonomyKind } from '@/components/admin/ProductoTaxonomyManageModal';
 import { HISTORIA_DETALLE_INCLUSION_ICONS } from '@/constants/historia-detalle-inclusion-icons';
 import {
@@ -82,7 +90,10 @@ interface CreateProductModalProps {
     /** Si se indica, el modal carga el producto y envía PATCH al guardar */
     editingProductId?: number | null;
     /** Abre el modal de taxonomía en la página (sin enviar el formulario). */
-    onOpenTaxonomy?: (kind: TaxonomyKind, context: { categoriaPadreId: number | null }) => void;
+    onOpenTaxonomy?: (
+        kind: TaxonomyKind,
+        context: { categoriaPadreId: number | null },
+    ) => void;
 }
 
 export function CreateProductModal({
@@ -118,7 +129,8 @@ export function CreateProductModal({
         [],
     );
 
-    const { data, setData, post, processing, errors, reset, transform } = useForm(initialForm);
+    const { data, setData, post, processing, errors, reset, transform } =
+        useForm(initialForm);
 
     const [subRows, setSubRows] = useState<SubRow[]>([]);
     const [subcategoriasLoading, setSubcategoriasLoading] = useState(false);
@@ -127,8 +139,12 @@ export function CreateProductModal({
     const [imgPreview, setImgPreview] = useState<string | null>(null);
     const [stockInput, setStockInput] = useState('0');
     const [galleryItems, setGalleryItems] = useState<GallerySlot[]>([]);
-    const [galeriaLimitMessage, setGaleriaLimitMessage] = useState<string | null>(null);
-    const [imagenClientError, setImagenClientError] = useState<string | null>(null);
+    const [galeriaLimitMessage, setGaleriaLimitMessage] = useState<
+        string | null
+    >(null);
+    const [imagenClientError, setImagenClientError] = useState<string | null>(
+        null,
+    );
     const [richEditors, setRichEditors] = useState<{
         seed: number;
         descripcion_larga: string;
@@ -140,7 +156,11 @@ export function CreateProductModal({
     const openCycleRef = useRef(0);
 
     useEffect(() => {
-        if (!isOpen || data.producto_categoria_id === '' || data.producto_categoria_id === null) {
+        if (
+            !isOpen ||
+            data.producto_categoria_id === '' ||
+            data.producto_categoria_id === null
+        ) {
             setSubRows([]);
             setSubcategoriasLoading(false);
 
@@ -163,7 +183,13 @@ export function CreateProductModal({
                 producto_categoria_id: catId,
                 per_page: 200,
             }),
-            { credentials: 'same-origin', headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } },
+            {
+                credentials: 'same-origin',
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            },
         )
             .then(async (r) => {
                 const j = (await r.json()) as { data?: SubRow[] };
@@ -199,13 +225,20 @@ export function CreateProductModal({
     }, [isOpen, data.producto_categoria_id]);
 
     useEffect(() => {
-        if (data.producto_subcategoria_id === '' || data.producto_subcategoria_id === null) {
+        if (
+            data.producto_subcategoria_id === '' ||
+            data.producto_subcategoria_id === null
+        ) {
             return;
         }
 
         const sid = Number(data.producto_subcategoria_id);
 
-        if (!Number.isFinite(sid) || subRows.length === 0 || subcategoriasLoading) {
+        if (
+            !Number.isFinite(sid) ||
+            subRows.length === 0 ||
+            subcategoriasLoading
+        ) {
             return;
         }
 
@@ -243,7 +276,10 @@ export function CreateProductModal({
         setLoadingProduct(true);
         void fetch(productoFormulario.url(editingProductId), {
             credentials: 'same-origin',
-            headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            headers: {
+                Accept: 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
         })
             .then(async (r) => {
                 if (!r.ok) {
@@ -257,7 +293,9 @@ export function CreateProductModal({
                     return;
                 }
 
-                const detalleRows = normalizeDetalleInclusiones(payload.detalle);
+                const detalleRows = normalizeDetalleInclusiones(
+                    payload.detalle,
+                );
                 setData({
                     nombre: payload.nombre,
                     descripcion_corta: payload.descripcion_corta,
@@ -265,7 +303,9 @@ export function CreateProductModal({
                     detalle: detalleRows,
                     producto_categoria_id: payload.producto_categoria_id,
                     producto_subcategoria_id:
-                        payload.producto_subcategoria_id != null ? payload.producto_subcategoria_id : '',
+                        payload.producto_subcategoria_id != null
+                            ? payload.producto_subcategoria_id
+                            : '',
                     precio_base: payload.precio_base,
                     precio_promocional: payload.precio_promocional ?? '',
                     impuesto: payload.impuesto ?? '',
@@ -279,7 +319,9 @@ export function CreateProductModal({
                 });
                 setImgPreview(payload.imagen || null);
                 setStockInput(String(payload.stock ?? 0));
-                const extras = (payload.galeria ?? []).filter((g) => !g.es_principal);
+                const extras = (payload.galeria ?? []).filter(
+                    (g) => !g.es_principal,
+                );
                 setGalleryItems(
                     extras.map((g) => ({
                         kind: 'existente' as const,
@@ -295,7 +337,9 @@ export function CreateProductModal({
             })
             .catch(() => {
                 if (!cancelled && fetchCycle === openCycleRef.current) {
-                    setLoadError('No se pudo cargar el producto. Cierra e inténtalo de nuevo.');
+                    setLoadError(
+                        'No se pudo cargar el producto. Cierra e inténtalo de nuevo.',
+                    );
                 }
             })
             .finally(() => {
@@ -388,12 +432,18 @@ export function CreateProductModal({
         void Promise.all(
             slice.map(
                 (file) =>
-                    new Promise<{ file: File; preview: string }>((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve({ file, preview: reader.result as string });
-                        reader.onerror = () => reject(reader.error);
-                        reader.readAsDataURL(file);
-                    }),
+                    new Promise<{ file: File; preview: string }>(
+                        (resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () =>
+                                resolve({
+                                    file,
+                                    preview: reader.result as string,
+                                });
+                            reader.onerror = () => reject(reader.error);
+                            reader.readAsDataURL(file);
+                        },
+                    ),
             ),
         ).then((read) => {
             setGalleryItems((prev) => [
@@ -423,15 +473,29 @@ export function CreateProductModal({
         }
 
         transform((form) => {
-            const nuevos = galleryItems.filter((x): x is Extract<GallerySlot, { kind: 'nuevo' }> => x.kind === 'nuevo');
+            const nuevos = galleryItems.filter(
+                (x): x is Extract<GallerySlot, { kind: 'nuevo' }> =>
+                    x.kind === 'nuevo',
+            );
             const files = nuevos.map((x) => x.file);
-            const allowedIcons = new Set<string>(HISTORIA_DETALLE_INCLUSION_ICONS);
-            const detalleCleaned = (Array.isArray(form.detalle) ? form.detalle : [])
+            const allowedIcons = new Set<string>(
+                HISTORIA_DETALLE_INCLUSION_ICONS,
+            );
+            const detalleCleaned = (
+                Array.isArray(form.detalle) ? form.detalle : []
+            )
                 .filter((r) => r.title.trim() !== '')
                 .map((r) => {
                     const d = r.description.trim();
-                    const iconResolved = r.icon && allowedIcons.has(r.icon) ? r.icon : 'FileText';
-                    const item: { icon: string; title: string; description?: string } = {
+                    const iconResolved =
+                        r.icon && allowedIcons.has(r.icon)
+                            ? r.icon
+                            : 'FileText';
+                    const item: {
+                        icon: string;
+                        title: string;
+                        description?: string;
+                    } = {
                         icon: iconResolved,
                         title: r.title.trim(),
                     };
@@ -442,7 +506,8 @@ export function CreateProductModal({
 
                     return item;
                 });
-            const parsedStock = stockInput === '' ? 0 : parseInt(stockInput, 10);
+            const parsedStock =
+                stockInput === '' ? 0 : parseInt(stockInput, 10);
             const next = {
                 ...form,
                 stock: Number.isFinite(parsedStock) ? parsedStock : 0,
@@ -452,7 +517,10 @@ export function CreateProductModal({
 
             if (isEditMode && editingProductId) {
                 const keepIds = galleryItems
-                    .filter((x): x is Extract<GallerySlot, { kind: 'existente' }> => x.kind === 'existente')
+                    .filter(
+                        (x): x is Extract<GallerySlot, { kind: 'existente' }> =>
+                            x.kind === 'existente',
+                    )
                     .map((x) => x.id);
 
                 return {
@@ -498,7 +566,9 @@ export function CreateProductModal({
         e.preventDefault();
         e.stopPropagation();
         const categoriaPadreId =
-            data.producto_categoria_id === '' ? null : Number(data.producto_categoria_id);
+            data.producto_categoria_id === ''
+                ? null
+                : Number(data.producto_categoria_id);
         onOpenTaxonomy?.(kind, { categoriaPadreId });
     };
 
@@ -508,7 +578,10 @@ export function CreateProductModal({
         onClose();
     };
 
-    const categoriaIdNum = data.producto_categoria_id === '' ? null : Number(data.producto_categoria_id);
+    const categoriaIdNum =
+        data.producto_categoria_id === ''
+            ? null
+            : Number(data.producto_categoria_id);
     const formDisabled = loadingProduct || Boolean(loadError);
 
     return (
@@ -520,51 +593,80 @@ export function CreateProductModal({
                 className="font-['Inter']"
             >
                 {loadError ? (
-                    <div className="border-b border-red-100 bg-red-50 px-6 py-3 text-[13px] text-red-800">{loadError}</div>
+                    <div className="border-b border-red-100 bg-red-50 px-6 py-3 text-[13px] text-red-800">
+                        {loadError}
+                    </div>
                 ) : null}
 
-                <form onSubmit={handleSubmit} className="custom-scrollbar relative flex min-h-0 flex-1 flex-col overflow-y-auto">
+                <form
+                    onSubmit={handleSubmit}
+                    className="custom-scrollbar relative flex min-h-0 flex-1 flex-col overflow-y-auto"
+                >
                     {loadingProduct ? (
                         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 text-[13.5px] font-medium text-[#4B5563]">
                             Cargando producto…
                         </div>
                     ) : null}
-                    <div className={`flex-1 p-6 ${formDisabled ? 'pointer-events-none opacity-60' : ''}`}>
+                    <div
+                        className={`flex-1 p-6 ${formDisabled ? 'pointer-events-none opacity-60' : ''}`}
+                    >
                         <div className="grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-2">
                             <div className="flex flex-col gap-5">
                                 <div>
                                     <label className="mb-1.5 block text-[13.5px] font-semibold text-[#1B3D6D]">
-                                        Nombre del producto<span className="text-red-500">*</span>
+                                        Nombre del producto
+                                        <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         value={data.nombre}
-                                        onChange={(e) => setData('nombre', e.target.value)}
+                                        onChange={(e) =>
+                                            setData('nombre', e.target.value)
+                                        }
                                         placeholder="Papel de Hilo Prensado"
                                         className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none placeholder:text-[#9CA3AF] focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D] ${
-                                            errors.nombre ? 'border-red-500' : 'border-[#E5E7EB]'
+                                            errors.nombre
+                                                ? 'border-red-500'
+                                                : 'border-[#E5E7EB]'
                                         }`}
                                     />
-                                    {errors.nombre ? <span className="text-[11px] text-red-500">{errors.nombre}</span> : null}
+                                    {errors.nombre ? (
+                                        <span className="text-[11px] text-red-500">
+                                            {errors.nombre}
+                                        </span>
+                                    ) : null}
                                 </div>
 
                                 <div>
                                     <label className="mb-1.5 block text-[13.5px] font-semibold text-[#1B3D6D]">
-                                        Descripción corta<span className="text-red-500">*</span>
+                                        Descripción corta
+                                        <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         value={data.descripcion_corta}
-                                        onChange={(e) => setData('descripcion_corta', e.target.value)}
+                                        onChange={(e) =>
+                                            setData(
+                                                'descripcion_corta',
+                                                e.target.value,
+                                            )
+                                        }
                                         placeholder="Papel"
                                         className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none placeholder:text-[#9CA3AF] focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D] ${
-                                            errors.descripcion_corta ? 'border-red-500' : 'border-[#E5E7EB]'
+                                            errors.descripcion_corta
+                                                ? 'border-red-500'
+                                                : 'border-[#E5E7EB]'
                                         }`}
                                     />
                                     {errors.descripcion_corta ? (
-                                        <span className="mt-1 block text-[11px] text-red-500">{errors.descripcion_corta}</span>
+                                        <span className="mt-1 block text-[11px] text-red-500">
+                                            {errors.descripcion_corta}
+                                        </span>
                                     ) : (
-                                        <span className="mt-1 block text-[11px] text-[#A0A0A0]">Se mostrará en la sección principal de productos</span>
+                                        <span className="mt-1 block text-[11px] text-[#A0A0A0]">
+                                            Se mostrará en la sección principal
+                                            de productos
+                                        </span>
                                     )}
                                 </div>
 
@@ -574,11 +676,18 @@ export function CreateProductModal({
                                         id={descripcionLargaId}
                                         label={
                                             <>
-                                                Descripción larga<span className="text-[#EF4444]">*</span>
+                                                Descripción larga
+                                                <span className="text-[#EF4444]">
+                                                    *
+                                                </span>
                                             </>
                                         }
-                                        initialHtml={richEditors.descripcion_larga}
-                                        onChange={(v) => setData('descripcion_larga', v)}
+                                        initialHtml={
+                                            richEditors.descripcion_larga
+                                        }
+                                        onChange={(v) =>
+                                            setData('descripcion_larga', v)
+                                        }
                                         maxWords={MAX_PALABRAS_TEXTO_LARGO}
                                         placeholder="Versátil y de alta calidad, ideal para manualidades..."
                                         rows={5}
@@ -588,8 +697,15 @@ export function CreateProductModal({
 
                                 <HistoriaDetalleInclusionsEditor
                                     items={data.detalle}
-                                    onChange={(items) => setData('detalle', items)}
-                                    errors={errors as Record<string, string | string[] | undefined>}
+                                    onChange={(items) =>
+                                        setData('detalle', items)
+                                    }
+                                    errors={
+                                        errors as Record<
+                                            string,
+                                            string | string[] | undefined
+                                        >
+                                    }
                                     rootId={rootId}
                                     sectionTitle="¿Qué incluye el envío o el producto?"
                                     sectionHint="Lista (icono Lucide, título obligatorio, descripción opcional). Misma estructura que en historias."
@@ -599,131 +715,238 @@ export function CreateProductModal({
                                 <div>
                                     <div className="mb-1.5 flex items-center gap-2">
                                         <label className="text-[13.5px] font-semibold text-[#1B3D6D]">
-                                            Categoría<span className="text-red-500">*</span>
+                                            Categoría
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
                                         </label>
                                         <button
                                             type="button"
                                             title="Gestionar categorías"
-                                            onClick={(e) => handleOpenTaxonomy('categoria', e)}
-                                            className="inline-flex size-7 items-center justify-center  text-[#1B3D6D] hover:bg-[#F9FAFB]"
+                                            onClick={(e) =>
+                                                handleOpenTaxonomy(
+                                                    'categoria',
+                                                    e,
+                                                )
+                                            }
+                                            className="inline-flex size-7 items-center justify-center text-[#1B3D6D] hover:bg-[#F9FAFB]"
                                         >
-                                            <FontAwesomeIcon icon={faPencil} className="text-[11px]" />
+                                            <FontAwesomeIcon
+                                                icon={faPencil}
+                                                className="text-[11px]"
+                                            />
                                         </button>
                                     </div>
                                     <select
-                                        value={data.producto_categoria_id === '' ? '' : String(data.producto_categoria_id)}
+                                        value={
+                                            data.producto_categoria_id === ''
+                                                ? ''
+                                                : String(
+                                                      data.producto_categoria_id,
+                                                  )
+                                        }
                                         onChange={(e) => {
                                             const v = e.target.value;
-                                            setData('producto_categoria_id', v === '' ? '' : v);
-                                            setData('producto_subcategoria_id', '');
+                                            setData(
+                                                'producto_categoria_id',
+                                                v === '' ? '' : v,
+                                            );
+                                            setData(
+                                                'producto_subcategoria_id',
+                                                '',
+                                            );
                                         }}
                                         className={`w-full rounded-[4px] border bg-white px-3 py-2 text-[13.5px] text-[#4B5563] outline-none focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D] ${
-                                            errors.producto_categoria_id ? 'border-red-500' : 'border-[#E5E7EB]'
+                                            errors.producto_categoria_id
+                                                ? 'border-red-500'
+                                                : 'border-[#E5E7EB]'
                                         }`}
                                     >
-                                        <option value="">Seleccione una categoría</option>
+                                        <option value="">
+                                            Seleccione una categoría
+                                        </option>
                                         {categorias.map((c) => (
-                                            <option key={c.id} value={String(c.id)}>
+                                            <option
+                                                key={c.id}
+                                                value={String(c.id)}
+                                            >
                                                 {c.nombre}
                                             </option>
                                         ))}
                                     </select>
                                     {errors.producto_categoria_id ? (
-                                        <span className="text-[11px] text-red-500">{errors.producto_categoria_id}</span>
+                                        <span className="text-[11px] text-red-500">
+                                            {errors.producto_categoria_id}
+                                        </span>
                                     ) : null}
                                 </div>
 
                                 <div>
                                     <div className="mb-1.5 flex items-center gap-2">
-                                        <label className="text-[13.5px] font-semibold text-[#1B3D6D]">Subcategoría</label>
+                                        <label className="text-[13.5px] font-semibold text-[#1B3D6D]">
+                                            Subcategoría
+                                        </label>
                                         <button
                                             type="button"
                                             title="Gestionar subcategorías (elige la categoría en el modal)"
-                                            onClick={(e) => handleOpenTaxonomy('subcategoria', e)}
+                                            onClick={(e) =>
+                                                handleOpenTaxonomy(
+                                                    'subcategoria',
+                                                    e,
+                                                )
+                                            }
                                             className="inline-flex size-7 items-center justify-center rounded border border-[#E5E7EB] text-[#1B3D6D] hover:bg-[#F9FAFB]"
                                         >
-                                            <FontAwesomeIcon icon={faPencil} className="text-[11px]" />
+                                            <FontAwesomeIcon
+                                                icon={faPencil}
+                                                className="text-[11px]"
+                                            />
                                         </button>
                                     </div>
                                     <select
-                                        value={data.producto_subcategoria_id === '' ? '' : String(data.producto_subcategoria_id)}
+                                        value={
+                                            data.producto_subcategoria_id === ''
+                                                ? ''
+                                                : String(
+                                                      data.producto_subcategoria_id,
+                                                  )
+                                        }
                                         onChange={(e) => {
                                             const v = e.target.value;
-                                            setData('producto_subcategoria_id', v === '' ? '' : v);
+                                            setData(
+                                                'producto_subcategoria_id',
+                                                v === '' ? '' : v,
+                                            );
                                         }}
-                                        disabled={!categoriaIdNum || subcategoriasLoading}
+                                        disabled={
+                                            !categoriaIdNum ||
+                                            subcategoriasLoading
+                                        }
                                         className={`w-full rounded-[4px] border bg-white px-3 py-2 text-[13.5px] text-[#4B5563] outline-none focus:border-[#1B3D6D] focus:ring-1 focus:ring-[#1B3D6D] disabled:bg-[#F9FAFB] ${
-                                            errors.producto_subcategoria_id ? 'border-red-500' : 'border-[#E5E7EB]'
+                                            errors.producto_subcategoria_id
+                                                ? 'border-red-500'
+                                                : 'border-[#E5E7EB]'
                                         }`}
                                     >
                                         <option value="">
-                                            {subcategoriasLoading ? 'Cargando subcategorías…' : 'Sin subcategoría'}
+                                            {subcategoriasLoading
+                                                ? 'Cargando subcategorías…'
+                                                : 'Sin subcategoría'}
                                         </option>
                                         {subRows.map((s) => (
-                                            <option key={s.id} value={String(s.id)}>
+                                            <option
+                                                key={s.id}
+                                                value={String(s.id)}
+                                            >
                                                 {s.nombre}
                                             </option>
                                         ))}
                                     </select>
-                                    {categoriaIdNum && !subcategoriasLoading && subRows.length === 0 ? (
+                                    {categoriaIdNum &&
+                                    !subcategoriasLoading &&
+                                    subRows.length === 0 ? (
                                         <p className="mt-1 text-[11px] text-[#6B7280]">
-                                            No hay subcategorías para esta categoría. Usa el lápiz para crearlas.
+                                            No hay subcategorías para esta
+                                            categoría. Usa el lápiz para
+                                            crearlas.
                                         </p>
                                     ) : null}
                                     {errors.producto_subcategoria_id ? (
-                                        <span className="text-[11px] text-red-500">{errors.producto_subcategoria_id}</span>
+                                        <span className="text-[11px] text-red-500">
+                                            {errors.producto_subcategoria_id}
+                                        </span>
                                     ) : null}
                                 </div>
 
                                 <div>
                                     <label className="mb-3 block text-[13.5px] font-semibold text-[#1B3D6D]">
-                                        Precio<span className="text-red-500">*</span>
+                                        Precio
+                                        <span className="text-red-500">*</span>
                                     </label>
                                     <div className="flex flex-col gap-4">
                                         <div>
                                             <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">
-                                                Precio base<span className="text-red-500">*</span>
+                                                Precio base
+                                                <span className="text-red-500">
+                                                    *
+                                                </span>
                                             </label>
                                             <input
                                                 type="text"
                                                 value={data.precio_base}
-                                                onChange={(e) => setData('precio_base', e.target.value)}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'precio_base',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="250.00"
                                                 className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none ${
-                                                    errors.precio_base ? 'border-red-500' : 'border-[#E5E7EB]'
+                                                    errors.precio_base
+                                                        ? 'border-red-500'
+                                                        : 'border-[#E5E7EB]'
                                                 }`}
                                             />
-                                            {errors.precio_base ? <span className="text-[11px] text-red-500">{errors.precio_base}</span> : null}
-                                        </div>
-                                        <div>
-                                            <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">Precio promocional</label>
-                                            <input
-                                                type="text"
-                                                value={data.precio_promocional}
-                                                onChange={(e) => setData('precio_promocional', e.target.value)}
-                                                placeholder="199.00"
-                                                className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none ${
-                                                    errors.precio_promocional ? 'border-red-500' : 'border-[#E5E7EB]'
-                                                }`}
-                                            />
-                                            {errors.precio_promocional ? (
-                                                <span className="text-[11px] text-red-500">{errors.precio_promocional}</span>
+                                            {errors.precio_base ? (
+                                                <span className="text-[11px] text-red-500">
+                                                    {errors.precio_base}
+                                                </span>
                                             ) : null}
                                         </div>
                                         <div>
-                                            <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">Impuesto</label>
+                                            <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">
+                                                Precio promocional
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={data.precio_promocional}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'precio_promocional',
+                                                        e.target.value,
+                                                    )
+                                                }
+                                                placeholder="199.00"
+                                                className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none ${
+                                                    errors.precio_promocional
+                                                        ? 'border-red-500'
+                                                        : 'border-[#E5E7EB]'
+                                                }`}
+                                            />
+                                            {errors.precio_promocional ? (
+                                                <span className="text-[11px] text-red-500">
+                                                    {errors.precio_promocional}
+                                                </span>
+                                            ) : null}
+                                        </div>
+                                        <div>
+                                            <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">
+                                                Impuesto
+                                            </label>
                                             <input
                                                 type="text"
                                                 value={data.impuesto}
-                                                onChange={(e) => setData('impuesto', e.target.value)}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'impuesto',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="16"
                                                 className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none ${
-                                                    errors.impuesto ? 'border-red-500' : 'border-[#E5E7EB]'
+                                                    errors.impuesto
+                                                        ? 'border-red-500'
+                                                        : 'border-[#E5E7EB]'
                                                 }`}
                                             />
-                                            {errors.impuesto ? <span className="text-[11px] text-red-500">{errors.impuesto}</span> : (
+                                            {errors.impuesto ? (
+                                                <span className="text-[11px] text-red-500">
+                                                    {errors.impuesto}
+                                                </span>
+                                            ) : (
                                                 <span className="text-[11px] text-[#9CA3AF]">
-                                                    IVA aplicado en tienda: 16&nbsp;%
+                                                    IVA aplicado en tienda:
+                                                    16&nbsp;%
                                                 </span>
                                             )}
                                         </div>
@@ -733,79 +956,140 @@ export function CreateProductModal({
 
                             <div className="flex flex-col gap-5">
                                 <div>
-                                    <label className="mb-3 block text-[13.5px] font-semibold text-[#1B3D6D]">Información de envío</label>
+                                    <label className="mb-3 block text-[13.5px] font-semibold text-[#1B3D6D]">
+                                        Información de envío
+                                    </label>
                                     <div className="flex flex-col gap-4">
                                         <div>
-                                            <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">Peso</label>
+                                            <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">
+                                                Peso
+                                            </label>
                                             <input
                                                 type="text"
                                                 value={data.peso}
-                                                onChange={(e) => setData('peso', e.target.value)}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'peso',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="0kg"
                                                 className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none ${
-                                                    errors.peso ? 'border-red-500' : 'border-[#E5E7EB]'
+                                                    errors.peso
+                                                        ? 'border-red-500'
+                                                        : 'border-[#E5E7EB]'
                                                 }`}
                                             />
-                                            {errors.peso ? <span className="text-[11px] text-red-500">{errors.peso}</span> : null}
+                                            {errors.peso ? (
+                                                <span className="text-[11px] text-red-500">
+                                                    {errors.peso}
+                                                </span>
+                                            ) : null}
                                         </div>
                                         <div>
-                                            <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">Dimensiones</label>
+                                            <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">
+                                                Dimensiones
+                                            </label>
                                             <input
                                                 type="text"
                                                 value={data.dimensiones}
-                                                onChange={(e) => setData('dimensiones', e.target.value)}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'dimensiones',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="0x0x0"
                                                 className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none ${
-                                                    errors.dimensiones ? 'border-red-500' : 'border-[#E5E7EB]'
+                                                    errors.dimensiones
+                                                        ? 'border-red-500'
+                                                        : 'border-[#E5E7EB]'
                                                 }`}
                                             />
-                                            {errors.dimensiones ? <span className="text-[11px] text-red-500">{errors.dimensiones}</span> : null}
+                                            {errors.dimensiones ? (
+                                                <span className="text-[11px] text-red-500">
+                                                    {errors.dimensiones}
+                                                </span>
+                                            ) : null}
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="mt-2">
-                                    <label className="mb-3 block text-[13.5px] font-semibold text-[#1B3D6D]">Inventario</label>
+                                    <label className="mb-3 block text-[13.5px] font-semibold text-[#1B3D6D]">
+                                        Inventario
+                                    </label>
                                     <div className="flex flex-col gap-4">
                                         <div>
                                             <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">
-                                                Código de producto<span className="text-red-500">*</span>
+                                                Código de producto
+                                                <span className="text-red-500">
+                                                    *
+                                                </span>
                                             </label>
                                             <input
                                                 type="text"
                                                 value={data.codigo}
-                                                onChange={(e) => setData('codigo', e.target.value)}
+                                                onChange={(e) =>
+                                                    setData(
+                                                        'codigo',
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="#1018"
                                                 className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none ${
-                                                    errors.codigo ? 'border-red-500' : 'border-[#E5E7EB]'
+                                                    errors.codigo
+                                                        ? 'border-red-500'
+                                                        : 'border-[#E5E7EB]'
                                                 }`}
                                             />
-                                            {errors.codigo ? <span className="text-[11px] text-red-500">{errors.codigo}</span> : null}
+                                            {errors.codigo ? (
+                                                <span className="text-[11px] text-red-500">
+                                                    {errors.codigo}
+                                                </span>
+                                            ) : null}
                                         </div>
                                         <div>
                                             <label className="mb-1.5 block text-[12.5px] font-medium text-[#1B3D6D]">
-                                                Stock<span className="text-red-500">*</span>
+                                                Stock
+                                                <span className="text-red-500">
+                                                    *
+                                                </span>
                                             </label>
                                             <input
                                                 type="number"
                                                 min={0}
                                                 value={stockInput}
-                                                onChange={(e) => setStockInput(e.target.value)}
+                                                onChange={(e) =>
+                                                    setStockInput(
+                                                        e.target.value,
+                                                    )
+                                                }
                                                 placeholder="20"
                                                 className={`w-full rounded-[4px] border px-3 py-2 text-[13.5px] text-[#4B5563] outline-none ${
-                                                    errors.stock ? 'border-red-500' : 'border-[#E5E7EB]'
+                                                    errors.stock
+                                                        ? 'border-red-500'
+                                                        : 'border-[#E5E7EB]'
                                                 }`}
                                             />
-                                            {errors.stock ? <span className="text-[11px] text-red-500">{errors.stock}</span> : null}
+                                            {errors.stock ? (
+                                                <span className="text-[11px] text-red-500">
+                                                    {errors.stock}
+                                                </span>
+                                            ) : null}
                                         </div>
                                     </div>
                                 </div>
 
                                 <ProductoMultimediaPanel
                                     imgPreview={imgPreview}
-                                    galleryPreviews={galleryItems.map((g) => g.preview)}
+                                    galleryPreviews={galleryItems.map(
+                                        (g) => g.preview,
+                                    )}
                                     galleryPreviewKeys={galleryItems.map((g) =>
-                                        g.kind === 'existente' ? `e-${g.id}` : g.clientKey,
+                                        g.kind === 'existente'
+                                            ? `e-${g.id}`
+                                            : g.clientKey,
                                     )}
                                     galeriaLength={galleryItems.length}
                                     estado={data.estado}
@@ -816,7 +1100,8 @@ export function CreateProductModal({
                                     onRemoveGalleryImage={removeGalleryImage}
                                     galeriaLimitMessage={galeriaLimitMessage}
                                     errors={{
-                                        imagen: imagenClientError ?? errors.imagen,
+                                        imagen:
+                                            imagenClientError ?? errors.imagen,
                                         galeria: errors.galeria,
                                         estado: errors.estado,
                                     }}
@@ -842,7 +1127,11 @@ export function CreateProductModal({
                             disabled={processing || formDisabled}
                             className="flex items-center gap-2 rounded-md bg-[#1B3D6D] px-6 py-2 text-[13.5px] font-semibold text-white shadow-sm transition-colors hover:bg-[#1B3D6D]/90 disabled:opacity-50"
                         >
-                            {processing ? 'Guardando...' : isEditMode ? 'Guardar cambios' : 'Guardar producto'}
+                            {processing
+                                ? 'Guardando...'
+                                : isEditMode
+                                  ? 'Guardar cambios'
+                                  : 'Guardar producto'}
                         </button>
                     </div>
                 </form>

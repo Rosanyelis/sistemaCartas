@@ -16,7 +16,12 @@ export default function UserLayout({ children, title }: UserLayoutProps) {
     const menuItems = getPanelNav(isAdmin ? 'admin' : 'cliente', url);
 
     return (
-        <PanelShell title={title} navItems={menuItems} isAdmin={isAdmin} user={auth.user}>
+        <PanelShell
+            title={title}
+            navItems={menuItems}
+            isAdmin={isAdmin}
+            user={auth.user}
+        >
             {children}
         </PanelShell>
     );

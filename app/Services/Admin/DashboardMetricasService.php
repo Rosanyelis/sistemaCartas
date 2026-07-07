@@ -338,6 +338,7 @@ class DashboardMetricasService
         string $periodo = 'mes',
         ?Carbon $desde = null,
         ?Carbon $hasta = null,
+        ?int $anio = null,
     ): array {
         if ($periodo === 'semana' && $desde === null && $hasta === null) {
             return $this->buildWeeklyChart();
@@ -350,7 +351,7 @@ class DashboardMetricasService
             }
         }
 
-        [$searchStart, $searchEnd] = $this->resolveChartSearchWindow($desde, $hasta);
+        [$searchStart, $searchEnd] = $this->resolveChartSearchWindow($desde, $hasta, $anio);
         $firstMonth = $this->primerMesConDatosEnPeriodo($searchStart, $searchEnd);
 
         if ($firstMonth === null) {
@@ -374,6 +375,7 @@ class DashboardMetricasService
         string $periodo = 'mes',
         ?Carbon $desde = null,
         ?Carbon $hasta = null,
+        ?int $anio = null,
     ): ?array {
         if ($periodo === 'semana' && $desde === null && $hasta === null) {
             $now = Carbon::now();
@@ -394,7 +396,7 @@ class DashboardMetricasService
             }
         }
 
-        [$searchStart, $searchEnd] = $this->resolveChartSearchWindow($desde, $hasta);
+        [$searchStart, $searchEnd] = $this->resolveChartSearchWindow($desde, $hasta, $anio);
         $firstMonth = $this->primerMesConDatosEnPeriodo($searchStart, $searchEnd);
 
         if ($firstMonth === null) {
@@ -423,14 +425,18 @@ class DashboardMetricasService
     protected function resolveChartSearchWindow(
         ?Carbon $desde,
         ?Carbon $hasta,
+        ?int $anio = null,
     ): array {
         if ($desde !== null && $hasta !== null) {
             return [$desde->copy()->startOfDay(), $hasta->copy()->endOfDay()];
         }
 
-        $now = Carbon::now();
+        $targetYear = $anio !== null ? $anio : Carbon::now()->year;
 
-        return [$now->copy()->startOfYear(), $now->copy()->endOfYear()];
+        return [
+            Carbon::create($targetYear, 1, 1)->startOfDay(),
+            Carbon::create($targetYear, 12, 31)->endOfDay(),
+        ];
     }
 
     protected function primerMesConDatosEnPeriodo(Carbon $inicio, Carbon $fin): ?Carbon

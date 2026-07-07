@@ -78,7 +78,12 @@ const lucideNavIcon = (Icon: IconComponent): IconComponent => {
         className?: string;
         strokeWidth?: number;
     }) {
-        return <Icon className={`size-6 shrink-0 ${className ?? ''}`} strokeWidth={strokeWidth} />;
+        return (
+            <Icon
+                className={`size-6 shrink-0 ${className ?? ''}`}
+                strokeWidth={strokeWidth}
+            />
+        );
     };
 };
 

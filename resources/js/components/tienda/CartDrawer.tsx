@@ -526,7 +526,8 @@ const CartDrawer: React.FC = () => {
                                                                     ) : (
                                                                         <span className="px-2 font-['Roboto',sans-serif] text-[11px] font-medium text-[#1B3D6D]">
                                                                             1
-                                                                            ciclo mensual
+                                                                            ciclo
+                                                                            mensual
                                                                         </span>
                                                                     )}
                                                                 </div>

@@ -1,0 +1,469 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": {
+    "name": "sistemaCartas",
+    "brand": "Historias por Correo",
+    "description": "Plataforma de tienda en línea con catálogo de productos (cobro único PayPal) y suscripciones mensuales a 'historias' (PayPal Subscriptions). Panel admin con métricas y CRUD.",
+    "type": "Laravel + Inertia v2 + React 19 SPA monolítica",
+    "repository": "Rosanyelis/sistemaCartas",
+    "deployment_target": "Contabo / CloudPanel / Ubuntu (PHP 8.4)",
+    "primary_language_ui": "es",
+    "currency_default": "USD",
+    "iva_configurable": true,
+    "year_started_estimated": 2025,
+    "current_state": "production-deployed"
+  },
+  "stack": {
+    "backend": {
+      "language": "PHP",
+      "language_version": "^8.2 (recomendado 8.4)",
+      "framework": "Laravel",
+      "framework_version": "^12.0",
+      "auth": "Laravel Fortify ^1.30 (email/password + 2FA TOTP + OTP email verify + OTP password reset)",
+      "queue_default": "database",
+      "cache_default": "database",
+      "session_default": "database",
+      "filesystem": "local (public para imágenes/video y QR)",
+      "scheduler": ["subscriptions:send-renewal-reminders (diario 09:00)"]
+    },
+    "frontend": {
+      "framework": "Inertia.js v2",
+      "adapter": "@inertiajs/react ^2.3",
+      "ui_runtime": "React 19",
+      "bundler": "Vite 7",
+      "styling": "Tailwind CSS 4 (via @tailwindcss/vite)",
+      "ui_components": "shadcn-style (new-york) + Radix UI + Headless UI",
+      "icon_library": "lucide-react + FontAwesome",
+      "charts": "Recharts",
+      "rich_editor": "Tiptap (LimitedWordRichEditor)",
+      "typescript": true,
+      "ts_version": "^5.7"
+    },
+    "payments": {
+      "provider": "PayPal REST API",
+      "products": "Orders v2 (capture única)",
+      "subscriptions": "Subscriptions v1 (mensual, plan REGULAR)",
+      "webhook_signature": "verify-webhook-signature (configurable, off en testing)",
+      "currency_dynamic": "config('paypal.currency')"
+    },
+    "media": {
+      "image_compression": {
+        "service": "WebpImageStorageService",
+        "library": "intervention/image ^3.0",
+        "engine": "PHP GD (Imagick si disponible)",
+        "output_format": "webp (q=82)",
+        "scale_max": "1920x1920"
+      },
+      "video_transcoding": {
+        "service": "HistoriaVideoStorageService",
+        "binary": "FFmpeg del sistema (Symfony Process)",
+        "codec": "H.264 + AAC + faststart",
+        "target_output_bytes": "10 MB",
+        "attempts": 4,
+        "applies_to": "solo historias (productos prohíben video)"
+      },
+      "audio": {
+        "service": "AudioStorageService",
+        "library": "intervention? No (storage local con streaming por rangos HTTP)",
+        "qr_service": "AudioQrGeneratorService (endroid/qr-code ^6.1 con logo opcional)",
+        "max_size_kb": 51200,
+        "supported_mimes": ["audio/mpeg", "audio/mp4", "audio/x-m4a", "audio/wav", "audio/ogg"]
+      },
+      "pdf": "barryvdh/laravel-dompdf ^3.1 (declarado, sin uso activo detectado)"
+    },
+    "data_io": {
+      "excel_export": "maatwebsite/excel (5 exports)",
+      "dompdf": "barryvdh/laravel-dompdf ^3.1",
+      "qr": "endroid/qr-code ^6.1"
+    },
+    "testing": {
+      "framework": "Pest ^4.4",
+      "extras": "pestphp/pest-plugin-laravel ^4.1, mockery/mockery ^1.6, fakerphp/faker ^1.23",
+      "ci": "GitHub Actions matrix PHP 8.4/8.5 + Node 22"
+    },
+    "deployment": {
+      "ci_cd": "GitHub Actions (tests.yml, lint.yml, deploy.yml)",
+      "deploy_target": "Contabo + CloudPanel (SSH)",
+      "env_file": ".env (basado en .env.example, nunca commitear)",
+      "database_production": "MySQL/MariaDB",
+      "database_local_default": "SQLite"
+    }
+  },
+  "routing": {
+    "tool": "Laravel Wayfinder (auto-genera TS en resources/js/actions y resources/js/routes, no comiteado)",
+    "vite_plugin": "@laravel/vite-plugin-wayfinder ^0.1.3",
+    "patterns": ["app/Http/Controllers/**/*.php"],
+    "form_variants": true
+  },
+  "main_routes_or_names": {
+    "public_get": [
+      "home",
+      "historias",
+      "historias.show",
+      "productos",
+      "productos.show",
+      "productos.ejemplo",
+      "audios.show",
+      "audios.stream (throttle:60,1)",
+      "terminos-y-condiciones",
+      "aviso-de-privacidad"
+    ],
+    "guest_post": [
+      "password.otp.send",
+      "password.otp.verify",
+      "password.otp.reset"
+    ],
+    "auth_get_post": [
+      "verification.notice",
+      "verification.otp",
+      "verification.otp.resend"
+    ],
+    "auth_verified_get_post": [
+      "dashboard",
+      "checkout.paypal.subscription.draft",
+      "checkout.paypal.subscription.sync",
+      "user.orders",
+      "user.subscriptions",
+      "user.subscriptions.cancel",
+      "user.profile",
+      "user.profile.update",
+      "user.profile.avatar",
+      "user.profile.payment-methods.store|destroy|set-default",
+      "admin.dashboard",
+      "admin.ordenes",
+      "admin.ordenes.export",
+      "admin.suscripciones",
+      "admin.suscripciones.export",
+      "admin.clientes",
+      "admin.clientes.export",
+      "admin.historias (index/store/update/destroy/duplicate/toggle-status)",
+      "admin.historias.export",
+      "admin.audios (index/store/update/destroy/qr)",
+      "admin.productos (index/store/update/destroy/duplicate/toggle-status/stock/formulario)",
+      "admin.productos.export",
+      "admin.taxonomia.historia-categorias.{index,store,destroy}",
+      "admin.taxonomia.producto-categorias.{index,store,destroy}",
+      "admin.taxonomia.producto-subcategorias.{index,store,destroy}",
+      "profile.edit/update/destroy",
+      "security.edit",
+      "user-password.update (throttle:6,1)",
+      "appearance.edit"
+    ],
+    "legacy_alias_admin": [
+      "admin.orders|subscriptions|clients|stories|products → redirigen a canónicos en español"
+    ],
+    "public_post_payment": [
+      "checkout.paypal.order",
+      "checkout.paypal.capture",
+      "webhooks.paypal (csrf except)"
+    ]
+  },
+  "models": [
+    "User",
+    "Historia",
+    "Producto",
+    "HistoriaCategoria",
+    "ProductoCategoria",
+    "ProductoSubcategoria",
+    "HistoriaVariante",
+    "HistoriaGaleria",
+    "ProductoGaleria",
+    "HistoriaCapitulo (modelo presente, sin uso activo)",
+    "Entrega (modelo presente, sin uso activo)",
+    "Audio",
+    "Suscripcion",
+    "StoreOrder",
+    "StoreOrderItem",
+    "PasarelaEvento",
+    "MetodoPagoUsuario",
+    "TipoMetodoPago"
+  ],
+  "critical_files": {
+    "bootstrap": "bootstrap/app.php",
+    "providers": ["AppServiceProvider.php", "FortifyServiceProvider.php"],
+    "controllers": [
+      "app/Http/Controllers/Checkout/PayPalCheckoutController.php",
+      "app/Http/Controllers/Checkout/PayPalSubscriptionCheckoutController.php",
+      "app/Http/Controllers/Checkout/PayPalSubscriptionSyncController.php",
+      "app/Http/Controllers/Checkout/PayPalWebhookController.php",
+      "app/Http/Controllers/Admin/DashboardController.php",
+      "app/Http/Controllers/Admin/HistoriaController.php",
+      "app/Http/Controllers/Admin/ProductoController.php",
+      "app/Http/Controllers/Admin/AudioController.php",
+      "app/Http/Controllers/Admin/{Orden,Suscripcion,Cliente,HistoriaCategoria,ProductoCategoria,ProductoSubcategoria}Controller.php",
+      "app/Http/Controllers/User/{Orden,Suscripcion,Profile,Producto,Historia}Controller.php",
+      "app/Http/Controllers/Storefront/{Home,AudioPublic,AudioStream,AvisoPrivacidad,TerminosCondiciones}Controller.php",
+      "app/Http/Controllers/Auth/{EmailVerificationOtp,PasswordResetOtp}Controller.php",
+      "app/Http/Controllers/Settings/{Profile,Security}Controller.php",
+      "app/Http/Responses/{StorefrontLoginResponse,StorefrontRegisterResponse}.php"
+    ],
+    "services": [
+      "app/Services/PayPalService.php",
+      "app/Services/HistoriaPayPalPlanService.php",
+      "app/Services/PasarelaEventoRecorder.php",
+      "app/Services/Admin/DashboardMetricasService.php",
+      "app/Services/Admin/ExportService.php",
+      "app/Services/Media/WebpImageStorageService.php",
+      "app/Services/Media/HistoriaVideoStorageService.php",
+      "app/Services/Audio/AudioStorageService.php",
+      "app/Services/Audio/AudioQrGeneratorService.php"
+    ],
+    "support_helpers": [
+      "app/Support/TiendaIva.php",
+      "app/Support/HistoriaSuscripcionPrecio.php",
+      "app/Support/SuscripcionPayPalActivationSync.php",
+      "app/Support/PayPalErrorMessage.php",
+      "app/Support/ValidPublicStoreRedirect.php",
+      "app/Support/InertiaSharedUser.php",
+      "app/Support/HistoriaCatalogoSerializer.php",
+      "app/Support/ProductoTiendaSerializer.php",
+      "app/Support/AudioPublicSerializer.php",
+      "app/Support/HistoriaFormLimits.php",
+      "app/Support/HistoriaDetalleInclusionIcon.php"
+    ],
+    "frontend_core": [
+      "resources/js/app.tsx",
+      "resources/js/ssr.tsx",
+      "vite.config.ts",
+      "resources/js/contexts/cart-context.tsx",
+      "resources/js/lib/cart-storage.ts",
+      "resources/js/lib/cart-mode.ts",
+      "resources/js/lib/load-paypal-script.ts",
+      "resources/js/components/tienda/PayPalCheckoutButtons.tsx",
+      "resources/js/components/tienda/PayPalSubscriptionButtons.tsx",
+      "resources/js/components/admin/dashboard/*",
+      "resources/js/components/admin/create-story/*"
+    ]
+  },
+  "external_services": [
+    {
+      "name": "PayPal REST",
+      "env_required": ["PAYPAL_MODE", "PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET", "PAYPAL_CURRENCY"],
+      "env_recommended": ["PAYPAL_WEBHOOK_ID", "PAYPAL_WEBHOOK_VERIFY", "PAYPAL_HTTP_TIMEOUT"],
+      "urls": {
+        "sandbox": "https://api-m.sandbox.paypal.com",
+        "live": "https://api-m.paypal.com"
+      },
+      "endpoints_used": [
+        "POST /v1/oauth2/token",
+        "POST /v2/checkout/orders",
+        "POST /v2/checkout/orders/{id}/capture",
+        "POST /v1/catalogs/products",
+        "POST /v1/billing/plans",
+        "POST /v1/billing/plans/{id}/activate",
+        "GET  /v1/billing/plans/{id}",
+        "POST /v1/billing/subscriptions",
+        "POST /v1/billing/subscriptions/{id}/cancel",
+        "GET  /v1/billing/subscriptions/{id}",
+        "POST /v1/notifications/verify-webhook-signature"
+      ]
+    },
+    {
+      "name": "SMTP (mail)",
+      "env_required": ["MAIL_MAILER", "MAIL_FROM_ADDRESS", "MAIL_FROM_NAME"],
+      "env_optional": ["MAIL_HOST", "MAIL_PORT", "MAIL_USERNAME", "MAIL_PASSWORD", "MAIL_SCHEME"],
+      "default_local": "log"
+    },
+    {
+      "name": "FFmpeg (binario de sistema)",
+      "env_optional": ["FFMPEG_BINARIES", "FFPROBE_BINARIES"],
+      "default": "ffmpeg/ffprobe en PATH"
+    },
+    {
+      "name": "Contabo / CloudPanel (deploy SSH)",
+      "secrets": ["CONTABO_HOST", "CONTABO_USER", "CONTABO_SSH_KEY", "CONTABO_PORT", "CLOUDPANEL_PROJECT_PATH", "DEPLOY_BRANCH"],
+      "environment": "historias-correos"
+    }
+  ],
+  "env_variables_specific": {
+    "TIENDA_IVA_PERCENTAGE": "default 16 (IVA aplicado al checkout PayPal y al cargo de suscripción)",
+    "TIENDA_RENEWAL_REMINDER_DAYS": "default 3 (días antes de proximo_cobro para el recordatorio)",
+    "HISTORIAS_TIENDA_PER_PAGE": "default 6 (paginación catálogo historias)",
+    "HISTORIAS_TIENDA_DESTACADAS_MAX": "default 10 (carrusel destacadas)",
+    "DEMO_DATA_YEAR": "default 2026 (periodo del demo seeder)",
+    "DEMO_SEED_FORCE": "default false"
+  },
+  "modules": [
+    "tienda_publica",
+    "carrito_polimorfico (products | subscriptions)",
+    "checkout_paypal_orders",
+    "checkout_paypal_subscriptions",
+    "admin_dashboard",
+    "admin_crud_productos",
+    "admin_crud_historias",
+    "admin_crud_audios",
+    "admin_ordenes",
+    "admin_suscripciones",
+    "admin_clientes",
+    "admin_taxonomias",
+    "admin_exportaciones_excel",
+    "user_panel (orders, subscriptions, profile, payment_methods, avatar)",
+    "auth_fortify (login, register, logout, 2FA, OTP email, OTP password)",
+    "media_compression (webp + ffmpeg)",
+    "audio_qr_public_streaming",
+    "mail_marketplace (8 mailables)",
+    "demo_seed_dashboard"
+  ],
+  "critical_flows": [
+    "checkout_one_shot_producto",
+    "suscripcion_paypal_historica",
+    "webhook_paypal_idempotente",
+    "renovacion_recordatorio_suscripcion",
+    "cancelacion_suscripcion_usuario",
+    "verificacion_email_otp",
+    "reset_password_otp",
+    "registro_con_fortify_y_redirect_post_verificar",
+    "compresion_y_almacenamiento_imagen",
+    "transcodificacion_y_almacenamiento_video",
+    "streaming_audio_qr_publico",
+    "admin_exportaciones_excel",
+    "admin_dashboard_defer_metricas_y_grafico"
+  ],
+  "dependencies_php": {
+    "intervention/image": "3.0",
+    "php-ffmpeg/php-ffmpeg": "1.2 (declarado, lógica propia usa Symfony Process)",
+    "barryvdh/laravel-dompdf": "^3.1 (declarado, sin uso activo)",
+    "maatwebsite/excel": "* (exportaciones)",
+    "endroid/qr-code": "^6.1",
+    "inertiajs/inertia-laravel": "^2.0",
+    "laravel/fortify": "^1.30",
+    "laravel/wayfinder": "^0.1.9",
+    "laravel/tinker": "^2.10.1",
+    "laravel/boost": "^2.3",
+    "laravel/pint": "^1.24",
+    "laravel/sail": "^1.41",
+    "fakerphp/faker": "^1.23",
+    "pestphp/pest": "^4.4",
+    "pestphp/pest-plugin-laravel": "^4.1"
+  },
+  "dependencies_node": {
+    "@inertiajs/react": "^2.3.7",
+    "@inertiajs/react/server": "vía inertia/react",
+    "@fortawesome/fontawesome-svg-core": "^7.2.0",
+    "@fortawesome/free-regular-svg-icons": "^7.2.0",
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
+    "@fortawesome/react-fontawesome": "^3.2.0",
+    "@headlessui/react": "^2.2.0",
+    "@radix-ui/*": "varios (avatar, checkbox, collapsible, dialog, dropdown-menu, label, navigation-menu, select, separator, slot, toggle, toggle-group, tooltip)",
+    "@tailwindcss/vite": "^4.1.11",
+    "@tiptap/extension-placeholder": "^3.22.4",
+    "@tiptap/react": "^3.22.4",
+    "@tiptap/starter-kit": "^3.22.4",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "input-otp": "^1.4.2",
+    "laravel-vite-plugin": "^2.0",
+    "lucide-react": "^0.475.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "recharts": "^3.8.0",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss": "^4.0.0",
+    "tw-animate-css": "^1.4.0",
+    "@laravel/vite-plugin-wayfinder": "^0.1.3"
+  },
+  "tests": {
+    "framework": "Pest 4",
+    "feature_categories": [
+      "Admin (CRUD, permisos, exports, audio, dashboard)",
+      "Auth (registro, login, 2FA, OTP email/password, verificación)",
+      "Checkout (PayPal orders, subscription draft, subscription sync, webhook)",
+      "Clientes (panel cliente, productos, home)",
+      "Mail (vistas de mail)",
+      "Seeders (demo, productos, historias)",
+      "Settings",
+      "Storefront (audio público)",
+      "User (órdenes, suscripciones, perfil)",
+      "Top-level: DashboardTest, SubscriptionRenewalReminderTest"
+    ],
+    "unit_categories": [
+      "Policies (AdminResourcePoliciesTest)",
+      "Support (TiendaIvaTest, Store/)"
+    ],
+    "estimated_total_cases": "~90"
+  },
+  "ci_cd": {
+    "workflows": [
+      "tests.yml: matrix PHP 8.4/8.5, Node 22, ejecuta composer install, npm i, php artisan key:generate, wayfinder:generate, npm run build, pest",
+      "lint.yml: Pint + npm format + npm lint (PHP 8.4)",
+      "deploy.yml: SSH a Contabo/CloudPanel con composer install, migrate:fresh+migrate, db:seed DashboardDemoDataSeeder, wayfinder:generate, npm install+build, optimize:clear+config:cache+route:cache+view:cache+storage:link"
+    ],
+    "environment_name": "historias-correos",
+    "deploy_branch": "DEPLOY_BRANCH secret (esperado: main)"
+  },
+  "notes_for_ia": [
+    "NO crear archivos fuera del árbol documentado sin aprobación.",
+    "NO añadir dependencias nuevas sin aprobación (composer.json, package.json).",
+    "NO regenerar migraciones existentes; en su lugar añadir migración nueva.",
+    "NO introducir comentarios en código salvo que el usuario lo pida explícitamente.",
+    "SIEMPRE ejecutar pint, format, lint y types:check antes de cerrar tarea.",
+    "SIEMPRE regenerar wayfinder tras editar rutas.",
+    "SIEMPRE preferir factories sobre seeds para tests.",
+    "RESISTIR la tentación de mover columnas a tablas: las migraciones que renombraron texto→FK son history-sensitive.",
+    "Convención: español en mensajes UI, inglés en nombres técnicos; id única slug + random suffix en admin CRUD.",
+    "Comportamiento dual: SQLite local (tests), MySQL/MariaDB prod. Cuidado con DATE_FORMAT (DashboardMetricasService ya lo cubre con CAST/strftime)."
+  ],
+  "risks_detected": [
+    {
+      "id": "R1",
+      "level": "alto",
+      "title": "PayPal sin webhook_id en producción",
+      "description": "Si PAYPAL_WEBHOOK_ID no está definido y APP_ENV no es testing, sólo se registra Log::warning y se acepta el webhook sin verificar firma (PayPalWebhookController.php:51-52). Riesgo crítico de fraude en producción."
+    },
+    {
+      "id": "R2",
+      "level": "alto",
+      "title": "race condition en suscripción",
+      "description": "PayPalSubscriptionCheckoutController chequea 'ya existe activa' antes del DB::transaction de createBillingPlan; uso concurrente puede crear duplicados. Mitigado parcialmente con lockForUpdate dentro de HistoriaPayPalPlanService::ensureBillingPlanForHistoria pero la verificación previa al create no está sincronizada."
+    },
+    {
+      "id": "R3",
+      "level": "medio",
+      "title": "Webhook 'BILLING.SUBSCRIPTION.ACTIVATED' se procesa también desde PayPalSubscriptionSyncController",
+      "description": "El sync crea un pasarela_evento con paypal_event_id='sync-{subscriptionId}' y otro el webhook con id real. La idempotencia interna funciona, pero conviene monitorear para evitar doble mail (mitigado con guard 'sendMail = !wasActiva' en SuscripcionPayPalActivationSync::applyFromActivatedResource)."
+    },
+    {
+      "id": "R4",
+      "level": "medio",
+      "title": "Stock decrement tras captura PayPal",
+      "description": "Si el commit DB falla tras captura, la captura queda cobrada y el stock no se reduce. Patrón actual usa DB::transaction envolviendo todo, pero la API de PayPal está fuera del transaction (intencional); podría generar divergencia. Considerar reconciliación."
+    },
+    {
+      "id": "R5",
+      "level": "medio",
+      "title": "Subida de video sin límite",
+      "description": "Form Request no limita video.*size; los límites reales son upload_max_filesize de PHP y client_max_body_size de Nginx. Documentado en DESPLIEGUE-UBUNTU.md."
+    },
+    {
+      "id": "R6",
+      "level": "bajo",
+      "title": "PAYMENT.SALE.COMPLETED sin suscripción",
+      "description": "Si billing_agreement_id está vacío, simplemente graba el evento sin procesarlo. Aceptable como 'evento sin suscripción', pero conviene un dashboard admin para limpiar pasarela_eventos huérfanos."
+    },
+    {
+      "id": "R7",
+      "level": "bajo",
+      "title": "DBAL faltante para ->change() en SQLite",
+      "description": "Migración 2026_07_02_020452_make_audio_path_nullable... usa ->change() que requiere doctrine/dbal en versiones antiguas de Laravel. Laravel 12 lo soporta nativamente; revisar en local con SQLite."
+    },
+    {
+      "id": "R8",
+      "level": "bajo",
+      "title": "Storefront sin rate limiting en /checkout/paypal/*",
+      "description": "Sólo emails y login están throttled; los checkout endpoints son públicos y pueden recibir abuso. Recomendar throttle en routes/web.php."
+    },
+    {
+      "id": "R9",
+      "level": "informativo",
+      "title": "Dependencias declaradas sin uso detectado",
+      "description": "barryvdh/laravel-dompdf y php-ffmpeg/php-ffmpeg no se usan activamente (la lógica de video es propia con Symfony Process). Valorar limpieza del composer.json."
+    },
+    {
+      "id": "R10",
+      "level": "informativo",
+      "title": "Admin productos galería límite inconsistente",
+      "description": "Tanto en StoreProductoRequest como UpdateProductoRequest se limita galeria a 5 imágenes (max:5). En Update* se permite 'gallery_sync' que efectivamente reescribe la galería enviada; el comportamiento con galería > 5 se valida en after() sólo para historias (ver ValidatesGaleriaImageLimit)."
+    }
+  ]
+}

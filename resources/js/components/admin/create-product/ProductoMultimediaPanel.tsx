@@ -52,14 +52,21 @@ export function ProductoMultimediaPanel({
 }: ProductoMultimediaPanelProps) {
     const galeriaMensaje = errors.galeria ?? galeriaLimitMessage ?? null;
     const galeriaLlena = galeriaLength >= MAX_IMAGENES_GALERIA;
-    const imageAreaStyle: CSSProperties | undefined = imgPreview ? undefined : checkerboardBackground;
+    const imageAreaStyle: CSSProperties | undefined = imgPreview
+        ? undefined
+        : checkerboardBackground;
 
     return (
         <div className="mt-2 flex flex-col gap-4">
-            <h3 className="text-[14px] font-bold text-[#1B3D6D]">Imágenes y multimedia</h3>
+            <h3 className="text-[14px] font-bold text-[#1B3D6D]">
+                Imágenes y multimedia
+            </h3>
 
             <div className="flex flex-col gap-2">
-                <label htmlFor={fieldIds.imagen} className="text-[13px] font-semibold text-[#1B3D6D]">
+                <label
+                    htmlFor={fieldIds.imagen}
+                    className="text-[13px] font-semibold text-[#1B3D6D]"
+                >
                     Imagen principal (JPG/PNG, máx. 5 MB, se guardará como WebP)
                 </label>
                 <div
@@ -67,26 +74,49 @@ export function ProductoMultimediaPanel({
                     style={imageAreaStyle}
                 >
                     {imgPreview ? (
-                        <img src={imgPreview} alt="Vista previa de la portada" className="h-full w-full object-contain" />
+                        <img
+                            src={imgPreview}
+                            alt="Vista previa de la portada"
+                            className="h-full w-full object-contain"
+                        />
                     ) : (
-                        <FontAwesomeIcon icon={faImage} className="text-4xl text-[#DFE4EA]" />
+                        <FontAwesomeIcon
+                            icon={faImage}
+                            className="text-4xl text-[#DFE4EA]"
+                        />
                     )}
                 </div>
-                <input type="file" id={fieldIds.imagen} className="hidden" onChange={onImageChange} accept="image/*" />
+                <input
+                    type="file"
+                    id={fieldIds.imagen}
+                    className="hidden"
+                    onChange={onImageChange}
+                    accept="image/*"
+                />
                 <label
                     htmlFor={fieldIds.imagen}
                     className="mx-auto mt-2 flex cursor-pointer items-center justify-center gap-2 rounded-[4px] border border-[#1B3D6D] px-6 py-[7px] text-[13px] font-semibold text-[#1B3D6D] transition-colors hover:bg-gray-50"
                 >
-                    <FontAwesomeIcon icon={faPlus} className="text-[13px]" /> Subir imagen
+                    <FontAwesomeIcon icon={faPlus} className="text-[13px]" />{' '}
+                    Subir imagen
                 </label>
-                {errors.imagen ? <span className="text-center text-[11px] text-red-500">{errors.imagen}</span> : null}
+                {errors.imagen ? (
+                    <span className="text-center text-[11px] text-red-500">
+                        {errors.imagen}
+                    </span>
+                ) : null}
             </div>
 
             <div className="flex flex-col gap-2">
-                <label className="text-[13px] font-semibold text-[#1B3D6D]">Galería (máx. {MAX_IMAGENES_GALERIA} imágenes)</label>
+                <label className="text-[13px] font-semibold text-[#1B3D6D]">
+                    Galería (máx. {MAX_IMAGENES_GALERIA} imágenes)
+                </label>
                 <div className="flex flex-wrap gap-2">
                     {galleryPreviews.map((preview, i) => (
-                        <div key={galleryPreviewKeys?.[i] ?? `gallery-${i}`} className="relative">
+                        <div
+                            key={galleryPreviewKeys?.[i] ?? `gallery-${i}`}
+                            className="relative"
+                        >
                             <img
                                 src={preview}
                                 alt={`Galería ${i + 1}`}
@@ -95,15 +125,23 @@ export function ProductoMultimediaPanel({
                             <button
                                 type="button"
                                 onClick={() => onRemoveGalleryImage(i)}
-                                className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center rounded-full bg-[#EF4444] text-white shadow-sm"
+                                className="absolute -top-1.5 -right-1.5 flex size-5 items-center justify-center rounded-full bg-[#EF4444] text-white shadow-sm"
                                 aria-label="Quitar imagen de galería"
                             >
-                                <FontAwesomeIcon icon={faTimes} className="text-[9px]" />
+                                <FontAwesomeIcon
+                                    icon={faTimes}
+                                    className="text-[9px]"
+                                />
                             </button>
                         </div>
                     ))}
 
-                    {Array.from({ length: Math.max(0, MAX_IMAGENES_GALERIA - galeriaLength) }).map((_, i) => (
+                    {Array.from({
+                        length: Math.max(
+                            0,
+                            MAX_IMAGENES_GALERIA - galeriaLength,
+                        ),
+                    }).map((_, i) => (
                         <div
                             key={`placeholder-${i}`}
                             className="h-[68px] w-[68px] rounded-[6px] border border-dashed border-[#DFE4EA] bg-[#F9FAFB]"
@@ -120,15 +158,22 @@ export function ProductoMultimediaPanel({
                                 accept="image/*"
                             />
                             <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#1B3D6D] text-[#1B3D6D]">
-                                <FontAwesomeIcon icon={faPlus} className="text-[10px]" />
+                                <FontAwesomeIcon
+                                    icon={faPlus}
+                                    className="text-[10px]"
+                                />
                             </div>
                         </label>
                     ) : null}
                 </div>
-                {galeriaMensaje ? <span className="text-[11px] text-red-500">{galeriaMensaje}</span> : null}
+                {galeriaMensaje ? (
+                    <span className="text-[11px] text-red-500">
+                        {galeriaMensaje}
+                    </span>
+                ) : null}
             </div>
 
-            <div className="mb-2 mt-6 flex flex-col gap-4">
+            <div className="mt-6 mb-2 flex flex-col gap-4">
                 <label className="group flex cursor-pointer items-start gap-3">
                     <div className="relative mt-0.5 flex items-center justify-center">
                         <input
@@ -137,13 +182,16 @@ export function ProductoMultimediaPanel({
                             value="activo"
                             checked={estado === 'activo'}
                             onChange={() => onEstadoChange('activo')}
-                            className="peer h-4 w-4 appearance-none rounded-full border border-[#DFE4EA] text-[#1B3D6D] outline-none transition-all checked:border-[5px] checked:border-[#1B3D6D] focus:ring-[#1B3D6D]"
+                            className="peer h-4 w-4 appearance-none rounded-full border border-[#DFE4EA] text-[#1B3D6D] transition-all outline-none checked:border-[5px] checked:border-[#1B3D6D] focus:ring-[#1B3D6D]"
                         />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[14px] font-semibold text-[#1B3D6D]">Activo</span>
+                        <span className="text-[14px] font-semibold text-[#1B3D6D]">
+                            Activo
+                        </span>
                         <span className="text-[11.5px] text-[#A0A0A0]">
-                            Está publicado en el sitio web y puede recibir ventas.
+                            Está publicado en el sitio web y puede recibir
+                            ventas.
                         </span>
                     </div>
                 </label>
@@ -156,17 +204,24 @@ export function ProductoMultimediaPanel({
                             value="pausado"
                             checked={estado === 'pausado'}
                             onChange={() => onEstadoChange('pausado')}
-                            className="peer h-4 w-4 appearance-none rounded-full border border-[#DFE4EA] text-[#1B3D6D] outline-none transition-all checked:border-[5px] checked:border-[#1B3D6D] focus:ring-[#1B3D6D]"
+                            className="peer h-4 w-4 appearance-none rounded-full border border-[#DFE4EA] text-[#1B3D6D] transition-all outline-none checked:border-[5px] checked:border-[#1B3D6D] focus:ring-[#1B3D6D]"
                         />
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[14px] font-semibold text-[#1B3D6D]">Pausado</span>
+                        <span className="text-[14px] font-semibold text-[#1B3D6D]">
+                            Pausado
+                        </span>
                         <span className="text-[11.5px] text-[#A0A0A0]">
-                            No aparece en el sitio web pero sigue en la base de datos y en la lista de productos.
+                            No aparece en el sitio web pero sigue en la base de
+                            datos y en la lista de productos.
                         </span>
                     </div>
                 </label>
-                {errors.estado ? <span className="text-[11px] text-red-500">{errors.estado}</span> : null}
+                {errors.estado ? (
+                    <span className="text-[11px] text-red-500">
+                        {errors.estado}
+                    </span>
+                ) : null}
             </div>
         </div>
     );
